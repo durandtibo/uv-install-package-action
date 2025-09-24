@@ -14,6 +14,7 @@ SOURCE = f"src/{NAME}"
 TESTS = "tests"
 UNIT_TESTS = f"{TESTS}/unit"
 INTEGRATION_TESTS = f"{TESTS}/integration"
+FUNCTIONAL_TESTS = f"{TESTS}/functional"
 
 
 @task
@@ -74,6 +75,16 @@ def unit_test(c: Context, cov: bool = False) -> None:
     if cov:
         cmd.append(f"--cov-report html --cov-report xml --cov-report term --cov={NAME}")
     cmd.append(f"{UNIT_TESTS}")
+    c.run(" ".join(cmd), pty=True)
+
+
+@task
+def functional_test(c: Context, cov: bool = False) -> None:
+    r"""Run the unit tests."""
+    cmd = ["python -m pytest --xdoctest --timeout 1000"]
+    if cov:
+        cmd.append(f"--cov-report html --cov-report xml --cov-report term --cov={NAME}")
+    cmd.append(f"{FUNCTIONAL_TESTS}")
     c.run(" ".join(cmd), pty=True)
 
 

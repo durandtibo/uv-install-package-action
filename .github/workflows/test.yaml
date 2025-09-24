@@ -53,9 +53,9 @@ jobs:
         run: |
           inv show-installed-packages
 
-      - name: Run unit tests
+      - name: Run functional tests
         run: |
-          inv unit-test --cov
+          inv functional-test --cov
 
 
   min:
@@ -104,6 +104,6 @@ jobs:
         run: |
           inv show-installed-packages
 
-      - name: Run unit tests
+      - name: Run functional tests
         run: |
-          inv unit-test --cov
+          inv functional-test --cov
