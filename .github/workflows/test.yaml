@@ -43,7 +43,7 @@ jobs:
 
       - name: Install packages
         run: |
-          inv install --all-deps
+          inv install --functional --all-deps
 
       - name: Show python config
         run: |
@@ -94,7 +94,7 @@ jobs:
 
       - name: Install packages
         run: |
-          inv install
+          inv install --functional
 
       - name: Show python config
         run: |
