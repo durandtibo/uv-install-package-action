@@ -1,0 +1,55 @@
+name: 'uv-install-package'
+description: |
+  'Find the closest valid version given the package name and target version,
+  and python version, and install it by using uv'
+branding:
+  icon: 'box'
+  color: 'purple'
+
+inputs:
+  package-name:
+    description: 'The package name'
+    required: true
+  package-version:
+    description: 'The package target version'
+    required: true
+  python-version:
+    description: 'The python version'
+    required: true
+  uv-args:
+    description: 'Optional uv arguments'
+    required: true
+outputs:
+  closest-valid-version:
+    description:
+      'The closest valid package version given the input package version'
+    value: ${{ steps.find-version.outputs.closest-valid-version }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Install dependencies
+      shell: bash
+      run: |
+        which uv
+        uv pip install "feu[cli]>=0.4.0a0"
+
+    - name: Find closest valid version
+      id: find-version
+      shell: bash
+      run: |
+        VERSION=$(python -m feu find-closest-version --pkg-name=${PACKAGE_NAME} --pkg-version=${PACKAGE_VERSION} --python-version=${PYTHON_VERSION})
+        echo ${VERSION}
+        echo "closest-valid-version=${VERSION}" >> $GITHUB_OUTPUT
+      env:
+        PACKAGE_NAME: ${{ inputs.package-name }}
+        PACKAGE_VERSION: ${{ inputs.package-version }}
+        PYTHON_VERSION: ${{ inputs.python-version }}
+
+    - name: Install package
+      shell: bash
+      run: |
+        python -m feu install --installer=uv --pkg-name=${PACKAGE_NAME} --pkg-version=${PACKAGE_VERSION}
+      env:
+        PACKAGE_NAME: ${{ inputs.package-name }}
+        PACKAGE_VERSION: ${{ steps.find-version.outputs.closest-valid-version }}
