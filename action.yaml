@@ -50,7 +50,4 @@ runs:
     - name: Install package
       shell: bash
       run: |
-        uv run -m feu install --installer=uv --pkg-name=${PACKAGE_NAME} --pkg-version=${PACKAGE_VERSION}
-      env:
-        PACKAGE_NAME: ${{ inputs.package-name }}
-        PACKAGE_VERSION: ${{ steps.find-version.outputs.closest-valid-version }}
+        uv run -m feu install --installer=uv --pkg-name=${{ inputs.package-name }} --pkg-version=${{ steps.find-version.outputs.closest-valid-version }} --args=${{ inputs.uv-args }}
