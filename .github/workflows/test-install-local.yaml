@@ -28,6 +28,14 @@ jobs:
           python-version: ${{ matrix.python-version }}
           activate-environment: true
 
+      - name: Install invoke
+        run: |
+          make install-invoke
+
+      - name: Install packages
+        run: |
+          uv pip install pytest
+
       - name: Install valid package version
         uses: ./
         with:
@@ -35,10 +43,6 @@ jobs:
           package-version: ${{ matrix.click-version }}
           python-version: ${{ matrix.python-version }}
 
-      - name: Install packages
-        run: |
-          uv pip install pytest
-
       - name: Run functional tests
         run: |
-          uv run -m pytest tests/functional
+          inv functional-test
