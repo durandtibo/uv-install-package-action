@@ -18,7 +18,8 @@ inputs:
     required: true
   uv-args:
     description: 'Optional uv arguments'
-    required: true
+    required: false
+    default: ''
 outputs:
   closest-valid-version:
     description:
@@ -32,24 +33,17 @@ runs:
       shell: bash
       run: |
         which uv
-        uv pip install "feu[cli]>=0.4.0a0"
+        uv pip install "feu[cli]>=0.4.0a2"
 
     - name: Find closest valid version
       id: find-version
       shell: bash
       run: |
-        VERSION=$(python -m feu find-closest-version --pkg-name=${PACKAGE_NAME} --pkg-version=${PACKAGE_VERSION} --python-version=${PYTHON_VERSION})
+        VERSION=$(python -m feu find-closest-version --pkg-name=${{ inputs.package-name }} --pkg-version=${{ inputs.package-version }} --python-version=${{ inputs.python-version }})
         echo ${VERSION}
         echo "closest-valid-version=${VERSION}" >> $GITHUB_OUTPUT
-      env:
-        PACKAGE_NAME: ${{ inputs.package-name }}
-        PACKAGE_VERSION: ${{ inputs.package-version }}
-        PYTHON_VERSION: ${{ inputs.python-version }}
 
     - name: Install package
       shell: bash
       run: |
-        python -m feu install --installer=uv --pkg-name=${PACKAGE_NAME} --pkg-version=${PACKAGE_VERSION}
-      env:
-        PACKAGE_NAME: ${{ inputs.package-name }}
-        PACKAGE_VERSION: ${{ steps.find-version.outputs.closest-valid-version }}
+        python -m feu install --installer=uv --pkg-name=${{ inputs.package-name }} --pkg-version=${{ steps.find-version.outputs.closest-valid-version }} --args=${{ inputs.uv-args }}
