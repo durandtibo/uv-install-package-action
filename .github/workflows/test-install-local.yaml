@@ -1,0 +1,44 @@
+name: Test - Install Packages (local)
+on:
+  workflow_call:
+  workflow_dispatch:  # to trigger manually
+
+permissions:
+  contents: read
+
+jobs:
+  click:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    strategy:
+      max-parallel: 8
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-24.04 ]
+        python-version: [ '3.13', '3.12', '3.11', '3.10', '3.9' ]
+        click-version: [ '8.2.1', '8.1.8', '8.1.0' ]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Install uv and set the python version
+        uses: astral-sh/setup-uv@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+          activate-environment: true
+
+      - name: Install packages
+        run: |
+          uv pip install pytest
+
+      - name: Install valid package version
+        uses: ./
+        with:
+          package-name: 'click'
+          package-version: ${{ matrix.click-version }}
+          python-version: ${{ matrix.python-version }}
+
+      - name: Run functional tests
+        run: |
+          python -m pytest tests/functional

@@ -52,6 +52,7 @@ the latest release notes.
 | `package-name`    | The package name e.g. `numpy`           | none          |
 | `package-version` | The target package version e.g. `2.0.2` | none          |
 | `python-version`  | The python version e.g. `3.11`          | none          |
+| `uv-args`         | Optional uv arguments                   | `''`          |
 
 ### Outputs
 
