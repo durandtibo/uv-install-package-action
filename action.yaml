@@ -33,7 +33,7 @@ runs:
       shell: bash
       run: |
         which uv
-        uv pip install "feu[cli]>=0.4.0a2"
+        uv pip install "feu[cli]>=0.4.0a3"
 
     - name: Find closest valid version
       id: find-version
@@ -46,4 +46,4 @@ runs:
     - name: Install package
       shell: bash
       run: |
-        python -m feu install --installer=uv --pkg-name=${{ inputs.package-name }} --pkg-version=${{ steps.find-version.outputs.closest-valid-version }} --args=${{ inputs.uv-args }}
+        python -m feu install --installer-name=uv --installer-args=${{ inputs.uv-args }} --pkg-name=${{ inputs.package-name }} --pkg-version=${{ steps.find-version.outputs.closest-valid-version }}
