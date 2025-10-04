@@ -1,0 +1,531 @@
+name: Test - Install Packages
+on:
+  workflow_call:
+  workflow_dispatch:  # to trigger manually
+
+permissions:
+  contents: read
+
+jobs:
+  click:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    strategy:
+      max-parallel: 8
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest ]
+        python-version: [ '3.13', '3.12', '3.11', '3.10', '3.9' ]
+        package-version: [
+          '8.3.0',
+          '8.2.1',
+          '8.1.8',
+          '8.1.0',
+        ]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Install uv and set the python version
+        uses: astral-sh/setup-uv@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+          activate-environment: true
+
+      - name: Install packages
+        run: |
+          uv pip install pytest
+
+      - name: Install valid package version
+        uses: durandtibo/uv-install-package-action@v0.1.0
+        with:
+          package-name: 'click'
+          package-version: ${{ matrix.package-version }}
+          python-version: ${{ matrix.python-version }}
+
+      - name: Run functional tests
+        run: |
+          python -m pytest tests/functional
+
+
+  jax:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    strategy:
+      max-parallel: 8
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest ]
+        python-version: [ '3.13', '3.12', '3.11', '3.10', '3.9' ]
+        package-version: [
+          0.7.0,
+          0.6.2,
+          0.6.0,
+          0.5.3,
+          0.4.38,
+          0.4.1,
+        ]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Install uv and set the python version
+        uses: astral-sh/setup-uv@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+          activate-environment: true
+
+      - name: Install packages
+        run: |
+          uv pip install pytest
+
+      - name: Install valid package version
+        uses: durandtibo/uv-install-package-action@v0.1.0
+        with:
+          package-name: 'jax'
+          package-version: ${{ matrix.package-version }}
+          python-version: ${{ matrix.python-version }}
+
+      - name: Run functional tests
+        run: |
+          python -m pytest tests/functional
+
+
+
+  matplotlib:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    strategy:
+      max-parallel: 8
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest ]
+        python-version: [ '3.13', '3.12', '3.11', '3.10', '3.9' ]
+        package-version: [
+          3.10.5,
+          3.9.4,
+          3.8.4,
+          3.7.5,
+          3.6.3,
+        ]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Install uv and set the python version
+        uses: astral-sh/setup-uv@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+          activate-environment: true
+
+      - name: Install packages
+        run: |
+          uv pip install pytest
+
+      - name: Install valid package version
+        uses: durandtibo/uv-install-package-action@v0.1.0
+        with:
+          package-name: 'matplotlib'
+          package-version: ${{ matrix.package-version }}
+          python-version: ${{ matrix.python-version }}
+
+      - name: Run functional tests
+        run: |
+          python -m pytest tests/functional
+
+
+  numpy:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    strategy:
+      max-parallel: 8
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest ]
+        python-version: [ '3.13', '3.12', '3.11', '3.10', '3.9' ]
+        package-version: [
+          2.3.2,
+          2.2.6,
+          2.1.1,
+          2.0.2,
+          1.26.4,
+          1.25.2,
+          1.24.3,
+          1.23.5,
+          1.22.4,
+          1.21.6,
+          1.20.3,
+          1.20.0,
+        ]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Install uv and set the python version
+        uses: astral-sh/setup-uv@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+          activate-environment: true
+
+      - name: Install packages
+        run: |
+          uv pip install pytest
+
+      - name: Install valid package version
+        uses: durandtibo/uv-install-package-action@v0.1.0
+        with:
+          package-name: 'numpy'
+          package-version: ${{ matrix.package-version }}
+          python-version: ${{ matrix.python-version }}
+
+      - name: Run functional tests
+        run: |
+          python -m pytest tests/functional
+
+
+
+
+  pandas:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    strategy:
+      max-parallel: 8
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest ]
+        python-version: [ '3.13', '3.12', '3.11', '3.10', '3.9' ]
+        package-version: [
+          2.3.1,
+          2.2.3,
+          2.1.4,
+          2.0.3,
+          2.0.0,
+          1.5.3,
+          1.4.4,
+          1.3.5,
+          1.2.5,
+        ]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Install uv and set the python version
+        uses: astral-sh/setup-uv@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+          activate-environment: true
+
+      - name: Install packages
+        run: |
+          uv pip install pytest
+
+      - name: Install valid package version
+        uses: durandtibo/uv-install-package-action@v0.1.0
+        with:
+          package-name: 'pandas'
+          package-version: ${{ matrix.package-version }}
+          python-version: ${{ matrix.python-version }}
+
+      - name: Run functional tests
+        run: |
+          python -m pytest tests/functional
+
+
+  pyarrow:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    strategy:
+      max-parallel: 8
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest ]
+        python-version: [ '3.13', '3.12', '3.11', '3.10', '3.9' ]
+        package-version: [
+          21.0.0,
+          20.0.0,
+          19.0.1,
+          18.1.0,
+          17.0.0,
+          16.1.0,
+          15.0.2,
+          14.0.2,
+          13.0.0,
+          12.0.1,
+          11.0.0,
+          10.0.1,
+          9.0.0,
+          8.0.0,
+          7.0.0,
+          6.0.1,
+          5.0.0,
+        ]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Install uv and set the python version
+        uses: astral-sh/setup-uv@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+          activate-environment: true
+
+      - name: Install packages
+        run: |
+          uv pip install pytest
+
+      - name: Install valid package version
+        uses: durandtibo/uv-install-package-action@v0.1.0
+        with:
+          package-name: 'pyarrow'
+          package-version: ${{ matrix.package-version }}
+          python-version: ${{ matrix.python-version }}
+
+      - name: Run functional tests
+        run: |
+          python -m pytest tests/functional
+
+
+  requests:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    strategy:
+      max-parallel: 8
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest ]
+        python-version: [ '3.13', '3.12', '3.11', '3.10', '3.9' ]
+        package-version: [
+          2.32.4,
+          2.31.0,
+          2.30.0,
+          2.29.0,
+          2.28.2,
+          2.27.1,
+          2.26.0,
+          2.25.1,
+          2.25.0,
+        ]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Install uv and set the python version
+        uses: astral-sh/setup-uv@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+          activate-environment: true
+
+      - name: Install packages
+        run: |
+          uv pip install pytest
+
+      - name: Install valid package version
+        uses: durandtibo/uv-install-package-action@v0.1.0
+        with:
+          package-name: 'requests'
+          package-version: ${{ matrix.package-version }}
+          python-version: ${{ matrix.python-version }}
+
+      - name: Run functional tests
+        run: |
+          python -m pytest tests/functional
+
+
+  scikit-learn:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    strategy:
+      max-parallel: 8
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest ]
+        python-version: [ '3.13', '3.12', '3.11', '3.10', '3.9' ]
+        package-version: [
+          1.7.1,
+          1.6.1,
+          1.5.2,
+          1.4.2,
+          1.3.2,
+          1.2.2,
+          1.1.3,
+          1.0.2,
+          1.0.0,
+        ]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Install uv and set the python version
+        uses: astral-sh/setup-uv@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+          activate-environment: true
+
+      - name: Install packages
+        run: |
+          uv pip install pytest
+
+      - name: Install valid package version
+        uses: durandtibo/uv-install-package-action@v0.1.0
+        with:
+          package-name: 'scikit-learn'
+          package-version: ${{ matrix.package-version }}
+          python-version: ${{ matrix.python-version }}
+
+      - name: Run functional tests
+        run: |
+          python -m pytest tests/functional
+
+
+  scipy:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    strategy:
+      max-parallel: 8
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest ]
+        python-version: [ '3.13', '3.12', '3.11', '3.10', '3.9' ]
+        package-version: [
+          1.16.1,
+          1.15.3,
+          1.14.1,
+          1.13.1,
+          1.12.0,
+          1.11.4,
+          1.10.1,
+          1.9.3,
+          1.8.1,
+          1.7.3,
+          1.6.3,
+          1.6.0,
+        ]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Install uv and set the python version
+        uses: astral-sh/setup-uv@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+          activate-environment: true
+
+      - name: Install packages
+        run: |
+          uv pip install pytest
+
+      - name: Install valid package version
+        uses: durandtibo/uv-install-package-action@v0.1.0
+        with:
+          package-name: 'scipy'
+          package-version: ${{ matrix.package-version }}
+          python-version: ${{ matrix.python-version }}
+
+      - name: Run functional tests
+        run: |
+          python -m pytest tests/functional
+
+
+  torch:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    strategy:
+      max-parallel: 8
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest ]
+        python-version: [ '3.13', '3.12', '3.11', '3.10', '3.9' ]
+        package-version: [
+          2.8.0,
+          2.7.1,
+          2.6.0,
+          2.5.1,
+          2.4.1,
+          2.3.1,
+          2.2.2,
+          2.1.2,
+          2.0.1,
+        ]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Install uv and set the python version
+        uses: astral-sh/setup-uv@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+          activate-environment: true
+
+      - name: Install packages
+        run: |
+          uv pip install pytest
+
+      - name: Install valid package version
+        uses: durandtibo/uv-install-package-action@v0.1.0
+        with:
+          package-name: 'torch'
+          package-version: ${{ matrix.package-version }}
+          python-version: ${{ matrix.python-version }}
+
+      - name: Run functional tests
+        run: |
+          python -m pytest tests/functional
+
+
+  xarray:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    strategy:
+      max-parallel: 8
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest ]
+        python-version: [ '3.13', '3.12', '3.11', '3.10', '3.9' ]
+        package-version: [
+          '2025.7.1',
+          '2025.4.0',
+          '2025.1.0',
+          '2024.10.0',
+          '2024.7.0',
+          '2024.5.0',
+          '2024.1.1',
+          '2023.10.1',
+          '2023.7.0',
+          '2023.4.2',
+          '2023.1.0',
+        ]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Install uv and set the python version
+        uses: astral-sh/setup-uv@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+          activate-environment: true
+
+      - name: Install packages
+        run: |
+          uv pip install pytest
+
+      - name: Install valid package version
+        uses: durandtibo/uv-install-package-action@v0.1.0
+        with:
+          package-name: 'xarray'
+          package-version: ${{ matrix.package-version }}
+          python-version: ${{ matrix.python-version }}
+
+      - name: Run functional tests
+        run: |
+          python -m pytest tests/functional
