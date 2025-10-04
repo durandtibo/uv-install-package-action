@@ -38,7 +38,7 @@ the latest release notes.
 
 ```yaml
   - name: Install valid package version
-    uses: durandtibo/uv-install-package-action@v0.0.1
+    uses: durandtibo/uv-install-package-action@v0.1.0
     with:
       package-name: 'numpy'
       package-version: 2.0.2
