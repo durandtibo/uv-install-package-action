@@ -3564,7 +3564,7 @@ functional = [
 
 [package.metadata.requires-dev]
 dev = [
-    { name = "black", specifier = ">=25.1" },
+    { name = "black", specifier = ">=25.9" },
     { name = "coverage", extras = ["toml"], specifier = ">=7.10,<8.0" },
     { name = "docformatter", extras = ["tomli"], specifier = ">=1.7,<2.0" },
     { name = "feu", extras = ["all"], specifier = ">=0.4.0,<1.0" },
