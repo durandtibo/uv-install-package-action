@@ -500,15 +500,15 @@ wheels = [
 
 [[package]]
 name = "feu"
-version = "0.4.0"
+version = "0.4.1a0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "packaging" },
     { name = "typing-extensions", marker = "python_full_version < '3.11'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/27/e0/7684d3bde34c07b312b2420a49ae2c36893e8a9696337d730f4c2d444714/feu-0.4.0.tar.gz", hash = "sha256:4a9bd84e614161d2978fd191922c62eb539a4afe7c5ab1920faeef32283dcd02", size = 19441, upload-time = "2025-10-04T07:03:39.532Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/d9/59/a0b4543a9739c243539c82fd91825e8f34d172c5f8c2c4a62480aea2d310/feu-0.4.1a0.tar.gz", hash = "sha256:388fe9c6d71cb23fcbda995a019fd287c64970ccb813d49f854f2003296476ac", size = 19470, upload-time = "2025-10-18T16:07:06.071Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/cc/cc/301dc0866dba1b4953d41a5ff0ae09fd48be7b96a320cb19915a5a7fa438/feu-0.4.0-py3-none-any.whl", hash = "sha256:d85e850b95474a5a1fc59110d6e5bd2c0294fa265183d50bef72a6dbd9d9e532", size = 24189, upload-time = "2025-10-04T07:03:38.604Z" },
+    { url = "https://files.pythonhosted.org/packages/2b/0c/5f475b6703e60a0c0fcd9266cccea8483e06cc58587bd910cc62fd3d2a78/feu-0.4.1a0-py3-none-any.whl", hash = "sha256:ce0c73f87c84fc740959bde807b49df2fb5457a58c890bfd832c041207ba8943", size = 24239, upload-time = "2025-10-18T16:07:04.752Z" },
 ]
 
 [package.optional-dependencies]
@@ -2334,7 +2334,7 @@ dev = [
     { name = "black", specifier = ">=25.9" },
     { name = "coverage", extras = ["toml"], specifier = ">=7.11,<8.0" },
     { name = "docformatter", extras = ["tomli"], marker = "python_full_version < '3.14'", specifier = ">=1.7,<2.0" },
-    { name = "feu", extras = ["all"], specifier = ">=0.4.0,<1.0" },
+    { name = "feu", extras = ["all"], specifier = ">=0.4.1a0,<1.0" },
     { name = "invoke", specifier = ">=2.2.0,<3.0" },
     { name = "pre-commit", specifier = ">=4.2,<5.0" },
     { name = "pygments", specifier = ">=2.19,<3.0" },
