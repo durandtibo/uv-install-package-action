@@ -26,7 +26,7 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
 ]
 
-requires-python = ">=3.9,<3.15"
+requires-python = ">=3.10,<3.15"
 
 dependencies = []
 
@@ -36,7 +36,7 @@ dependencies = []
 [dependency-groups]
 dev = [
     "black >=25.9",
-    "coverage[toml] >=7.10,<8.0",
+    "coverage[toml] >=7.11,<8.0",
     "docformatter[tomli] >=1.7,<2.0; python_version < '3.14'",
     "feu[all] >=0.4.0,<1.0",
     "invoke >=2.2.0,<3.0",
@@ -53,17 +53,16 @@ functional = [
     "jax>=0.4.34,<1.0; python_version >= '3.13' and python_version < '3.14'",
     "jax>=0.4.17,<1.0; python_version >= '3.12' and python_version < '3.13'",
     "jax>=0.4.6,<1.0; python_version >= '3.10' and python_version < '3.12'",
-    "jax>=0.4.6,<1.0; python_version >= '3.9' and python_version < '3.10'",
     "matplotlib>=3.6,<4.0",
     "numpy>=1.20,<3.0",
     "pandas>=1.2,<3.0",
     "pyarrow>=5.0; python_version < '3.14'",
     "requests>=2.25",
     "scipy>=1.14.1,<2.0; python_version >= '3.13' and python_version < '3.14'",
-    "scipy>=1.6,<2.0; python_version >= '3.9' and python_version < '3.13'",
+    "scipy>=1.10,<2.0; python_version >= '3.10' and python_version < '3.13'",
     "scikit-learn >=1.0,<2.0",
     "torch>=2.0,<3.0; sys_platform == 'linux' or (sys_platform == 'darwin' and platform_machine == 'arm64')",
-    "torch>=2.0,<2.3; sys_platform == 'darwin' and platform_machine != 'arm64' and python_version >= '3.9' and python_version < '3.13'",
+    "torch>=2.0,<2.3; sys_platform == 'darwin' and platform_machine != 'arm64' and python_version >= '3.10' and python_version < '3.13'",
     "xarray>=2022.3",
 ]
 
