@@ -500,15 +500,15 @@ wheels = [
 
 [[package]]
 name = "feu"
-version = "0.4.1a0"
+version = "0.4.1a1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "packaging" },
     { name = "typing-extensions", marker = "python_full_version < '3.11'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/d9/59/a0b4543a9739c243539c82fd91825e8f34d172c5f8c2c4a62480aea2d310/feu-0.4.1a0.tar.gz", hash = "sha256:388fe9c6d71cb23fcbda995a019fd287c64970ccb813d49f854f2003296476ac", size = 19470, upload-time = "2025-10-18T16:07:06.071Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/50/c1/88feafc17aa74da9bf6b21b4afb5f54af51f0973fd00af1f5e6fccde959f/feu-0.4.1a1.tar.gz", hash = "sha256:16fc1c46705606d8d439f5d6411fab40d13f7e20b3cced65ccb3aab6dbb7a87f", size = 19482, upload-time = "2025-10-19T18:45:37.987Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/2b/0c/5f475b6703e60a0c0fcd9266cccea8483e06cc58587bd910cc62fd3d2a78/feu-0.4.1a0-py3-none-any.whl", hash = "sha256:ce0c73f87c84fc740959bde807b49df2fb5457a58c890bfd832c041207ba8943", size = 24239, upload-time = "2025-10-18T16:07:04.752Z" },
+    { url = "https://files.pythonhosted.org/packages/5c/63/6a26d2896fab12317a2e28aa155a7c152ac8bce5fb60bf3f52a6f04e7efc/feu-0.4.1a1-py3-none-any.whl", hash = "sha256:6ea89bc494db4ab91aa305a0e2f81fc8ba69acc880d583ae3cb0c1f077dd853f", size = 24249, upload-time = "2025-10-19T18:45:37.092Z" },
 ]
 
 [package.optional-dependencies]
@@ -2334,7 +2334,7 @@ dev = [
     { name = "black", specifier = ">=25.9" },
     { name = "coverage", extras = ["toml"], specifier = ">=7.11,<8.0" },
     { name = "docformatter", extras = ["tomli"], marker = "python_full_version < '3.14'", specifier = ">=1.7,<2.0" },
-    { name = "feu", extras = ["all"], specifier = ">=0.4.1a0,<1.0" },
+    { name = "feu", extras = ["all"], specifier = ">=0.4.1a1,<1.0" },
     { name = "invoke", specifier = ">=2.2.0,<3.0" },
     { name = "pre-commit", specifier = ">=4.2,<5.0" },
     { name = "pygments", specifier = ">=2.19,<3.0" },
