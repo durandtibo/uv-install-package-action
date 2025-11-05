@@ -33,7 +33,7 @@ runs:
       shell: bash
       run: |
         which uv
-        uv pip install "feu[cli]>=0.4.1"
+        uv pip install "feu[cli]>=0.4.2"
 
     - name: Find closest valid version
       id: find-version
