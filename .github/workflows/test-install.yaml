@@ -38,7 +38,7 @@ jobs:
           uv pip install pytest
 
       - name: Install valid package version
-        uses: durandtibo/uv-install-package-action@v0.1.0
+        uses: durandtibo/uv-install-package-action@v0.1.1
         with:
           package-name: 'click'
           package-version: ${{ matrix.package-version }}
@@ -84,7 +84,7 @@ jobs:
           uv pip install pytest
 
       - name: Install valid package version
-        uses: durandtibo/uv-install-package-action@v0.1.0
+        uses: durandtibo/uv-install-package-action@v0.1.1
         with:
           package-name: 'jax'
           package-version: ${{ matrix.package-version }}
@@ -128,7 +128,7 @@ jobs:
           uv pip install pytest
 
       - name: Install valid package version
-        uses: durandtibo/uv-install-package-action@v0.1.0
+        uses: durandtibo/uv-install-package-action@v0.1.1
         with:
           package-name: 'matplotlib'
           package-version: ${{ matrix.package-version }}
@@ -178,7 +178,7 @@ jobs:
           uv pip install pytest
 
       - name: Install valid package version
-        uses: durandtibo/uv-install-package-action@v0.1.0
+        uses: durandtibo/uv-install-package-action@v0.1.1
         with:
           package-name: 'numpy'
           package-version: ${{ matrix.package-version }}
@@ -225,7 +225,7 @@ jobs:
           uv pip install pytest
 
       - name: Install valid package version
-        uses: durandtibo/uv-install-package-action@v0.1.0
+        uses: durandtibo/uv-install-package-action@v0.1.1
         with:
           package-name: 'pandas'
           package-version: ${{ matrix.package-version }}
@@ -281,7 +281,7 @@ jobs:
           uv pip install pytest
 
       - name: Install valid package version
-        uses: durandtibo/uv-install-package-action@v0.1.0
+        uses: durandtibo/uv-install-package-action@v0.1.1
         with:
           package-name: 'pyarrow'
           package-version: ${{ matrix.package-version }}
@@ -328,7 +328,7 @@ jobs:
           uv pip install pytest
 
       - name: Install valid package version
-        uses: durandtibo/uv-install-package-action@v0.1.0
+        uses: durandtibo/uv-install-package-action@v0.1.1
         with:
           package-name: 'requests'
           package-version: ${{ matrix.package-version }}
@@ -375,7 +375,7 @@ jobs:
           uv pip install pytest
 
       - name: Install valid package version
-        uses: durandtibo/uv-install-package-action@v0.1.0
+        uses: durandtibo/uv-install-package-action@v0.1.1
         with:
           package-name: 'scikit-learn'
           package-version: ${{ matrix.package-version }}
@@ -420,7 +420,7 @@ jobs:
           uv pip install pytest
 
       - name: Install valid package version
-        uses: durandtibo/uv-install-package-action@v0.1.0
+        uses: durandtibo/uv-install-package-action@v0.1.1
         with:
           package-name: 'scipy'
           package-version: ${{ matrix.package-version }}
@@ -468,7 +468,7 @@ jobs:
           uv pip install pytest
 
       - name: Install valid package version
-        uses: durandtibo/uv-install-package-action@v0.1.0
+        uses: durandtibo/uv-install-package-action@v0.1.1
         with:
           package-name: 'torch'
           package-version: ${{ matrix.package-version }}
@@ -518,7 +518,7 @@ jobs:
           uv pip install pytest
 
       - name: Install valid package version
-        uses: durandtibo/uv-install-package-action@v0.1.0
+        uses: durandtibo/uv-install-package-action@v0.1.1
         with:
           package-name: 'xarray'
           package-version: ${{ matrix.package-version }}
