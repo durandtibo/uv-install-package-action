@@ -1,6 +1,6 @@
 [project]
 name = "uv-install-package-action"
-version = "0.1.1a0"
+version = "0.1.1"
 description = "GitHub action to find a valid package version and install it with uv"
 readme = "README.md"
 authors = [
@@ -15,7 +15,6 @@ classifiers = [
     "Intended Audience :: Information Technology",
     "Intended Audience :: Science/Research",
     "Operating System :: POSIX :: Linux",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
