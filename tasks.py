@@ -14,7 +14,7 @@ SOURCE = f"src/{NAME}"
 TESTS = "tests"
 UNIT_TESTS = f"{TESTS}/unit"
 INTEGRATION_TESTS = f"{TESTS}/integration"
-FUNCTIONAL_TESTS = f"{TESTS}/functional"
+PYTHON_VERSION = "3.13"
 
 
 @task
@@ -32,7 +32,7 @@ def check_lint(c: Context) -> None:
 @task
 def create_venv(c: Context) -> None:
     r"""Create a virtual environment."""
-    c.run("uv venv", pty=True)
+    c.run(f"uv venv --python {PYTHON_VERSION} --clear", pty=True)
     c.run("source .venv/bin/activate", pty=True)
     c.run("make install-invoke", pty=True)
 
@@ -49,11 +49,17 @@ def doctest_src(c: Context) -> None:
 
 
 @task
-def install(c: Context, all_deps: bool = False, functional: bool = False) -> None:
+def docformat(c: Context) -> None:
+    r"""Check the docstrings in source folder."""
+    c.run(f"docformatter --config ./pyproject.toml --in-place {SOURCE}", pty=True)
+
+
+@task
+def install(c: Context, all_deps: bool = False, docs: bool = False) -> None:
     r"""Install packages."""
     cmd = ["uv pip install -r pyproject.toml --group dev"]
-    if functional:
-        cmd.append("--group functional")
+    if docs:
+        cmd.append("--group docs")
     if all_deps:
         cmd.append("--all-extras")
     c.run(" ".join(cmd), pty=True)
@@ -69,6 +75,16 @@ def update(c: Context) -> None:
 
 
 @task
+def all_test(c: Context, cov: bool = False) -> None:
+    r"""Run the unit tests."""
+    cmd = ["python -m pytest --xdoctest --timeout 10"]
+    if cov:
+        cmd.append(f"--cov-report html --cov-report xml --cov-report term --cov={NAME}")
+    cmd.append(f"{TESTS}")
+    c.run(" ".join(cmd), pty=True)
+
+
+@task
 def unit_test(c: Context, cov: bool = False) -> None:
     r"""Run the unit tests."""
     cmd = ["python -m pytest --xdoctest --timeout 10"]
@@ -79,12 +95,14 @@ def unit_test(c: Context, cov: bool = False) -> None:
 
 
 @task
-def functional_test(c: Context, cov: bool = False) -> None:
+def integration_test(c: Context, cov: bool = False) -> None:
     r"""Run the unit tests."""
-    cmd = ["python -m pytest --xdoctest --timeout 1000"]
+    cmd = ["python -m pytest --xdoctest --timeout 60"]
     if cov:
-        cmd.append(f"--cov-report html --cov-report xml --cov-report term --cov={NAME}")
-    cmd.append(f"{FUNCTIONAL_TESTS}")
+        cmd.append(
+            f"--cov-report html --cov-report xml --cov-report term  --cov-append --cov={NAME}"
+        )
+    cmd.append(f"{INTEGRATION_TESTS}")
     c.run(" ".join(cmd), pty=True)
 
 

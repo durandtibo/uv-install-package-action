@@ -1,0 +1,5 @@
+name: uv-install-package-action
+channels:
+  - conda-forge
+dependencies:
+  - python=3.13
