@@ -8,6 +8,7 @@ from pathlib import Path
 
 from feu.utils.io import save_json
 from feu.version import (
+    filter_every_n_versions,
     get_latest_major_versions,
     get_latest_minor_versions,
 )
@@ -32,7 +33,9 @@ def get_package_versions() -> dict[str, list[str]]:
         "scikit-learn": list(get_latest_minor_versions("scikit-learn", lower="1.0")),
         "scipy": list(get_latest_minor_versions("scipy", lower="1.10")),
         "torch": list(get_latest_minor_versions("torch", lower="2.0")),
-        "xarray": list(get_latest_minor_versions("xarray", lower="2023.1")),
+        "xarray": list(
+            filter_every_n_versions(get_latest_minor_versions("xarray", lower="2023.1"), n=3)
+        ),
     }
 
 
