@@ -10,7 +10,7 @@ install :
 
 .PHONY : install-all
 install-all :
-	inv install --all-deps --docs
+	inv install --all-deps --functional
 
 .PHONY : update
 update :

@@ -70,7 +70,7 @@ source = ["src", "*/site-packages"]
 
 [tool.coverage.run]
 branch = true
-source = ["batchtensor"]
+source = ["uv-install-package-action"]
 
 [tool.coverage.report]
 show_missing = true
