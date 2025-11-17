@@ -14,7 +14,7 @@ jobs:
     uses: ./.github/workflows/pre-commit.yaml
   test:
     uses: ./.github/workflows/test.yaml
-  test-install:
-    uses: ./.github/workflows/test-install.yaml
-  test-install-local:
-    uses: ./.github/workflows/test-install-local.yaml
+  test-stable:
+    uses: ./.github/workflows/test-stable.yaml
+  test-local:
+    uses: ./.github/workflows/test-local.yaml
