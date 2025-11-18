@@ -27,7 +27,7 @@ def get_package_versions() -> dict[str, list[str]]:
     """
     return {
         "click": list(get_latest_minor_versions("click", lower="8.1")),
-        "jax": list(get_latest_minor_versions("jax", lower="0.4")),
+        "jax": list(get_latest_minor_versions("jax", lower="0.5")),
         "matplotlib": list(get_latest_minor_versions("matplotlib", lower="3.6")),
         "numpy": list(get_latest_minor_versions("numpy", lower="1.22")),
         "pandas": list(get_latest_minor_versions("pandas", lower="1.2")),
