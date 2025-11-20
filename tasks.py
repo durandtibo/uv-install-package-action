@@ -14,6 +14,7 @@ SOURCE = f"src/{NAME}"
 TESTS = "tests"
 UNIT_TESTS = f"{TESTS}/unit"
 INTEGRATION_TESTS = f"{TESTS}/integration"
+FUNCTIONAL_TESTS = f"{TESTS}/functional"
 PYTHON_VERSION = "3.13"
 
 
@@ -106,6 +107,16 @@ def integration_test(c: Context, cov: bool = False) -> None:
             f"--cov-report html --cov-report xml --cov-report term  --cov-append --cov={NAME}"
         )
     cmd.append(f"{INTEGRATION_TESTS}")
+    c.run(" ".join(cmd), pty=True)
+
+
+@task
+def functional_test(c: Context, cov: bool = False) -> None:
+    r"""Run the unit tests."""
+    cmd = ["python -m pytest --xdoctest --timeout 1000"]
+    if cov:
+        cmd.append(f"--cov-report html --cov-report xml --cov-report term --cov={NAME}")
+    cmd.append(f"{FUNCTIONAL_TESTS}")
     c.run(" ".join(cmd), pty=True)
 
 
