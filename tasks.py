@@ -14,7 +14,6 @@ SOURCE = f"src/{NAME}"
 TESTS = "tests"
 UNIT_TESTS = f"{TESTS}/unit"
 INTEGRATION_TESTS = f"{TESTS}/integration"
-FUNCTIONAL_TESTS = f"{TESTS}/functional"
 PYTHON_VERSION = "3.13"
 
 
@@ -56,21 +55,24 @@ def docformat(c: Context) -> None:
 
 
 @task
-def install(c: Context, all_deps: bool = False, functional: bool = False) -> None:
+def install(
+    c: Context, optional_deps: bool = True, dev_deps: bool = True, docs_deps: bool = False
+) -> None:
     r"""Install packages."""
-    cmd = ["uv pip install -r pyproject.toml --group dev"]
-    if functional:
-        cmd.append("--group functional")
-    if all_deps:
+    cmd = ["uv sync --frozen"]
+    if optional_deps:
         cmd.append("--all-extras")
+    if dev_deps:
+        cmd.append("--group dev --group functional")
+    if docs_deps:
+        cmd.append("--group docs")
     c.run(" ".join(cmd), pty=True)
-    c.run("uv pip install -e .", pty=True)
 
 
 @task
 def update(c: Context) -> None:
     r"""Update the dependencies and pre-commit hooks."""
-    c.run("uv sync --upgrade --all-extras", pty=True)
+    c.run("uv sync --upgrade --all-extras --group dev --group functional --group docs", pty=True)
     c.run("uv tool upgrade --all", pty=True)
     c.run("pre-commit autoupdate", pty=True)
 
@@ -104,16 +106,6 @@ def integration_test(c: Context, cov: bool = False) -> None:
             f"--cov-report html --cov-report xml --cov-report term  --cov-append --cov={NAME}"
         )
     cmd.append(f"{INTEGRATION_TESTS}")
-    c.run(" ".join(cmd), pty=True)
-
-
-@task
-def functional_test(c: Context, cov: bool = False) -> None:
-    r"""Run the unit tests."""
-    cmd = ["python -m pytest --xdoctest --timeout 1000"]
-    if cov:
-        cmd.append(f"--cov-report html --cov-report xml --cov-report term --cov={NAME}")
-    cmd.append(f"{FUNCTIONAL_TESTS}")
     c.run(" ".join(cmd), pty=True)
 
 
