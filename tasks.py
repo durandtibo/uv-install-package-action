@@ -56,21 +56,20 @@ def docformat(c: Context) -> None:
 
 
 @task
-def install(c: Context, all_deps: bool = False, functional: bool = False) -> None:
+def install(c: Context, optional_deps: bool = True, dev_deps: bool = True) -> None:
     r"""Install packages."""
-    cmd = ["uv pip install -r pyproject.toml --group dev"]
-    if functional:
-        cmd.append("--group functional")
-    if all_deps:
+    cmd = ["uv sync --frozen"]
+    if optional_deps:
         cmd.append("--all-extras")
+    if dev_deps:
+        cmd.append("--group dev")
     c.run(" ".join(cmd), pty=True)
-    c.run("uv pip install -e .", pty=True)
 
 
 @task
 def update(c: Context) -> None:
     r"""Update the dependencies and pre-commit hooks."""
-    c.run("uv sync --upgrade --all-extras", pty=True)
+    c.run("uv sync --upgrade --all-extras --group dev", pty=True)
     c.run("uv tool upgrade --all", pty=True)
     c.run("pre-commit autoupdate", pty=True)
 
