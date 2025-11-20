@@ -56,24 +56,20 @@ def docformat(c: Context) -> None:
 
 
 @task
-def install(
-    c: Context, optional_deps: bool = True, dev_deps: bool = True, docs_deps: bool = False
-) -> None:
+def install(c: Context, optional_deps: bool = True, dev_deps: bool = True) -> None:
     r"""Install packages."""
     cmd = ["uv sync --frozen"]
     if optional_deps:
         cmd.append("--all-extras")
     if dev_deps:
-        cmd.append("--group dev --group functional")
-    if docs_deps:
-        cmd.append("--group docs")
+        cmd.append("--group dev")
     c.run(" ".join(cmd), pty=True)
 
 
 @task
 def update(c: Context) -> None:
     r"""Update the dependencies and pre-commit hooks."""
-    c.run("uv sync --upgrade --all-extras --group dev --group functional --group docs", pty=True)
+    c.run("uv sync --upgrade --all-extras --group dev", pty=True)
     c.run("uv tool upgrade --all", pty=True)
     c.run("pre-commit autoupdate", pty=True)
 
