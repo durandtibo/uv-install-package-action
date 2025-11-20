@@ -69,7 +69,7 @@ def install(c: Context, optional_deps: bool = True, dev_deps: bool = True) -> No
 @task
 def update(c: Context) -> None:
     r"""Update the dependencies and pre-commit hooks."""
-    c.run("uv sync --upgrade --all-extras --group dev", pty=True)
+    c.run("uv sync --upgrade", pty=True)
     c.run("uv tool upgrade --all", pty=True)
     c.run("pre-commit autoupdate", pty=True)
 
