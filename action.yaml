@@ -1,12 +1,7 @@
 name: 'uv-install-package'
 description: |
-  Intelligently install Python packages with uv by automatically finding the closest
-  compatible version for your target Python version. This action queries PyPI to resolve
-  version constraints and ensures successful installation by selecting versions that are
-  compatible with your specified Python environment. Perfect for testing across multiple
-  Python versions or handling packages with complex version requirements.
-
-  Prerequisites: Requires uv to be installed (use astral-sh/setup-uv action).
+  Install Python packages with uv, auto-resolving compatible versions for your target
+  Python environment via PyPI.
 
 author: "Thibaut Durand"
 
