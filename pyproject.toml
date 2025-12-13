@@ -52,7 +52,6 @@ dev = [
 [tool.uv.pip]
 torch-backend = "auto"
 
-
 [tool.pytest]
 minversion = "9.0"
 testpaths = ["tests/"]
@@ -72,6 +71,12 @@ max-line-length = 100
 
 [tool.isort]
 profile = "black"
+
+[tool.docformatter]
+recursive = true
+wrap-summaries = 72
+wrap-descriptions = 72
+syntax = "google"
 
 [tool.ruff]
 # List of rules: https://docs.astral.sh/ruff/rules/
