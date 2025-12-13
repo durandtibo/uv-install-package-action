@@ -1,50 +1,142 @@
 name: 'uv-install-package'
 description: |
-  'Find the closest valid version given the package name and target version,
-  and python version, and install it by using uv'
+  Intelligently install Python packages with uv by automatically finding the closest
+  compatible version for your target Python version. This action queries PyPI to resolve
+  version constraints and ensures successful installation by selecting versions that are
+  compatible with your specified Python environment. Perfect for testing across multiple
+  Python versions or handling packages with complex version requirements.
+
+  Prerequisites: Requires uv to be installed (use astral-sh/setup-uv action).
+
 author: "Thibaut Durand"
+
 branding:
   icon: 'box'
   color: 'purple'
 
 inputs:
   package-name:
-    description: 'The package name'
+    description: 'The package name (e.g., numpy, requests, django)'
     required: true
   package-version:
-    description: 'The package target version'
+    description: 'The target package version or version constraint (e.g., "1.2.3", ">=1.0.0", "~=2.0")'
     required: true
   python-version:
-    description: 'The python version'
+    description: 'The Python version to check compatibility against (e.g., "3.9", "3.10.5")'
     required: true
   uv-args:
-    description: 'Optional uv arguments'
+    description: 'Additional arguments to pass to uv (e.g., "--index-url https://custom.pypi.org")'
     required: false
     default: ''
+
 outputs:
   closest-valid-version:
-    description:
-      'The closest valid package version given the input package version'
+    description: 'The closest valid package version that matches your constraints and is compatible with the specified Python version'
     value: ${{ steps.find-version.outputs.closest-valid-version }}
+  installed-successfully:
+    description: 'Boolean indicating whether the package was installed successfully'
+    value: ${{ steps.install-package.outcome == 'success' }}
 
 runs:
   using: "composite"
   steps:
+    # ============================================================================
+    # Step 1: Verify uv package manager is available
+    # ============================================================================
+    # Check that uv is installed and available on the runner. This action
+    # requires uv to be pre-installed (e.g., via astral-sh/setup-uv action).
+    # Displays the installation path and version for debugging purposes.
+    - name: Verify uv is installed
+      shell: bash
+      run: |
+        set -euo pipefail
+
+        echo "🔍 Checking for uv installation..."
+
+        if ! command -v uv &> /dev/null; then
+          echo "::error::❌ uv is not installed or not in PATH"
+          echo "::error::Please install uv before using this action (e.g., use astral-sh/setup-uv)"
+          exit 1
+        fi
+
+        # Display uv location and version information
+        echo "✅ uv is installed"
+        echo "📍 Location: $(which uv)"
+        echo "🏷️  Version: $(uv --version)"
+
+    # ============================================================================
+    # Step 2: Install feu package for version resolution
+    # ============================================================================
+    # The 'feu' package provides utilities to find compatible package versions
+    # based on Python version constraints. We install it with the [cli] extra
+    # to get command-line tools.
     - name: Install dependencies
       shell: bash
       run: |
-        which uv
+        # Exit immediately if any command fails
+        set -euo pipefail
+        echo "📦 Installing feu package..."
         uv pip install "feu[cli]>=0.4.2"
+        echo "✅ Dependencies installed"
 
+    # ============================================================================
+    # Step 3: Find the closest valid package version
+    # ============================================================================
+    # Query PyPI to find the closest available version that matches:
+    # - The requested package version (exact or range)
+    # - Compatibility with the specified Python version
+    # This prevents installation failures from incompatible versions.
     - name: Find closest valid version
       id: find-version
       shell: bash
       run: |
-        VERSION=$(python -m feu find-closest-version --pkg-name=${{ inputs.package-name }} --pkg-version=${{ inputs.package-version }} --python-version=${{ inputs.python-version }})
-        echo ${VERSION}
-        echo "closest-valid-version=${VERSION}" >> $GITHUB_OUTPUT
+        set -euo pipefail
 
+        echo "🔎 Searching for closest valid version..."
+        echo "  📦 Package: ${{ inputs.package-name }}"
+        echo "  🎯 Target version: ${{ inputs.package-version }}"
+        echo "  🐍 Python version: ${{ inputs.python-version }}"
+
+        # Run feu to resolve the closest compatible version
+        VERSION=$(python -m feu find-closest-version \
+          --pkg-name="${{ inputs.package-name }}" \
+          --pkg-version="${{ inputs.package-version }}" \
+          --python-version="${{ inputs.python-version }}")
+
+        # Validate that we got a version back
+        if [ -z "$VERSION" ]; then
+          echo "::error::❌ Failed to find valid version for ${{ inputs.package-name }}"
+          exit 1
+        fi
+
+        echo "✅ Found closest valid version: $VERSION"
+        # Export the version for use in subsequent steps
+        echo "closest-valid-version=$VERSION" >> "$GITHUB_OUTPUT"
+
+    # ============================================================================
+    # Step 4: Install the resolved package version
+    # ============================================================================
+    # Use feu's installer wrapper to install the package with uv.
+    # This ensures consistent installation behavior and proper handling of
+    # any additional uv arguments passed by the user.
     - name: Install package
+      id: install-package
       shell: bash
       run: |
-        python -m feu install --installer-name=uv --installer-args=${{ inputs.uv-args }} --pkg-name=${{ inputs.package-name }} --pkg-version=${{ steps.find-version.outputs.closest-valid-version }}
+        set -euo pipefail
+
+        # Get the version we resolved in the previous step
+        CLOSEST_VERSION="${{ steps.find-version.outputs.closest-valid-version }}"
+
+        echo "📥 Installing package..."
+        echo "  📦 Package: ${{ inputs.package-name }}"
+        echo "  🏷️  Version: $CLOSEST_VERSION"
+
+        # Install the package using feu's installer wrapper
+        python -m feu install \
+          --installer-name=uv \
+          --installer-args="${{ inputs.uv-args }}" \
+          --pkg-name="${{ inputs.package-name }}" \
+          --pkg-version="$CLOSEST_VERSION"
+
+        echo "::notice::✅ Successfully installed ${{ inputs.package-name }}==$CLOSEST_VERSION"
