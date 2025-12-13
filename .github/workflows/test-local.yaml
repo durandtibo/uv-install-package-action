@@ -64,7 +64,7 @@ jobs:
     uses: ./.github/workflows/test-local-action.yaml
     with:
       package-name: scikit-learn
-      package-versions: ${{ toJson(fromJson(needs.get-versions.outputs.package_versions).scikit_learn) }}
+      package-versions: ${{ toJson(fromJson(needs.get-versions.outputs.package_versions).scikit-learn) }}
 
   scipy:
     needs: get-versions
