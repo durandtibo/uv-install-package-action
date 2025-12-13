@@ -19,10 +19,10 @@ inputs:
     description: 'The package name (e.g., numpy, requests, django)'
     required: true
   package-version:
-    description: 'The target package version or version constraint (e.g., "1.2.3", ">=1.0.0", "~=2.0")'
+    description: 'The target package version (e.g., "1.2.3")'
     required: true
   python-version:
-    description: 'The Python version to check compatibility against (e.g., "3.9", "3.10.5")'
+    description: 'The Python version to check compatibility against (e.g., "3.9", "3.10")'
     required: true
   uv-args:
     description: 'Additional arguments to pass to uv (e.g., "--index-url https://custom.pypi.org")'
