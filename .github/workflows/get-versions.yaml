@@ -25,7 +25,7 @@ on:
   workflow_dispatch:  # Allows manual triggering for testing purposes
 
 permissions:
-  contents: read  # Only read access needed
+  contents: read
 
 jobs:
   get-versions:
