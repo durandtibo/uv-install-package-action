@@ -311,7 +311,7 @@ def functional_test(c: Context, cov: bool = False) -> None:
             f"--cov-report html --cov-report xml --cov-report term --cov-append --cov={NAME}"
         )
         logger.info("📊 Coverage reports will be generated (appending)")
-    cmd.append(f"{INTEGRATION_TESTS}")
+    cmd.append(f"{FUNCTIONAL_TESTS}")
     c.run(" ".join(cmd), pty=True)
     logger.info("✅ Integration tests complete")
 
