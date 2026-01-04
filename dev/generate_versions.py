@@ -8,10 +8,10 @@ from pathlib import Path
 
 from feu.utils.io import save_json
 from feu.version import (
+    fetch_latest_major_versions,
+    fetch_latest_minor_versions,
     filter_every_n_versions,
     filter_last_n_versions,
-    get_latest_major_versions,
-    get_latest_minor_versions,
     sort_versions,
     unique_versions,
 )
@@ -19,27 +19,28 @@ from feu.version import (
 logger = logging.getLogger(__name__)
 
 
-def get_package_versions() -> dict[str, list[str]]:
+def fetch_package_versions() -> dict[str, list[str]]:
     r"""Get the versions for each package.
 
     Returns:
         A dictionary with the versions for each package.
     """
     return {
-        "click": list(get_latest_minor_versions("click", lower="8.1")),
-        "jax": list(get_latest_minor_versions("jax", lower="0.5")),
-        "matplotlib": list(get_latest_minor_versions("matplotlib", lower="3.6")),
-        "numpy": list(get_latest_minor_versions("numpy", lower="1.22")),
-        "pandas": list(get_latest_minor_versions("pandas", lower="1.2")),
-        "pyarrow": list(get_latest_major_versions("pyarrow", lower="5.0")),
-        "requests": list(get_latest_minor_versions("requests", lower="2.25")),
-        "scikit-learn": list(get_latest_minor_versions("scikit-learn", lower="1.0")),
-        "scipy": list(get_latest_minor_versions("scipy", lower="1.10")),
-        "torch": list(get_latest_minor_versions("torch", lower="2.0")),
+        "click": list(fetch_latest_minor_versions("click", lower="8.1")),
+        "jax": list(fetch_latest_minor_versions("jax", lower="0.5")),
+        "matplotlib": list(fetch_latest_minor_versions("matplotlib", lower="3.6")),
+        "numpy": list(fetch_latest_minor_versions("numpy", lower="1.22")),
+        "pandas": list(fetch_latest_minor_versions("pandas", lower="1.2")),
+        "pyarrow": list(fetch_latest_major_versions("pyarrow", lower="5.0")),
+        "requests": list(fetch_latest_minor_versions("requests", lower="2.25")),
+        "safetensors": list(fetch_latest_minor_versions("safetensors", lower="0.4")),
+        "scikit-learn": list(fetch_latest_minor_versions("scikit-learn", lower="1.0")),
+        "scipy": list(fetch_latest_minor_versions("scipy", lower="1.10")),
+        "torch": list(fetch_latest_minor_versions("torch", lower="2.0")),
         "xarray": sort_versions(
             unique_versions(
-                filter_every_n_versions(get_latest_minor_versions("xarray", lower="2023.1"), n=3)
-                + filter_last_n_versions(get_latest_minor_versions("xarray", lower="2023.1"), n=1)
+                filter_every_n_versions(fetch_latest_minor_versions("xarray", lower="2023.1"), n=3)
+                + filter_last_n_versions(fetch_latest_minor_versions("xarray", lower="2023.1"), n=1)
             )
         ),
     }
@@ -47,7 +48,7 @@ def get_package_versions() -> dict[str, list[str]]:
 
 def main() -> None:
     r"""Generate the package versions and save them in a JSON file."""
-    versions = get_package_versions()
+    versions = fetch_package_versions()
     logger.info(f"{versions=}")
     path = Path(__file__).parent.parent.joinpath("dev/config").joinpath("package_versions.json")
     logger.info(f"Saving package versions to {path}")
