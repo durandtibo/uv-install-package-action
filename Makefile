@@ -74,7 +74,7 @@ setup-venv :
 	uv venv --python 3.13 --clear
 	$(MAKE) install-invoke
 	.venv/bin/inv create-venv
-	.venv/bin/inv install --docs-deps
+	.venv/bin/inv install
 
 .PHONY : install-invoke
 install-invoke :
