@@ -20,6 +20,7 @@ SOURCE = f"src/{NAME}"
 TESTS = "tests"
 UNIT_TESTS = f"{TESTS}/unit"
 INTEGRATION_TESTS = f"{TESTS}/integration"
+FUNCTIONAL_TESTS = f"{TESTS}/functional"
 PYTHON_VERSION = "3.13"
 
 
@@ -284,6 +285,26 @@ def integration_test(c: Context, cov: bool = False) -> None:
         cov: If True, generate coverage reports.
     """
     logger.info("🧪 Running integration tests...")
+    cmd = ["python -m pytest --xdoctest --timeout 60"]
+    if cov:
+        cmd.append(
+            f"--cov-report html --cov-report xml --cov-report term --cov-append --cov={NAME}"
+        )
+        logger.info("📊 Coverage reports will be generated (appending)")
+    cmd.append(f"{INTEGRATION_TESTS}")
+    c.run(" ".join(cmd), pty=True)
+    logger.info("✅ Integration tests complete")
+
+
+@task
+def functional_test(c: Context, cov: bool = False) -> None:
+    r"""Run functional tests.
+
+    Args:
+        c: The invoke context.
+        cov: If True, generate coverage reports.
+    """
+    logger.info("🧪 Running functional tests...")
     cmd = ["python -m pytest --xdoctest --timeout 60"]
     if cov:
         cmd.append(
