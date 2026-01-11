@@ -25,6 +25,7 @@ def fetch_package_versions() -> dict[str, list[str]]:
     Returns:
         A dictionary with the versions for each package.
     """
+    xarray_versions = fetch_latest_minor_versions("xarray", lower="2024.1")
     return {
         "click": list(fetch_latest_minor_versions("click", lower="8.1")),
         "jax": list(fetch_latest_minor_versions("jax", lower="0.5")),
@@ -33,14 +34,14 @@ def fetch_package_versions() -> dict[str, list[str]]:
         "pandas": list(fetch_latest_minor_versions("pandas", lower="1.2")),
         "pyarrow": list(fetch_latest_major_versions("pyarrow", lower="5.0")),
         "requests": list(fetch_latest_minor_versions("requests", lower="2.25")),
-        "safetensors": list(fetch_latest_minor_versions("safetensors", lower="0.4")),
+        "safetensors": list(fetch_latest_minor_versions("safetensors", lower="0.6")),
         "scikit-learn": list(fetch_latest_minor_versions("scikit-learn", lower="1.0")),
         "scipy": list(fetch_latest_minor_versions("scipy", lower="1.10")),
         "torch": list(fetch_latest_minor_versions("torch", lower="2.0")),
         "xarray": sort_versions(
             unique_versions(
-                filter_every_n_versions(fetch_latest_minor_versions("xarray", lower="2023.1"), n=3)
-                + filter_last_n_versions(fetch_latest_minor_versions("xarray", lower="2023.1"), n=1)
+                filter_every_n_versions(xarray_versions, n=3)
+                + filter_last_n_versions(xarray_versions, n=1)
             )
         ),
     }
