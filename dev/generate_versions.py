@@ -32,7 +32,7 @@ def fetch_package_versions() -> dict[str, list[str]]:
         "matplotlib": list(fetch_latest_minor_versions("matplotlib", lower="3.6")),
         "numpy": list(fetch_latest_minor_versions("numpy", lower="1.22")),
         "pandas": list(fetch_latest_minor_versions("pandas", lower="1.2")),
-        "pyarrow": list(fetch_latest_major_versions("pyarrow", lower="5.0")),
+        "pyarrow": list(fetch_latest_major_versions("pyarrow", lower="11.0")),
         "requests": list(fetch_latest_minor_versions("requests", lower="2.25")),
         "safetensors": list(fetch_latest_minor_versions("safetensors", lower="0.6")),
         "scikit-learn": list(fetch_latest_minor_versions("scikit-learn", lower="1.0")),
