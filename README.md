@@ -1,4 +1,4 @@
-# uv-install-package Action
+# uv-install-package
 
 <p align="center">
     <a href="https://github.com/durandtibo/uv-install-package-action/actions">
