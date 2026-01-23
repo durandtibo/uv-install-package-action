@@ -17,7 +17,7 @@ inputs:
     description: 'The target package version (e.g., "1.2.3")'
     required: true
   python-version:
-    description: 'The Python version to check compatibility against (e.g., "3.9", "3.10")'
+    description: 'The Python version to check compatibility against (e.g., "3.10", "3.11")'
     required: true
   uv-args:
     description: 'Additional arguments to pass to uv (e.g., "--index-url https://custom.pypi.org")'
@@ -71,7 +71,7 @@ runs:
         # Exit immediately if any command fails
         set -euo pipefail
         echo "📦 Installing feu package..."
-        uv pip install "feu[cli]>=0.6.1"
+        uv pip install "feu[cli]>=0.6.2"
         echo "✅ Dependencies installed"
 
     # ============================================================================
