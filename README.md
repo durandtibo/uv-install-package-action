@@ -148,10 +148,11 @@ If you request `numpy==2.0.0` with Python 3.9, but numpy 2.0.0 requires Python â
 **Solution:** Install uv before using this action:
 
 ```yaml
-- name: Install uv
-  uses: astral-sh/setup-uv@v7
-  with:
-    python-version: '3.11'
+steps:
+  - name: Install uv
+    uses: astral-sh/setup-uv@v7
+    with:
+      python-version: '3.11'
 ```
 
 ### Error: "No compatible version found"
@@ -168,25 +169,27 @@ This happens when no version of the package is compatible with your Python versi
 Use the `uv-args` input to specify custom indexes:
 
 ```yaml
-- name: Install from custom index
-  uses: durandtibo/uv-install-package-action@v0.1.1
-  with:
-    package-name: 'my-package'
-    package-version: '1.0.0'
-    python-version: '3.11'
-    uv-args: '--index-url https://pypi.example.com/simple --extra-index-url https://pypi.org/simple'
+steps:
+  - name: Install from custom index
+    uses: durandtibo/uv-install-package-action@v0.1.1
+    with:
+      package-name: 'my-package'
+      package-version: '1.0.0'
+      python-version: '3.11'
+      uv-args: '--index-url https://pypi.example.com/simple --extra-index-url https://pypi.org/simple'
 ```
 
 For authenticated indexes, set environment variables:
 
 ```yaml
-- name: Install from authenticated index
-  uses: durandtibo/uv-install-package-action@v0.1.1
-  with:
-    package-name: 'my-package'
-    package-version: '1.0.0'
-    python-version: '3.11'
-    uv-args: '--index-url https://${{ secrets.PYPI_USER }}:${{ secrets.PYPI_PASSWORD }}@pypi.example.com/simple'
+steps:
+  - name: Install from authenticated index
+    uses: durandtibo/uv-install-package-action@v0.1.1
+    with:
+      package-name: 'my-package'
+      package-version: '1.0.0'
+      python-version: '3.11'
+      uv-args: '--index-url https://${{ secrets.PYPI_USER }}:${{ secrets.PYPI_PASSWORD }}@pypi.example.com/simple'
 ```
 
 ### Network or PyPI Connection Issues

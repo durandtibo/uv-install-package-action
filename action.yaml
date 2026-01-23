@@ -96,7 +96,7 @@ runs:
           --pkg-name="${{ inputs.package-name }}" \
           --pkg-version="${{ inputs.package-version }}" \
           --python-version="${{ inputs.python-version }}" 2>&1); then
-          echo "::error::Failed to query PyPI for package '${{ inputs.package-name }}'. Error: $VERSION"
+          echo "::error::Failed to query PyPI for package '${{ inputs.package-name }}'. Check network connectivity and package name."
           exit 1
         fi
 
