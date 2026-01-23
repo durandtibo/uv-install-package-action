@@ -1,4 +1,4 @@
-# Python Package GitHub Action
+# uv-install-package Action
 
 <p align="center">
     <a href="https://github.com/durandtibo/uv-install-package-action/actions">
@@ -26,7 +26,18 @@
     <br/>
 </p>
 
-GitHub action to find valid package versions based on python version.
+GitHub Action to install Python packages with uv, automatically finding compatible versions for your target Python environment.
+
+## Overview
+
+This action helps you install Python packages reliably by:
+1. Finding the closest compatible version for your Python environment
+2. Installing the package using the fast [uv](https://github.com/astral-sh/uv) package installer
+3. Handling version compatibility automatically via PyPI metadata
+
+## Prerequisites
+
+This action requires **uv** to be installed and available in your workflow. We recommend using the official [astral-sh/setup-uv](https://github.com/astral-sh/setup-uv) action to install uv.
 
 ## What's new
 
@@ -34,31 +45,163 @@ Please refer to
 the [release page](https://github.com/durandtibo/uv-install-package-action/releases) for
 the latest release notes.
 
-### Basic usage
+## Usage
+
+### Basic Example
 
 ```yaml
-  - name: Install valid package version
+steps:
+  - name: Checkout repository
+    uses: actions/checkout@v6
+
+  - name: Install uv
+    uses: astral-sh/setup-uv@v7
+    with:
+      python-version: '3.11'
+
+  - name: Install numpy
     uses: durandtibo/uv-install-package-action@v0.1.1
     with:
       package-name: 'numpy'
-      package-version: 2.0.2
-      python-version: 3.11
+      package-version: '2.0.2'
+      python-version: '3.11'
 ```
 
-### Inputs
+### Install with Custom PyPI Index
 
-| name              | description                             | default value |
-|-------------------|-----------------------------------------|---------------|
-| `package-name`    | The package name e.g. `numpy`           | none          |
-| `package-version` | The target package version e.g. `2.0.2` | none          |
-| `python-version`  | The python version e.g. `3.11`          | none          |
-| `uv-args`         | Optional uv arguments                   | `''`          |
+```yaml
+  - name: Install package from custom index
+    uses: durandtibo/uv-install-package-action@v0.1.1
+    with:
+      package-name: 'my-package'
+      package-version: '1.0.0'
+      python-version: '3.12'
+      uv-args: '--index-url https://custom.pypi.org/simple'
+```
 
-### Outputs
+### Install with Version Ranges
 
-| name                    | description                                                       |
-|-------------------------|-------------------------------------------------------------------|
-| `closest-valid-version` | The closest valid package version given the input package version |                                                    |
+```yaml
+  - name: Install compatible pandas version
+    uses: durandtibo/uv-install-package-action@v0.1.1
+    with:
+      package-name: 'pandas'
+      package-version: '>=2.0,<3.0'
+      python-version: '3.11'
+```
+
+### Use Output Version
+
+```yaml
+  - name: Install and capture version
+    id: install
+    uses: durandtibo/uv-install-package-action@v0.1.1
+    with:
+      package-name: 'torch'
+      package-version: '2.0.0'
+      python-version: '3.11'
+
+  - name: Display installed version
+    run: |
+      echo "Installed torch version: ${{ steps.install.outputs.closest-valid-version }}"
+      echo "Installation successful: ${{ steps.install.outputs.installed-successfully }}"
+```
+
+## Inputs
+
+| Name               | Description                                                                        | Required | Default |
+|--------------------|------------------------------------------------------------------------------------|----------|---------|
+| `package-name`     | The package name (e.g., `numpy`, `requests`, `django`)                            | Yes      | -       |
+| `package-version`  | The target package version (e.g., `2.0.2`, `>=1.5,<2.0`, `~=1.5.0`)              | Yes      | -       |
+| `python-version`   | The Python version to check compatibility against (e.g., `3.10`, `3.11`, `3.12`) | Yes      | -       |
+| `uv-args`          | Additional arguments to pass to uv (e.g., `--index-url https://custom.pypi.org/simple`) | No       | `''`    |
+
+## Outputs
+
+| Name                     | Description                                                                                          |
+|--------------------------|------------------------------------------------------------------------------------------------------|
+| `closest-valid-version`  | The closest valid package version that matches your constraints and is compatible with the specified Python version |
+| `installed-successfully` | Boolean indicating whether the package was installed successfully (`true` or `false`)               |
+
+## How It Works
+
+This action uses [feu](https://github.com/durandtibo/feu) (Find Compatible Version Utility) to:
+
+1. **Query PyPI** for all available versions of the requested package
+2. **Filter versions** based on Python version compatibility metadata
+3. **Select the closest match** to your requested version that's compatible with your Python version
+4. **Install the package** using the fast uv package installer
+
+This ensures you always get a working installation, even if your requested version isn't compatible with your Python version.
+
+### Example Scenario
+
+If you request `numpy==2.0.0` with Python 3.9, but numpy 2.0.0 requires Python ≥3.10:
+- The action finds the closest compatible version (e.g., `1.26.4`)
+- Installs that version instead
+- Reports `1.26.4` as the `closest-valid-version` output
+
+## Troubleshooting
+
+### Error: "uv is not installed or not in PATH"
+
+**Solution:** Install uv before using this action:
+
+```yaml
+- name: Install uv
+  uses: astral-sh/setup-uv@v7
+  with:
+    python-version: '3.11'
+```
+
+### Error: "No compatible version found"
+
+This happens when no version of the package is compatible with your Python version.
+
+**Solutions:**
+- Check the package's Python version requirements on PyPI
+- Try a different Python version
+- Broaden your version constraint (e.g., `>=1.0` instead of `==1.5.0`)
+
+### Using Custom or Private PyPI Indexes
+
+Use the `uv-args` input to specify custom indexes:
+
+```yaml
+- name: Install from custom index
+  uses: durandtibo/uv-install-package-action@v0.1.1
+  with:
+    package-name: 'my-package'
+    package-version: '1.0.0'
+    python-version: '3.11'
+    uv-args: '--index-url https://pypi.example.com/simple --extra-index-url https://pypi.org/simple'
+```
+
+For authenticated indexes, set environment variables:
+
+```yaml
+- name: Install from authenticated index
+  uses: durandtibo/uv-install-package-action@v0.1.1
+  with:
+    package-name: 'my-package'
+    package-version: '1.0.0'
+    python-version: '3.11'
+    uv-args: '--index-url https://${{ secrets.PYPI_USER }}:${{ secrets.PYPI_PASSWORD }}@pypi.example.com/simple'
+```
+
+### Network or PyPI Connection Issues
+
+If PyPI queries fail due to network issues:
+- Check GitHub Actions service status
+- Verify network connectivity in your workflow
+- Try adding retry logic around the action
+
+### Installation Fails After Finding Version
+
+If the action finds a version but installation fails:
+- Check the package's dependencies for compatibility issues
+- Review the full error output
+- Try installing with additional uv arguments (e.g., `--no-deps` to skip dependencies)
 
 ## Suggestions and Communication
 
