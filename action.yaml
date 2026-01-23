@@ -46,17 +46,17 @@ runs:
       run: |
         set -euo pipefail
 
-        echo "Checking for uv installation..."
+        echo "🔍 Checking for uv installation..."
 
         if ! command -v uv &> /dev/null; then
-          echo "::error::uv is not installed or not in PATH. Please install uv before using this action (e.g., use astral-sh/setup-uv)"
+          echo "::error::❌ uv is not installed or not in PATH. Please install uv before using this action (e.g., use astral-sh/setup-uv)"
           exit 1
         fi
 
         # Display uv location and version information
-        echo "uv is installed"
-        echo "Location: $(which uv)"
-        echo "Version: $(uv --version)"
+        echo "✅ uv is installed"
+        echo "📍 Location: $(which uv)"
+        echo "🏷️  Version: $(uv --version)"
 
     # ============================================================================
     # Step 2: Install feu package for version resolution
@@ -69,9 +69,9 @@ runs:
       run: |
         # Exit immediately if any command fails
         set -euo pipefail
-        echo "Installing feu package..."
+        echo "📦 Installing feu package..."
         uv pip install "feu[cli]>=0.6.2,<0.7.0"
-        echo "Dependencies installed"
+        echo "✅ Dependencies installed"
 
     # ============================================================================
     # Step 3: Find the closest valid package version
@@ -86,27 +86,27 @@ runs:
       run: |
         set -euo pipefail
 
-        echo "Searching for closest valid version..."
-        echo "  Package: ${{ inputs.package-name }}"
-        echo "  Target version: ${{ inputs.package-version }}"
-        echo "  Python version: ${{ inputs.python-version }}"
+        echo "🔎 Searching for closest valid version..."
+        echo "  📦 Package: ${{ inputs.package-name }}"
+        echo "  🎯 Target version: ${{ inputs.package-version }}"
+        echo "  🐍 Python version: ${{ inputs.python-version }}"
 
         # Run feu to resolve the closest compatible version
         if ! VERSION=$(python -m feu find-closest-version \
           --pkg-name="${{ inputs.package-name }}" \
           --pkg-version="${{ inputs.package-version }}" \
           --python-version="${{ inputs.python-version }}" 2>&1); then
-          echo "::error::Failed to query PyPI for package '${{ inputs.package-name }}'. Check network connectivity and package name."
+          echo "::error::❌ Failed to query PyPI for package '${{ inputs.package-name }}'. Check network connectivity and package name."
           exit 1
         fi
 
         # Validate that we got a version back
         if [ -z "$VERSION" ]; then
-          echo "::error::No compatible version found for package '${{ inputs.package-name }}' version '${{ inputs.package-version }}' with Python ${{ inputs.python-version }}"
+          echo "::error::❌ No compatible version found for package '${{ inputs.package-name }}' version '${{ inputs.package-version }}' with Python ${{ inputs.python-version }}"
           exit 1
         fi
 
-        echo "Found closest valid version: $VERSION"
+        echo "✅ Found closest valid version: $VERSION"
         # Export the version for use in subsequent steps
         echo "closest-valid-version=$VERSION" >> "$GITHUB_OUTPUT"
 
@@ -125,9 +125,9 @@ runs:
         # Get the version we resolved in the previous step
         CLOSEST_VERSION="${{ steps.find-version.outputs.closest-valid-version }}"
 
-        echo "Installing package..."
-        echo "  Package: ${{ inputs.package-name }}"
-        echo "  Version: $CLOSEST_VERSION"
+        echo "📥 Installing package..."
+        echo "  📦 Package: ${{ inputs.package-name }}"
+        echo "  🏷️  Version: $CLOSEST_VERSION"
 
         # Install the package using feu's installer wrapper
         python -m feu install \
@@ -136,4 +136,4 @@ runs:
           --pkg-name="${{ inputs.package-name }}" \
           --pkg-version="$CLOSEST_VERSION"
 
-        echo "::notice::Successfully installed ${{ inputs.package-name }}==$CLOSEST_VERSION"
+        echo "::notice::✅ Successfully installed ${{ inputs.package-name }}==$CLOSEST_VERSION"
