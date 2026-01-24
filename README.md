@@ -79,17 +79,6 @@ steps:
       uv-args: '--index-url https://custom.pypi.org/simple'
 ```
 
-### Install with Version Ranges
-
-```yaml
-  - name: Install compatible pandas version
-    uses: durandtibo/uv-install-package-action@v0.1.1
-    with:
-      package-name: 'pandas'
-      package-version: '>=2.0,<3.0'
-      python-version: '3.11'
-```
-
 ### Use Output Version
 
 ```yaml
@@ -112,7 +101,7 @@ steps:
 | Name               | Description                                                                        | Required | Default |
 |--------------------|------------------------------------------------------------------------------------|----------|---------|
 | `package-name`     | The package name (e.g., `numpy`, `requests`, `django`)                            | Yes      | -       |
-| `package-version`  | The target package version (e.g., `2.0.2`, `>=1.5,<2.0`, `~=1.5.0`)              | Yes      | -       |
+| `package-version`  | The target package version (e.g., `1.2.3`, `2.0.2`)                              | Yes      | -       |
 | `python-version`   | The Python version to check compatibility against (e.g., `3.10`, `3.11`, `3.12`) | Yes      | -       |
 | `uv-args`          | Additional arguments to pass to uv (e.g., `--index-url https://custom.pypi.org/simple`) | No       | `''`    |
 
@@ -162,7 +151,7 @@ This happens when no version of the package is compatible with your Python versi
 **Solutions:**
 - Check the package's Python version requirements on PyPI
 - Try a different Python version
-- Broaden your version constraint (e.g., `>=1.0` instead of `==1.5.0`)
+- Try an older version of the package that supports your Python version
 
 ### Using Custom or Private PyPI Indexes
 
