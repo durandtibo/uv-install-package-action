@@ -14,13 +14,13 @@ inputs:
     description: 'The package name (e.g., numpy, requests, django)'
     required: true
   package-version:
-    description: 'The target package version (e.g., "1.2.3")'
+    description: 'The target package version (e.g., "1.2.3", "2.0.0")'
     required: true
   python-version:
-    description: 'The Python version to check compatibility against (e.g., "3.10", "3.11")'
+    description: 'The Python version to check compatibility against (e.g., "3.10", "3.11", "3.12")'
     required: true
   uv-args:
-    description: 'Additional arguments to pass to uv (e.g., "--index-url https://custom.pypi.org")'
+    description: 'Additional arguments to pass to uv (e.g., "--index-url https://custom.pypi.org/simple")'
     required: false
     default: ''
 
@@ -49,8 +49,7 @@ runs:
         echo "🔍 Checking for uv installation..."
 
         if ! command -v uv &> /dev/null; then
-          echo "::error::❌ uv is not installed or not in PATH"
-          echo "::error::Please install uv before using this action (e.g., use astral-sh/setup-uv)"
+          echo "::error::❌ uv is not installed or not in PATH. Please install uv before using this action (e.g., use astral-sh/setup-uv)"
           exit 1
         fi
 
@@ -71,7 +70,7 @@ runs:
         # Exit immediately if any command fails
         set -euo pipefail
         echo "📦 Installing feu package..."
-        uv pip install "feu[cli]>=0.6.2"
+        uv pip install "feu[cli]>=0.6.2,<0.7.0"
         echo "✅ Dependencies installed"
 
     # ============================================================================
@@ -93,14 +92,17 @@ runs:
         echo "  🐍 Python version: ${{ inputs.python-version }}"
 
         # Run feu to resolve the closest compatible version
-        VERSION=$(python -m feu find-closest-version \
+        if ! VERSION=$(python -m feu find-closest-version \
           --pkg-name="${{ inputs.package-name }}" \
           --pkg-version="${{ inputs.package-version }}" \
-          --python-version="${{ inputs.python-version }}")
+          --python-version="${{ inputs.python-version }}" 2>&1); then
+          echo "::error::❌ Failed to query PyPI for package '${{ inputs.package-name }}'. Check network connectivity and package name."
+          exit 1
+        fi
 
         # Validate that we got a version back
         if [ -z "$VERSION" ]; then
-          echo "::error::❌ Failed to find valid version for ${{ inputs.package-name }}"
+          echo "::error::❌ No compatible version found for package '${{ inputs.package-name }}' version '${{ inputs.package-version }}' with Python ${{ inputs.python-version }}"
           exit 1
         fi
 
