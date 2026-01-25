@@ -24,13 +24,13 @@ cd bats-core
 ### Run All Tests
 
 ```bash
-bats tests/scripts/test_validate_python_version.bats
+bats tests/bats/test_validate_python_version.bats
 ```
 
 ### Run with Verbose Output
 
 ```bash
-bats -t tests/scripts/test_validate_python_version.bats
+bats -t tests/bats/test_validate_python_version.bats
 ```
 
 ## Test Files

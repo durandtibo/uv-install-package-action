@@ -2,7 +2,7 @@
 # Validates and normalizes Python version to major.minor format
 #
 # Usage: validate_python_version.sh <python-version>
-# 
+#
 # Arguments:
 #   python-version: Python version string (e.g., "3.10", "3.11", "3.10.1")
 #
