@@ -14,23 +14,24 @@ brew install bats-core
 
 # On Ubuntu/Debian
 sudo apt-get install bats
-
-# Or clone the repository
-git clone https://github.com/bats-core/bats-core.git
-cd bats-core
-./install.sh /usr/local
 ```
 
 ### Run All Tests
 
 ```bash
-bats tests/scripts/test_validate_python_version.bats
+bats --recursive tests/bats/
+```
+
+### Run All Tests and Show Running Times
+
+```bash
+bats --recursive --timing tests/bats/
 ```
 
 ### Run with Verbose Output
 
 ```bash
-bats -t tests/scripts/test_validate_python_version.bats
+bats --recursive -t tests/bats/
 ```
 
 ## Test Files
