@@ -171,3 +171,18 @@ setup() {
     run "$VALIDATE_SCRIPT" "3.10.5.2"
     [ "$status" -eq 1 ]
 }
+
+# Test error message quality
+
+@test "Validation script provides helpful error for major-only version" {
+    run "$VALIDATE_SCRIPT" "3"
+    [ "$status" -eq 1 ]
+    [[ "$output" =~ "Invalid Python version format" ]]
+    [[ "$output" =~ "Expected format: 'X.Y' or 'X.Y.Z'" ]]
+}
+
+@test "Validation script provides helpful error for text input" {
+    run "$VALIDATE_SCRIPT" "python3.10"
+    [ "$status" -eq 1 ]
+    [[ "$output" =~ "Invalid Python version format" ]]
+}

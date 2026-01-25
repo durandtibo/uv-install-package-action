@@ -269,30 +269,6 @@ The action includes post-installation verification that attempts to import the p
 - For Python libraries: Check the package's documentation for the correct import name
 - If installation is broken: Check the full error logs and try reinstalling
 
-## What's New in Recent Versions
-
-### Version 0.2.0 (Improvements)
-
-**Enhanced Error Handling:**
-- Added comprehensive input validation for `package-name` and `package-version`
-- Improved error messages with specific suggestions for remediation
-- Added detection of potentially unsafe `uv-args` values
-- Better distinction between network errors, invalid packages, and PyPI issues
-
-**Reliability Improvements:**
-- Added automatic retry logic (3 attempts) for `feu` package installation
-- Added post-installation verification to catch broken package installations
-- Added version format validation before use
-- Better handling of package names vs. import names (e.g., `scikit-learn` vs `sklearn`)
-
-**Testing Enhancements:**
-- Comprehensive test suite with BATS shell tests
-- Unit test specifications for validation logic
-- Detailed testing documentation in `tests/TESTING.md`
-- Enhanced edge case coverage
-
-See [tests/TESTING.md](tests/TESTING.md) for complete testing documentation.
-
 ## Suggestions and Communication
 
 Everyone is welcome to contribute to the community.
