@@ -121,7 +121,7 @@ jobs:
         uses: ./
         with:
           package-name: numpy
-          package-version: 2.4
+          package-version: 2.4.1
           python-version: '3.13.0'
 
       - name: Run functional tests
@@ -151,7 +151,7 @@ jobs:
         uses: ./
         with:
           package-name: numpy
-          package-version: 2.4
+          package-version: 2.4.1
 
       - name: Run functional tests
         run: |
@@ -177,7 +177,7 @@ jobs:
         id: install-package
         with:
           package-name: numpy
-          package-version: 2.4
+          package-version: 2.4.1
           python-version: v3.14
         continue-on-error: true
 

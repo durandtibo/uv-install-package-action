@@ -77,8 +77,8 @@ runs:
         # Auto-detect Python version if not provided
         if [ -z "$PYTHON_VERSION" ]; then
           echo "🔍 Python version not provided, auto-detecting..."
-        echo $(uv run python --version 2>&1 | cut -d' ' -f2 | cut -d'.' -f1,2)
-          if ! DETECTED_VERSION=$(uv run python --version 2>&1 | cut -d' ' -f2 | cut -d'.' -f1,2); then
+          echo $(python --version)
+          if ! DETECTED_VERSION=$(python --version 2>&1 | cut -d' ' -f2 | cut -d'.' -f1,2); then
             echo "::error::❌ Failed to auto-detect Python version"
             exit 1
           fi
