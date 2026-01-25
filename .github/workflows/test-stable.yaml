@@ -179,6 +179,7 @@ jobs:
           package-name: numpy
           package-version: 2.4
           python-version: v3.14
+        continue-on-error: true
 
       - name: Failure - it did not fail as expected
         if: steps.install-package.outcome != 'failure'
