@@ -73,20 +73,18 @@ runs:
         PYTHON_VERSION="${{ inputs.python-version }}"
         echo "🔍 Validating Python version: $PYTHON_VERSION"
 
-        # Remove leading/trailing whitespace
-        PYTHON_VERSION=$(echo "$PYTHON_VERSION" | xargs)
-
-        # Validate format: should be digits.digits or digits.digits.digits
-        if ! echo "$PYTHON_VERSION" | grep -qE '^[0-9]+\.[0-9]+(\.[0-9]+)?$'; then
+        # Call the validation script
+        SCRIPT_PATH="${{ github.action_path }}/scripts/validate_python_version.sh"
+        if ! NORMALIZED_VERSION=$("$SCRIPT_PATH" "$PYTHON_VERSION" 2>&1); then
           echo "::error::❌ Invalid Python version format: '$PYTHON_VERSION'. Expected format: 'X.Y' or 'X.Y.Z' (e.g., '3.10' or '3.10.1')"
           exit 1
         fi
 
-        # Extract major.minor version (ignore patch version if present)
-        NORMALIZED_VERSION=$(echo "$PYTHON_VERSION" | cut -d. -f1,2)
-
         echo "✅ Python version validated: $NORMALIZED_VERSION"
-        if [ "$PYTHON_VERSION" != "$NORMALIZED_VERSION" ]; then
+        
+        # Show warning if patch version was provided and normalized
+        TRIMMED_INPUT=$(echo "$PYTHON_VERSION" | xargs)
+        if [ "$TRIMMED_INPUT" != "$NORMALIZED_VERSION" ]; then
           echo "::warning::Python version '$PYTHON_VERSION' normalized to '$NORMALIZED_VERSION' (patch version ignored)"
         fi
 
