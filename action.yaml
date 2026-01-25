@@ -81,7 +81,7 @@ runs:
         fi
 
         echo "✅ Python version validated: $NORMALIZED_VERSION"
-        
+
         # Show warning if patch version was provided and normalized
         TRIMMED_INPUT=$(echo "$PYTHON_VERSION" | xargs)
         if [ "$TRIMMED_INPUT" != "$NORMALIZED_VERSION" ]; then
