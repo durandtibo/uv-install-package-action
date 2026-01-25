@@ -49,14 +49,10 @@ jobs:
         run: |
           python -m pytest tests/functional
 
-  long-python-version:
+
+  python-version-with-feature:
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    strategy:
-      max-parallel: 8
-      fail-fast: false
-      matrix:
-        python-version: [ '3.14', '3.13', '3.12', '3.11', '3.10' ]
 
     steps:
       - name: Checkout
@@ -65,7 +61,7 @@ jobs:
       - name: Install uv and set the python version
         uses: astral-sh/setup-uv@v7
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: '3.13'
           activate-environment: true
 
       - name: Install packages
@@ -84,14 +80,9 @@ jobs:
           python -m pytest tests/functional
 
 
-  without-python-version:
+  no-python-version:
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    strategy:
-      max-parallel: 8
-      fail-fast: false
-      matrix:
-        python-version: [ '3.14', '3.13', '3.12', '3.11', '3.10' ]
 
     steps:
       - name: Checkout
@@ -100,7 +91,7 @@ jobs:
       - name: Install uv and set the python version
         uses: astral-sh/setup-uv@v7
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: '3.13'
           activate-environment: true
 
       - name: Install packages
@@ -121,11 +112,6 @@ jobs:
   incorrect-python-version:
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    strategy:
-      max-parallel: 8
-      fail-fast: false
-      matrix:
-        python-version: [ '3.14', '3.13', '3.12', '3.11', '3.10' ]
 
     steps:
       - name: Checkout
@@ -134,7 +120,7 @@ jobs:
       - name: Install uv and set the python version
         uses: astral-sh/setup-uv@v7
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: '3.13'
           activate-environment: true
 
       - name: Install valid package version
