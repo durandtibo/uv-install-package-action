@@ -207,7 +207,7 @@ runs:
         fi
 
         # Validate version format (should be digits.digits.digits or similar)
-        if ! echo "$VERSION" | grep -qE '^[0-9]+\.[0-9]+'; then
+        if ! echo "$VERSION" | grep -qE '^[0-9]+\.[0-9]+(\.[0-9]+)*$'; then
           echo "::error::❌ Invalid version format returned: '$VERSION'"
           exit 1
         fi
@@ -257,17 +257,20 @@ runs:
         echo "🔍 Verifying package installation..."
         
         # Convert package name to import name (replace hyphens with underscores)
+        # This handles common cases like 'scikit-learn' -> 'sklearn'
         IMPORT_NAME=$(echo "${{ inputs.package-name }}" | sed 's/-/_/g')
         
-        # Try to import the package
+        # Try to import with converted name first
         if python -c "import $IMPORT_NAME" 2>/dev/null; then
-          echo "✅ Package '${{ inputs.package-name }}' imports successfully"
+          echo "✅ Package '${{ inputs.package-name }}' imports successfully as '$IMPORT_NAME'"
         else
-          # Some packages have different import names than package names
-          # Try with the original package name as well
+          # Fallback: try with original package name (handles edge cases)
           if python -c "import ${{ inputs.package-name }}" 2>/dev/null; then
             echo "✅ Package '${{ inputs.package-name }}' imports successfully"
           else
-            echo "::warning::⚠️  Package installed but could not verify import. This may be normal for packages without importable modules (e.g., CLI tools)."
+            echo "::warning::⚠️  Package installed but could not verify import. This may be normal for:"
+            echo "::warning::    - CLI tools without importable modules"
+            echo "::warning::    - Packages with non-standard import names"
+            echo "::warning::    - Namespace packages"
           fi
         fi

@@ -16,12 +16,13 @@ class TestInputValidation:
     def test_empty_package_name_should_fail(self) -> None:
         """Test that empty package name is rejected.
         
-        The action should validate that package-name input is not empty
-        and provide a helpful error message.
+        The action validates in Step 2 (Validate inputs) that package-name 
+        input is not empty and provides a helpful error message.
+        Actual validation is in action.yaml shell script.
         """
         # This is a documentation test - the actual validation happens in action.yaml
-        # The action.yaml now includes a check for empty package-name
-        pytest.skip("Input validation tested in action.yaml shell script")
+        # The action.yaml Step 2 includes a check for empty package-name
+        pytest.skip("Input validation tested in action.yaml Step 2 shell script")
 
     def test_package_name_with_whitespace_should_fail(self) -> None:
         """Test that package names with whitespace are rejected.
