@@ -102,7 +102,7 @@ steps:
 |--------------------|------------------------------------------------------------------------------------|----------|---------|
 | `package-name`     | The package name (e.g., `numpy`, `requests`, `django`)                            | Yes      | -       |
 | `package-version`  | The target package version (e.g., `1.2.3`, `2.0.2`)                              | Yes      | -       |
-| `python-version`   | The Python version to check compatibility against (e.g., `3.10`, `3.11`, `3.12`) | Yes      | -       |
+| `python-version`   | The Python version to check compatibility against (e.g., `3.10`, `3.11`, `3.12`). Must be in `X.Y` format. If a patch version is provided (e.g., `3.10.1`), it will be normalized to `X.Y` (e.g., `3.10`). | Yes      | -       |
 | `uv-args`          | Additional arguments to pass to uv (e.g., `--index-url https://custom.pypi.org/simple`) | No       | `''`    |
 
 ## Outputs
@@ -131,6 +131,22 @@ If you request `numpy==2.0.0` with Python 3.9, but numpy 2.0.0 requires Python �
 - Reports `1.26.4` as the `closest-valid-version` output
 
 ## Troubleshooting
+
+### Error: "Invalid Python version format"
+
+This error occurs when the `python-version` input is not in the expected format.
+
+**Solution:** Use the `X.Y` format for Python version (e.g., `3.10`, `3.11`, `3.12`). If you accidentally provide a patch version (e.g., `3.10.1`), the action will automatically normalize it to `3.10` and show a warning.
+
+Valid formats:
+- `3.10` ✅
+- `3.11` ✅
+- `3.10.1` ✅ (normalized to `3.10`)
+
+Invalid formats:
+- `3` ❌
+- `python3.10` ❌
+- `3.x` ❌
 
 ### Error: "uv is not installed or not in PATH"
 

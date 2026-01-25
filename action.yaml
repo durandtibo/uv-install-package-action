@@ -59,7 +59,40 @@ runs:
         echo "🏷️  Version: $(uv --version)"
 
     # ============================================================================
-    # Step 2: Install feu package for version resolution
+    # Step 2: Validate and normalize Python version
+    # ============================================================================
+    # Validates that the Python version is in major.minor format (e.g., "3.10").
+    # If a patch version is provided (e.g., "3.10.1"), it will be normalized
+    # to just major.minor (e.g., "3.10").
+    - name: Validate Python version
+      id: validate-python-version
+      shell: bash
+      run: |
+        set -euo pipefail
+
+        PYTHON_VERSION="${{ inputs.python-version }}"
+        echo "🔍 Validating Python version: $PYTHON_VERSION"
+
+        # Call the validation script
+        SCRIPT_PATH="${{ github.action_path }}/scripts/validate_python_version.sh"
+        if ! NORMALIZED_VERSION=$("$SCRIPT_PATH" "$PYTHON_VERSION" 2>&1); then
+          echo "::error::❌ Invalid Python version format: '$PYTHON_VERSION'. Expected format: 'X.Y' or 'X.Y.Z' (e.g., '3.10' or '3.10.1')"
+          exit 1
+        fi
+
+        echo "✅ Python version validated: $NORMALIZED_VERSION"
+        
+        # Show warning if patch version was provided and normalized
+        TRIMMED_INPUT=$(echo "$PYTHON_VERSION" | xargs)
+        if [ "$TRIMMED_INPUT" != "$NORMALIZED_VERSION" ]; then
+          echo "::warning::Python version '$PYTHON_VERSION' normalized to '$NORMALIZED_VERSION' (patch version ignored)"
+        fi
+
+        # Export the normalized version for use in subsequent steps
+        echo "normalized-python-version=$NORMALIZED_VERSION" >> "$GITHUB_OUTPUT"
+
+    # ============================================================================
+    # Step 3: Install feu package for version resolution
     # ============================================================================
     # The 'feu' package provides utilities to find compatible package versions
     # based on Python version constraints. We install it with the [cli] extra
@@ -74,7 +107,7 @@ runs:
         echo "✅ Dependencies installed"
 
     # ============================================================================
-    # Step 3: Find the closest valid package version
+    # Step 4: Find the closest valid package version
     # ============================================================================
     # Query PyPI to find the closest available version that matches:
     # - The requested package version (exact or range)
@@ -86,23 +119,25 @@ runs:
       run: |
         set -euo pipefail
 
+        NORMALIZED_PYTHON_VERSION="${{ steps.validate-python-version.outputs.normalized-python-version }}"
+
         echo "🔎 Searching for closest valid version..."
         echo "  📦 Package: ${{ inputs.package-name }}"
         echo "  🎯 Target version: ${{ inputs.package-version }}"
-        echo "  🐍 Python version: ${{ inputs.python-version }}"
+        echo "  🐍 Python version: $NORMALIZED_PYTHON_VERSION"
 
         # Run feu to resolve the closest compatible version
         if ! VERSION=$(python -m feu find-closest-version \
           --pkg-name="${{ inputs.package-name }}" \
           --pkg-version="${{ inputs.package-version }}" \
-          --python-version="${{ inputs.python-version }}" 2>&1); then
+          --python-version="$NORMALIZED_PYTHON_VERSION" 2>&1); then
           echo "::error::❌ Failed to query PyPI for package '${{ inputs.package-name }}'. Check network connectivity and package name."
           exit 1
         fi
 
         # Validate that we got a version back
         if [ -z "$VERSION" ]; then
-          echo "::error::❌ No compatible version found for package '${{ inputs.package-name }}' version '${{ inputs.package-version }}' with Python ${{ inputs.python-version }}"
+          echo "::error::❌ No compatible version found for package '${{ inputs.package-name }}' version '${{ inputs.package-version }}' with Python $NORMALIZED_PYTHON_VERSION"
           exit 1
         fi
 
@@ -111,7 +146,7 @@ runs:
         echo "closest-valid-version=$VERSION" >> "$GITHUB_OUTPUT"
 
     # ============================================================================
-    # Step 4: Install the resolved package version
+    # Step 5: Install the resolved package version
     # ============================================================================
     # Use feu's installer wrapper to install the package with uv.
     # This ensures consistent installation behavior and proper handling of
