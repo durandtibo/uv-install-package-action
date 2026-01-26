@@ -26,18 +26,21 @@
     <br/>
 </p>
 
-GitHub Action to install Python packages with uv, automatically finding compatible versions for your target Python environment.
+GitHub Action to install Python packages with uv, automatically finding compatible versions for your
+target Python environment.
 
 ## Overview
 
 This action helps you install Python packages reliably by:
+
 1. Finding the closest compatible version for your Python environment
 2. Installing the package using the fast [uv](https://github.com/astral-sh/uv) package installer
 3. Handling version compatibility automatically via PyPI metadata
 
 ## Prerequisites
 
-This action requires **uv** to be installed and available in your workflow. We recommend using the official [astral-sh/setup-uv](https://github.com/astral-sh/setup-uv) action to install uv.
+This action requires **uv** to be installed and available in your workflow. We recommend using the
+official [astral-sh/setup-uv](https://github.com/astral-sh/setup-uv) action to install uv.
 
 ## What's new
 
@@ -118,23 +121,24 @@ steps:
 
 ## Inputs
 
-| Name               | Description                                                                        | Required | Default |
-|--------------------|------------------------------------------------------------------------------------|----------|---------|
-| `package-name`     | The package name (e.g., `numpy`, `requests`, `django`)                            | Yes      | -       |
-| `package-version`  | The target package version (e.g., `1.2.3`, `2.0.2`)                              | Yes      | -       |
-| `python-version`   | The Python version to check compatibility against (e.g., `3.10`, `3.11`, `3.12`). Must be in `X.Y` format. If a patch version is provided (e.g., `3.10.1`), it will be normalized to `X.Y` (e.g., `3.10`). If not provided, the Python version is auto-detected from the current environment. | No       | Auto-detected |
-| `uv-args`          | Additional arguments to pass to uv (e.g., `--index-url https://custom.pypi.org/simple`) | No       | `''`    |
+| Name              | Description                                                                                                                                                                                                                                                                                   | Required | Default       |
+|-------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------|---------------|
+| `package-name`    | The package name (e.g., `numpy`, `requests`, `django`)                                                                                                                                                                                                                                        | Yes      | -             |
+| `package-version` | The target package version (e.g., `1.2.3`, `2.0.2`)                                                                                                                                                                                                                                           | Yes      | -             |
+| `python-version`  | The Python version to check compatibility against (e.g., `3.10`, `3.11`, `3.12`). Must be in `X.Y` format. If a patch version is provided (e.g., `3.10.1`), it will be normalized to `X.Y` (e.g., `3.10`). If not provided, the Python version is auto-detected from the current environment. | No       | Auto-detected |
+| `uv-args`         | Additional arguments to pass to uv (e.g., `--index-url https://custom.pypi.org/simple`)                                                                                                                                                                                                       | No       | `''`          |
 
 ## Outputs
 
-| Name                     | Description                                                                                          |
-|--------------------------|------------------------------------------------------------------------------------------------------|
+| Name                     | Description                                                                                                         |
+|--------------------------|---------------------------------------------------------------------------------------------------------------------|
 | `closest-valid-version`  | The closest valid package version that matches your constraints and is compatible with the specified Python version |
-| `installed-successfully` | Boolean indicating whether the package was installed successfully (`true` or `false`)               |
+| `installed-successfully` | Boolean indicating whether the package was installed successfully (`true` or `false`)                               |
 
 ## How It Works
 
-This action uses [feu](https://github.com/durandtibo/feu) (Find Compatible Version Utility) to intelligently resolve and install Python packages:
+This action uses [feu](https://github.com/durandtibo/feu) (Find Compatible Version Utility) to
+intelligently resolve and install Python packages:
 
 1. **Verify prerequisites** - Check that `uv` package manager is installed and accessible
 2. **Validate inputs** - Ensure package name and version are provided and properly formatted
@@ -145,11 +149,13 @@ This action uses [feu](https://github.com/durandtibo/feu) (Find Compatible Versi
 7. **Install package** - Use `uv` to install the resolved version with your custom arguments
 8. **Verify installation** - Confirm the package can be imported successfully
 
-This multi-step approach ensures reliability and provides clear feedback at each stage, making troubleshooting easier.
+This multi-step approach ensures reliability and provides clear feedback at each stage, making
+troubleshooting easier.
 
 ### Example Scenario
 
 If you request `numpy==2.0.0` with Python 3.9, but numpy 2.0.0 requires Python ≥3.10:
+
 - The action validates your inputs and Python version format
 - Queries PyPI for compatible numpy versions
 - Finds the closest compatible version (e.g., `1.26.4`)
@@ -163,14 +169,18 @@ If you request `numpy==2.0.0` with Python 3.9, but numpy 2.0.0 requires Python �
 
 This error occurs when the `python-version` input is not in the expected format.
 
-**Solution:** Use the `X.Y` format for Python version (e.g., `3.10`, `3.11`, `3.12`). If you accidentally provide a patch version (e.g., `3.10.1`), the action will automatically normalize it to `3.10` and show a warning.
+**Solution:** Use the `X.Y` format for Python version (e.g., `3.10`, `3.11`, `3.12`). If you
+accidentally provide a patch version (e.g., `3.10.1`), the action will automatically normalize it to
+`3.10` and show a warning.
 
 Valid formats:
+
 - `3.10` ✅
 - `3.11` ✅
 - `3.10.1` ✅ (normalized to `3.10`)
 
 Invalid formats:
+
 - `3` ❌
 - `python3.10` ❌
 - `3.x` ❌
@@ -192,6 +202,7 @@ steps:
 This happens when no version of the package is compatible with your Python version.
 
 **Solutions:**
+
 - Check the package's Python version requirements on PyPI
 - Try a different Python version
 - Try an older version of the package that supports your Python version
@@ -227,6 +238,7 @@ steps:
 ### Network or PyPI Connection Issues
 
 If PyPI queries fail due to network issues:
+
 - Check GitHub Actions service status
 - Verify network connectivity in your workflow
 - Try adding retry logic around the action
@@ -234,6 +246,7 @@ If PyPI queries fail due to network issues:
 ### Installation Fails After Finding Version
 
 If the action finds a version but installation fails:
+
 - Check the package's dependencies for compatibility issues
 - Review the full error output
 - Try installing with additional uv arguments (e.g., `--no-deps` to skip dependencies)
@@ -255,16 +268,20 @@ This error occurs when the `package-name` input is not provided or is an empty s
 
 ### Warning: "uv-args contains shell metacharacters"
 
-This warning appears when the `uv-args` input contains potentially dangerous shell metacharacters like `;` or `|`.
+This warning appears when the `uv-args` input contains potentially dangerous shell metacharacters
+like `;` or `|`.
 
-**What it means:** The action detects characters that could potentially be used for command injection or unintended shell operations.
+**What it means:** The action detects characters that could potentially be used for command
+injection or unintended shell operations.
 
 **Action required:**
+
 - If these characters are intentional (e.g., part of a URL), ensure they're properly escaped
 - Review your `uv-args` to ensure they're safe and as intended
 - Consider using environment variables for sensitive values instead of inline arguments
 
 **Example:**
+
 ```yaml
 - name: Install from custom index
   uses: durandtibo/uv-install-package-action@v0.1.1
@@ -277,14 +294,19 @@ This warning appears when the `uv-args` input contains potentially dangerous she
 
 ### Package Installed but Import Verification Fails
 
-The action includes post-installation verification that attempts to import the package. If you see a warning about import verification:
+The action includes post-installation verification that attempts to import the package. If you see a
+warning about import verification:
 
 **Common causes:**
-1. **CLI-only packages**: Some packages (like command-line tools) don't have importable Python modules. This is normal and the warning can be ignored.
-2. **Different import name**: Some packages have different import names than their package names (e.g., `scikit-learn` → `sklearn`). The action handles common cases automatically.
+
+1. **CLI-only packages**: Some packages (like command-line tools) don't have importable Python
+   modules. This is normal and the warning can be ignored.
+2. **Different import name**: Some packages have different import names than their package names (
+   e.g., `scikit-learn` → `sklearn`). The action handles common cases automatically.
 3. **Installation issues**: The package installed but files are missing or corrupted.
 
 **What to do:**
+
 - For CLI tools: The warning is expected and can be ignored if the tool works
 - For Python libraries: Check the package's documentation for the correct import name
 - If installation is broken: Check the full error logs and try reinstalling
