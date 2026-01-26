@@ -93,3 +93,100 @@ jobs:
     with:
       package-name: xarray
       package-versions: ${{ toJson(fromJson(needs.get-versions.outputs.package_versions).xarray) }}
+
+
+  ######################
+  #     Edge cases     #
+  ######################
+
+  python-version-with-feature:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install uv and set the python version
+        uses: astral-sh/setup-uv@v7
+        with:
+          python-version: '3.13'
+          activate-environment: true
+
+      - name: Install packages
+        run: |
+          uv pip install pytest
+
+      - name: Install valid package version
+        uses: ./
+        with:
+          package-name: numpy
+          package-version: 2.4.1
+          python-version: '3.13.0'
+
+      - name: Run functional tests
+        run: |
+          python -m pytest tests/functional
+
+
+  no-python-version:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install uv and set the python version
+        uses: astral-sh/setup-uv@v7
+        with:
+          python-version: '3.13'
+          activate-environment: true
+
+      - name: Install packages
+        run: |
+          uv pip install pytest
+
+      - name: Install valid package version
+        uses: ./
+        with:
+          package-name: numpy
+          package-version: 2.4.1
+
+      - name: Run functional tests
+        run: |
+          python -m pytest tests/functional
+
+
+  incorrect-python-version:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install uv and set the python version
+        uses: astral-sh/setup-uv@v7
+        with:
+          python-version: '3.13'
+          activate-environment: true
+
+      - name: Install valid package version
+        uses: ./
+        id: install-package
+        with:
+          package-name: numpy
+          package-version: 2.4.1
+          python-version: v3.14
+        continue-on-error: true
+
+      - name: Failure - it did not fail as expected
+        if: steps.install-package.outcome != 'failure'
+        run: |
+          echo "❌ Error: Step should have failed but didn't!"
+          exit 1
+
+      - name: Success - it failed as expected
+        if: steps.install-package.outcome == 'failure'
+        run: echo "✅ Test passed - step failed as expected"
