@@ -134,20 +134,27 @@ steps:
 
 ## How It Works
 
-This action uses [feu](https://github.com/durandtibo/feu) (Find Compatible Version Utility) to:
+This action uses [feu](https://github.com/durandtibo/feu) (Find Compatible Version Utility) to intelligently resolve and install Python packages:
 
-1. **Query PyPI** for all available versions of the requested package
-2. **Filter versions** based on Python version compatibility metadata
-3. **Select the closest match** to your requested version that's compatible with your Python version
-4. **Install the package** using the fast uv package installer
+1. **Verify prerequisites** - Check that `uv` package manager is installed and accessible
+2. **Validate inputs** - Ensure package name and version are provided and properly formatted
+3. **Normalize Python version** - Validate and normalize Python version (e.g., `3.10.1` → `3.10`)
+4. **Install feu** - Install the version resolution utility with automatic retry on network failures
+5. **Query PyPI** - Find all available versions and filter by Python compatibility
+6. **Select best match** - Choose the closest version that matches your constraints
+7. **Install package** - Use `uv` to install the resolved version with your custom arguments
+8. **Verify installation** - Confirm the package can be imported successfully
 
-This ensures you always get a working installation, even if your requested version isn't compatible with your Python version.
+This multi-step approach ensures reliability and provides clear feedback at each stage, making troubleshooting easier.
 
 ### Example Scenario
 
 If you request `numpy==2.0.0` with Python 3.9, but numpy 2.0.0 requires Python ≥3.10:
-- The action finds the closest compatible version (e.g., `1.26.4`)
+- The action validates your inputs and Python version format
+- Queries PyPI for compatible numpy versions
+- Finds the closest compatible version (e.g., `1.26.4`)
 - Installs that version instead
+- Verifies the package imports correctly
 - Reports `1.26.4` as the `closest-valid-version` output
 
 ## Troubleshooting
@@ -230,6 +237,57 @@ If the action finds a version but installation fails:
 - Check the package's dependencies for compatibility issues
 - Review the full error output
 - Try installing with additional uv arguments (e.g., `--no-deps` to skip dependencies)
+
+### Error: "package-name cannot be empty"
+
+This error occurs when the `package-name` input is not provided or is an empty string.
+
+**Solution:** Ensure you provide a valid package name:
+
+```yaml
+- name: Install package
+  uses: durandtibo/uv-install-package-action@v0.1.1
+  with:
+    package-name: 'numpy'  # ✅ Must be provided
+    package-version: '2.0.0'
+    python-version: '3.11'
+```
+
+### Warning: "uv-args contains shell metacharacters"
+
+This warning appears when the `uv-args` input contains potentially dangerous shell metacharacters like `;` or `|`.
+
+**What it means:** The action detects characters that could potentially be used for command injection or unintended shell operations.
+
+**Action required:**
+- If these characters are intentional (e.g., part of a URL), ensure they're properly escaped
+- Review your `uv-args` to ensure they're safe and as intended
+- Consider using environment variables for sensitive values instead of inline arguments
+
+**Example:**
+```yaml
+- name: Install from custom index
+  uses: durandtibo/uv-install-package-action@v0.1.1
+  with:
+    package-name: 'my-package'
+    package-version: '1.0.0'
+    python-version: '3.11'
+    uv-args: '--index-url https://pypi.example.com/simple'  # ✅ Safe
+```
+
+### Package Installed but Import Verification Fails
+
+The action includes post-installation verification that attempts to import the package. If you see a warning about import verification:
+
+**Common causes:**
+1. **CLI-only packages**: Some packages (like command-line tools) don't have importable Python modules. This is normal and the warning can be ignored.
+2. **Different import name**: Some packages have different import names than their package names (e.g., `scikit-learn` → `sklearn`). The action handles common cases automatically.
+3. **Installation issues**: The package installed but files are missing or corrupted.
+
+**What to do:**
+- For CLI tools: The warning is expected and can be ignored if the tool works
+- For Python libraries: Check the package's documentation for the correct import name
+- If installation is broken: Check the full error logs and try reinstalling
 
 ## Suggestions and Communication
 
