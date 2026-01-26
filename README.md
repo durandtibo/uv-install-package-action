@@ -259,7 +259,7 @@ This warning appears when the `uv-args` input contains potentially dangerous she
 
 **What it means:** The action detects characters that could potentially be used for command injection or unintended shell operations.
 
-**Action required:** 
+**Action required:**
 - If these characters are intentional (e.g., part of a URL), ensure they're properly escaped
 - Review your `uv-args` to ensure they're safe and as intended
 - Consider using environment variables for sensitive values instead of inline arguments

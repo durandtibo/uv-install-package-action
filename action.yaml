@@ -157,7 +157,7 @@ runs:
         # Exit immediately if any command fails
         set -euo pipefail
         echo "📦 Installing feu package..."
-        
+
         # Try to install feu with retry logic for transient network issues
         MAX_ATTEMPTS=3
         ATTEMPT=1
@@ -269,11 +269,11 @@ runs:
         set -euo pipefail
 
         echo "🔍 Verifying package installation..."
-        
+
         # Convert package name to import name (replace hyphens with underscores)
         # This handles common cases like 'scikit-learn' -> 'sklearn'
         IMPORT_NAME=$(echo "${{ inputs.package-name }}" | sed 's/-/_/g')
-        
+
         # Try to import with converted name first
         if python -c "import $IMPORT_NAME" 2>/dev/null; then
           echo "✅ Package '${{ inputs.package-name }}' imports successfully as '$IMPORT_NAME'"
