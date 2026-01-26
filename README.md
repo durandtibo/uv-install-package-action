@@ -244,7 +244,7 @@ This warning appears when the `uv-args` input contains potentially dangerous she
 - Review your `uv-args` to ensure they're safe and as intended
 - Consider using environment variables for sensitive values instead of inline arguments
 
-**Example - Safe usage:**
+**Example:**
 ```yaml
 - name: Install from custom index
   uses: durandtibo/uv-install-package-action@v0.1.1
