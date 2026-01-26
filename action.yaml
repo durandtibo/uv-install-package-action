@@ -93,7 +93,7 @@ runs:
 
         # Check for potentially dangerous characters in uv-args (shell metacharacters)
         UV_ARGS="${{ inputs.uv-args }}"
-        if [[ "$UV_ARGS" =~ [;\|] ]]; then
+        if [[ "$UV_ARGS" =~ [\;|] ]]; then
           echo "::warning::⚠️  uv-args contains shell metacharacters (';' or '|'). Ensure these are properly escaped and intentional."
         fi
 
