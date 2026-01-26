@@ -6,14 +6,18 @@ This document explains the different types of tests in this repository and how t
 
 ### 1. Shell Script Tests (BATS)
 
-Unit tests for bash scripts using [BATS](https://github.com/bats-core/bats-core) (Bash Automated Testing System).
+Unit tests for bash scripts using [BATS](https://github.com/bats-core/bats-core) (Bash Automated
+Testing System).
 
 **Location:** `tests/bats/`
 
 **Test Files:**
-- `test_validate_python_version.bats` - Tests for the Python version validation and normalization script
+
+- `test_validate_python_version.bats` - Tests for the Python version validation and normalization
+  script
 
 **Coverage:**
+
 - Valid Python versions (major.minor format)
 - Normalization of patch versions (X.Y.Z → X.Y)
 - Edge cases (whitespace, high version numbers)
@@ -52,6 +56,7 @@ Tests that verify installed packages can be imported and used correctly.
 **Location:** `tests/functional/`
 
 **Coverage:**
+
 - Package import verification for common packages (numpy, pandas, torch, etc.)
 - Uses conditional decorators to skip if package not available
 
@@ -72,12 +77,14 @@ Specification tests that document expected behavior for the action's validation 
 **Location:** `tests/unit/`
 
 **Coverage:**
+
 - Input validation specifications
 - Error message quality requirements
 - Retry logic specifications
 - Post-install verification requirements
 
-**Note:** These are primarily documentation tests that specify expected behavior. The actual validation happens in action.yaml shell scripts.
+**Note:** These are primarily documentation tests that specify expected behavior. The actual
+validation happens in action.yaml shell scripts.
 
 **Running the Tests:**
 
@@ -96,16 +103,19 @@ Full end-to-end tests run in GitHub Actions workflows.
 **Location:** `.github/workflows/`
 
 **Key Workflows:**
+
 - `test.yaml` - Matrix testing across Python versions and OS platforms
 - `test-local.yaml` - Tests local action changes
 - `test-shell.yaml` - Runs BATS shell tests in CI
 
 **Coverage:**
+
 - Multiple Python versions (3.10-3.14)
 - Multiple OS platforms (Ubuntu, macOS, including ARM variants)
 - Real package installations with various versions
 
 **Running:**
+
 - Automatically triggered on push/PR to main
 - Can be manually triggered via GitHub Actions UI
 
