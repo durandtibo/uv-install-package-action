@@ -17,8 +17,9 @@ inputs:
     description: 'The target package version (e.g., "1.2.3", "2.0.0")'
     required: true
   python-version:
-    description: 'The Python version to check compatibility against (e.g., "3.10", "3.11", "3.12")'
-    required: true
+    description: 'The Python version to check compatibility against (e.g., "3.10", "3.11", "3.12"). If not provided, the Python version is auto-detected from the current environment.'
+    required: false
+    default: ''
   uv-args:
     description: 'Additional arguments to pass to uv (e.g., "--index-url https://custom.pypi.org/simple")'
     required: false
@@ -101,7 +102,8 @@ runs:
     # ============================================================================
     # Step 3: Validate and normalize Python version
     # ============================================================================
-    # Validates that the Python version is in major.minor format (e.g., "3.10").
+    # If python-version is not provided, auto-detect from the current environment.
+    # Otherwise, validate that the Python version is in major.minor format (e.g., "3.10").
     # If a patch version is provided (e.g., "3.10.1"), it will be normalized
     # to just major.minor (e.g., "3.10").
     - name: Validate Python version
@@ -111,7 +113,19 @@ runs:
         set -euo pipefail
 
         PYTHON_VERSION="${{ inputs.python-version }}"
-        echo "🔍 Validating Python version: $PYTHON_VERSION"
+
+        # Auto-detect Python version if not provided
+        if [ -z "$PYTHON_VERSION" ]; then
+          echo "🔍 Python version not provided, auto-detecting..."
+          if ! DETECTED_VERSION=$(python --version 2>&1 | cut -d' ' -f2 | cut -d'.' -f1,2); then
+            echo "::error::❌ Failed to auto-detect Python version"
+            exit 1
+          fi
+          PYTHON_VERSION="$DETECTED_VERSION"
+          echo "✅ Auto-detected Python version: $PYTHON_VERSION"
+        else
+          echo "🔍 Validating Python version: $PYTHON_VERSION"
+        fi
 
         # Call the validation script
         SCRIPT_PATH="${{ github.action_path }}/scripts/validate_python_version.sh"

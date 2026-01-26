@@ -67,6 +67,26 @@ steps:
       python-version: '3.11'
 ```
 
+### Auto-detect Python Version
+
+```yaml
+steps:
+  - name: Checkout repository
+    uses: actions/checkout@v6
+
+  - name: Install uv
+    uses: astral-sh/setup-uv@v7
+    with:
+      python-version: '3.11'
+
+  - name: Install numpy (auto-detect Python version)
+    uses: durandtibo/uv-install-package-action@v0.1.1
+    with:
+      package-name: 'numpy'
+      package-version: '2.0.2'
+      # python-version is optional and will be auto-detected
+```
+
 ### Install with Custom PyPI Index
 
 ```yaml
@@ -102,7 +122,7 @@ steps:
 |--------------------|------------------------------------------------------------------------------------|----------|---------|
 | `package-name`     | The package name (e.g., `numpy`, `requests`, `django`)                            | Yes      | -       |
 | `package-version`  | The target package version (e.g., `1.2.3`, `2.0.2`)                              | Yes      | -       |
-| `python-version`   | The Python version to check compatibility against (e.g., `3.10`, `3.11`, `3.12`). Must be in `X.Y` format. If a patch version is provided (e.g., `3.10.1`), it will be normalized to `X.Y` (e.g., `3.10`). | Yes      | -       |
+| `python-version`   | The Python version to check compatibility against (e.g., `3.10`, `3.11`, `3.12`). Must be in `X.Y` format. If a patch version is provided (e.g., `3.10.1`), it will be normalized to `X.Y` (e.g., `3.10`). If not provided, the Python version is auto-detected from the current environment. | No       | Auto-detected |
 | `uv-args`          | Additional arguments to pass to uv (e.g., `--index-url https://custom.pypi.org/simple`) | No       | `''`    |
 
 ## Outputs
