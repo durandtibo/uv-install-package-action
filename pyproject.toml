@@ -19,7 +19,7 @@ jax = [ "jax>=0.5.0; (sys_platform == 'linux' or (sys_platform == 'darwin' and p
 matplotlib = [ "matplotlib >=3.6", ]
 numpy = [ "numpy >=1.22", ]
 pandas = [ "pandas >=1.2" ]
-polars = [ "polars >=1.0" ]
+polars = [ "polars>=1.40.1" ]
 pyarrow = [ "pyarrow>=11.0" ]
 requests = [ "requests >=2.25" ]
 scipy = [ "scipy >=1.10" ]
