@@ -14,7 +14,7 @@ requires-python = ">=3.10"
 dependencies = []
 
 [project.optional-dependencies]
-click = [ "click >=8.1", ]
+click = [ "click>=8.3.3", ]
 jax = [ "jax>=0.5.0; (sys_platform == 'linux' or (sys_platform == 'darwin' and platform_machine == 'arm64'))" ]
 matplotlib = [ "matplotlib >=3.6", ]
 numpy = [ "numpy >=1.22", ]
