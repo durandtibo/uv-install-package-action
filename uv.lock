@@ -2918,7 +2918,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "click", marker = "extra == 'click'", specifier = ">=8.4.0" },
+    { name = "click", marker = "extra == 'click'", specifier = ">=8.4.1" },
     { name = "jax", marker = "(platform_machine == 'arm64' and sys_platform == 'darwin' and extra == 'jax') or (sys_platform == 'linux' and extra == 'jax')", specifier = ">=0.5.0" },
     { name = "matplotlib", marker = "extra == 'matplotlib'", specifier = ">=3.6" },
     { name = "numpy", marker = "extra == 'numpy'", specifier = ">=1.22" },
