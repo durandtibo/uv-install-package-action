@@ -162,7 +162,7 @@ runs:
         MAX_ATTEMPTS=3
         ATTEMPT=1
         while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
-          if uv pip install "feu[cli]>=0.6.2,<0.7.0"; then
+          if uv pip install "feu[cli]>=0.7.2"; then
             echo "✅ Dependencies installed"
             break
           else
