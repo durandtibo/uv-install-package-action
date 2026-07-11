@@ -610,16 +610,16 @@ wheels = [
 
 [[package]]
 name = "feu"
-version = "0.7.1"
+version = "0.7.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "packaging" },
     { name = "tomli", marker = "python_full_version < '3.11'" },
     { name = "typing-extensions", marker = "python_full_version < '3.11'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/fe/b3/8209a837f083f35e4a6f8107619970b62c58b629da29344599384658df20/feu-0.7.1.tar.gz", hash = "sha256:48a7494df00f56ee18bcb300305493c261ee22b1d96a7be5ecb1189e8e39224a", size = 33705, upload-time = "2026-06-28T05:56:48.692Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/36/c4/fc04369b6f31e879328be7df6249c4f9ad98c3affa9ed2e23a8f8559aec8/feu-0.7.2.tar.gz", hash = "sha256:f540736180e38b792447318afeb8fbd58995be76aabc05ffa173ddd808eba00c", size = 33726, upload-time = "2026-07-10T06:33:13.209Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/fa/5a/1d0f0b680188291473e91c21919f1c2c5e259f0120e8debad50b3547b98f/feu-0.7.1-py3-none-any.whl", hash = "sha256:ed3f6259677167aa7230f5a88b3d6bb4704ecaedf1160f23e52b2871373a7ae3", size = 48201, upload-time = "2026-06-28T05:56:47.61Z" },
+    { url = "https://files.pythonhosted.org/packages/f5/66/9fd7147b17fe450e6391433d91de93d6198e3306defab922842738eb7fc5/feu-0.7.2-py3-none-any.whl", hash = "sha256:26d48011bad3827fc56d53cba14572ab0a39bc0b8174f0425dff8e210f3d2ec5", size = 48221, upload-time = "2026-07-10T06:33:12.025Z" },
 ]
 
 [package.optional-dependencies]
@@ -3128,7 +3128,7 @@ dev = [
     { name = "black", specifier = ">=26.5.1" },
     { name = "coverage", extras = ["toml"], specifier = ">=7.15.0,<8.0" },
     { name = "docformatter", extras = ["tomli"], marker = "python_full_version < '3.14'", specifier = ">=1.7,<2.0" },
-    { name = "feu", extras = ["all"], specifier = ">=0.7.1,<1.0" },
+    { name = "feu", extras = ["all"], specifier = ">=0.7.2,<1.0" },
     { name = "invoke", specifier = ">=3.0.3,<4.0" },
     { name = "pre-commit", specifier = ">=4.6.0,<5.0" },
     { name = "pygments", specifier = ">=2.19,<3.0" },
