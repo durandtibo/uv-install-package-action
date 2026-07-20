@@ -584,7 +584,7 @@ name = "docformatter"
 version = "1.7.8"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "charset-normalizer" },
+    { name = "charset-normalizer", marker = "python_full_version < '3.14'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/6a/e1/f6fb315205e0a8f62ddbd52029b3d39cb5bada768af317193460f0454f6b/docformatter-1.7.8.tar.gz", hash = "sha256:6589b62a8f38c62c4c8c84cb1afa296af007c88c959e4c9d25c74c1f933c4dbf", size = 37754, upload-time = "2026-04-28T20:34:49.39Z" }
 wheels = [
@@ -610,16 +610,16 @@ wheels = [
 
 [[package]]
 name = "feu"
-version = "0.7.2"
+version = "0.7.3"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "packaging" },
     { name = "tomli", marker = "python_full_version < '3.11'" },
     { name = "typing-extensions", marker = "python_full_version < '3.11'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/36/c4/fc04369b6f31e879328be7df6249c4f9ad98c3affa9ed2e23a8f8559aec8/feu-0.7.2.tar.gz", hash = "sha256:f540736180e38b792447318afeb8fbd58995be76aabc05ffa173ddd808eba00c", size = 33726, upload-time = "2026-07-10T06:33:13.209Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/34/92/d8fb155ce41e6b4659896da975cbb26a4b9bae4a00c41c2cf4ea6530db35/feu-0.7.3.tar.gz", hash = "sha256:8add8e39398401e311dc7efe330c9238a4efdbe6f11edc521dd3e0d8ce6fd4b3", size = 33754, upload-time = "2026-07-17T06:22:39.91Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/f5/66/9fd7147b17fe450e6391433d91de93d6198e3306defab922842738eb7fc5/feu-0.7.2-py3-none-any.whl", hash = "sha256:26d48011bad3827fc56d53cba14572ab0a39bc0b8174f0425dff8e210f3d2ec5", size = 48221, upload-time = "2026-07-10T06:33:12.025Z" },
+    { url = "https://files.pythonhosted.org/packages/5f/d5/1b877f86510c11f4dde77c300e4b892051cc5e10f3cca95cdab3da36e31e/feu-0.7.3-py3-none-any.whl", hash = "sha256:43e0f62f68a2c3b9b15dbe25a8b0b71b86cede8d55800d3fad845cb5c4bc871d", size = 48257, upload-time = "2026-07-17T06:22:38.849Z" },
 ]
 
 [package.optional-dependencies]
@@ -773,11 +773,11 @@ resolution-markers = [
     "(python_full_version < '3.11' and platform_machine == 'arm64' and sys_platform == 'darwin') or (python_full_version < '3.11' and sys_platform == 'linux')",
 ]
 dependencies = [
-    { name = "jaxlib", version = "0.6.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
-    { name = "ml-dtypes", marker = "python_full_version < '3.11'" },
-    { name = "numpy", version = "2.2.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
-    { name = "opt-einsum", marker = "python_full_version < '3.11'" },
-    { name = "scipy", version = "1.15.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
+    { name = "jaxlib", version = "0.6.2", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version < '3.11' and platform_machine == 'arm64' and sys_platform == 'darwin') or (python_full_version < '3.11' and sys_platform == 'linux')" },
+    { name = "ml-dtypes", marker = "(python_full_version < '3.11' and platform_machine == 'arm64' and sys_platform == 'darwin') or (python_full_version < '3.11' and sys_platform == 'linux')" },
+    { name = "numpy", version = "2.2.6", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version < '3.11' and platform_machine == 'arm64' and sys_platform == 'darwin') or (python_full_version < '3.11' and sys_platform == 'linux')" },
+    { name = "opt-einsum", marker = "(python_full_version < '3.11' and platform_machine == 'arm64' and sys_platform == 'darwin') or (python_full_version < '3.11' and sys_platform == 'linux')" },
+    { name = "scipy", version = "1.15.3", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version < '3.11' and platform_machine == 'arm64' and sys_platform == 'darwin') or (python_full_version < '3.11' and sys_platform == 'linux')" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/cf/1e/267f59c8fb7f143c3f778c76cb7ef1389db3fd7e4540f04b9f42ca90764d/jax-0.6.2.tar.gz", hash = "sha256:a437d29038cbc8300334119692744704ca7941490867b9665406b7f90665cd96", size = 2334091, upload-time = "2025-06-17T23:10:27.186Z" }
 wheels = [
@@ -795,13 +795,13 @@ resolution-markers = [
     "(python_full_version == '3.11.*' and platform_machine == 'arm64' and sys_platform == 'darwin') or (python_full_version == '3.11.*' and sys_platform == 'linux')",
 ]
 dependencies = [
-    { name = "jaxlib", version = "0.10.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
-    { name = "ml-dtypes", marker = "python_full_version >= '3.11'" },
-    { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version == '3.11.*'" },
-    { name = "numpy", version = "2.5.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
-    { name = "opt-einsum", marker = "python_full_version >= '3.11'" },
-    { name = "scipy", version = "1.17.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version == '3.11.*'" },
-    { name = "scipy", version = "1.18.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
+    { name = "jaxlib", version = "0.10.2", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version >= '3.11' and platform_machine == 'arm64' and sys_platform == 'darwin') or (python_full_version >= '3.11' and sys_platform == 'linux')" },
+    { name = "ml-dtypes", marker = "(python_full_version >= '3.11' and platform_machine == 'arm64' and sys_platform == 'darwin') or (python_full_version >= '3.11' and sys_platform == 'linux')" },
+    { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version == '3.11.*' and platform_machine == 'arm64' and sys_platform == 'darwin') or (python_full_version == '3.11.*' and sys_platform == 'linux')" },
+    { name = "numpy", version = "2.5.1", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version >= '3.12' and platform_machine == 'arm64' and sys_platform == 'darwin') or (python_full_version >= '3.12' and sys_platform == 'linux')" },
+    { name = "opt-einsum", marker = "(python_full_version >= '3.11' and platform_machine == 'arm64' and sys_platform == 'darwin') or (python_full_version >= '3.11' and sys_platform == 'linux')" },
+    { name = "scipy", version = "1.17.1", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version == '3.11.*' and platform_machine == 'arm64' and sys_platform == 'darwin') or (python_full_version == '3.11.*' and sys_platform == 'linux')" },
+    { name = "scipy", version = "1.18.0", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version >= '3.12' and platform_machine == 'arm64' and sys_platform == 'darwin') or (python_full_version >= '3.12' and sys_platform == 'linux')" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/d2/73/eb91d98fcadfa2cbcfdd4e417ab116e47eb20882acc5ee678e47c35d6b57/jax-0.10.2.tar.gz", hash = "sha256:bf77428a8c2e6904c4f46d5ab12aa5cfc6cad2179f07f7e4c0fc75ac86ef0639", size = 2775110, upload-time = "2026-06-17T23:44:57.818Z" }
 wheels = [
@@ -816,9 +816,9 @@ resolution-markers = [
     "(python_full_version < '3.11' and platform_machine == 'arm64' and sys_platform == 'darwin') or (python_full_version < '3.11' and sys_platform == 'linux')",
 ]
 dependencies = [
-    { name = "ml-dtypes", marker = "python_full_version < '3.11'" },
-    { name = "numpy", version = "2.2.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
-    { name = "scipy", version = "1.15.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
+    { name = "ml-dtypes", marker = "(python_full_version < '3.11' and platform_machine == 'arm64' and sys_platform == 'darwin') or (python_full_version < '3.11' and sys_platform == 'linux')" },
+    { name = "numpy", version = "2.2.6", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version < '3.11' and platform_machine == 'arm64' and sys_platform == 'darwin') or (python_full_version < '3.11' and sys_platform == 'linux')" },
+    { name = "scipy", version = "1.15.3", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version < '3.11' and platform_machine == 'arm64' and sys_platform == 'darwin') or (python_full_version < '3.11' and sys_platform == 'linux')" },
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/15/c5/41598634c99cbebba46e6777286fb76abc449d33d50aeae5d36128ca8803/jaxlib-0.6.2-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:da4601b2b5dc8c23d6afb293eacfb9aec4e1d1871cb2f29c5a151d103e73b0f8", size = 54298019, upload-time = "2025-06-17T23:10:36.916Z" },
@@ -848,11 +848,11 @@ resolution-markers = [
     "(python_full_version == '3.11.*' and platform_machine == 'arm64' and sys_platform == 'darwin') or (python_full_version == '3.11.*' and sys_platform == 'linux')",
 ]
 dependencies = [
-    { name = "ml-dtypes", marker = "python_full_version >= '3.11'" },
-    { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version == '3.11.*'" },
-    { name = "numpy", version = "2.5.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
-    { name = "scipy", version = "1.17.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version == '3.11.*'" },
-    { name = "scipy", version = "1.18.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
+    { name = "ml-dtypes", marker = "(python_full_version >= '3.11' and platform_machine == 'arm64' and sys_platform == 'darwin') or (python_full_version >= '3.11' and sys_platform == 'linux')" },
+    { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version == '3.11.*' and platform_machine == 'arm64' and sys_platform == 'darwin') or (python_full_version == '3.11.*' and sys_platform == 'linux')" },
+    { name = "numpy", version = "2.5.1", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version >= '3.12' and platform_machine == 'arm64' and sys_platform == 'darwin') or (python_full_version >= '3.12' and sys_platform == 'linux')" },
+    { name = "scipy", version = "1.17.1", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version == '3.11.*' and platform_machine == 'arm64' and sys_platform == 'darwin') or (python_full_version == '3.11.*' and sys_platform == 'linux')" },
+    { name = "scipy", version = "1.18.0", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version >= '3.12' and platform_machine == 'arm64' and sys_platform == 'darwin') or (python_full_version >= '3.12' and sys_platform == 'linux')" },
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/b2/2c/7038fc73154307389631b5b2dbe5ac529e1918eecc19a27e6644ad114bbf/jaxlib-0.10.2-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:5a98873fc867623b81f2bee15d554b8edd6588a183d01fa50d21b1e3db96ff2b", size = 61429039, upload-time = "2026-06-17T23:43:44.858Z" },
@@ -1252,9 +1252,9 @@ name = "ml-dtypes"
 version = "0.5.4"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "numpy", version = "2.2.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
-    { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version == '3.11.*'" },
-    { name = "numpy", version = "2.5.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
+    { name = "numpy", version = "2.2.6", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version < '3.11' and platform_machine == 'arm64' and sys_platform == 'darwin') or (python_full_version < '3.11' and sys_platform == 'linux')" },
+    { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version == '3.11.*' and platform_machine == 'arm64' and sys_platform == 'darwin') or (python_full_version == '3.11.*' and sys_platform == 'linux')" },
+    { name = "numpy", version = "2.5.1", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version >= '3.12' and platform_machine == 'arm64' and sys_platform == 'darwin') or (python_full_version >= '3.12' and sys_platform == 'linux')" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/0e/4a/c27b42ed9b1c7d13d9ba8b6905dece787d6259152f2309338aed29b2447b/ml_dtypes-0.5.4.tar.gz", hash = "sha256:8ab06a50fb9bf9666dd0fe5dfb4676fa2b0ac0f31ecff72a6c3af8e22c063453", size = 692314, upload-time = "2025-11-17T22:32:31.031Z" }
 wheels = [
@@ -3034,7 +3034,7 @@ wheels = [
 
 [[package]]
 name = "uv-install-package-action"
-version = "0.1.2a0"
+version = "0.1.2"
 source = { virtual = "." }
 
 [package.optional-dependencies]
@@ -3128,7 +3128,7 @@ dev = [
     { name = "black", specifier = ">=26.5.1" },
     { name = "coverage", extras = ["toml"], specifier = ">=7.15.0,<8.0" },
     { name = "docformatter", extras = ["tomli"], marker = "python_full_version < '3.14'", specifier = ">=1.7,<2.0" },
-    { name = "feu", extras = ["all"], specifier = ">=0.7.2,<1.0" },
+    { name = "feu", extras = ["all"], specifier = ">=0.7.3,<1.0" },
     { name = "invoke", specifier = ">=3.0.3,<4.0" },
     { name = "pre-commit", specifier = ">=4.6.0,<5.0" },
     { name = "pygments", specifier = ">=2.19,<3.0" },
