@@ -78,6 +78,66 @@ setup() {
     [ "$output" = "3.13" ]
 }
 
+# Test free-threaded versions (trailing 't')
+
+@test "Python 3.13t is valid and returns 3.13t" {
+    run "$VALIDATE_SCRIPT" "3.13t"
+    [ "$status" -eq 0 ]
+    [ "$output" = "3.13t" ]
+}
+
+@test "Python 3.14t is valid and returns 3.14t" {
+    run "$VALIDATE_SCRIPT" "3.14t"
+    [ "$status" -eq 0 ]
+    [ "$output" = "3.14t" ]
+}
+
+@test "Python 3.9t is valid and returns 3.9t" {
+    run "$VALIDATE_SCRIPT" "3.9t"
+    [ "$status" -eq 0 ]
+    [ "$output" = "3.9t" ]
+}
+
+@test "Python 3.13.0t normalizes to 3.13t" {
+    run "$VALIDATE_SCRIPT" "3.13.0t"
+    [ "$status" -eq 0 ]
+    [ "$output" = "3.13t" ]
+}
+
+@test "Python 3.14.5t normalizes to 3.14t" {
+    run "$VALIDATE_SCRIPT" "3.14.5t"
+    [ "$status" -eq 0 ]
+    [ "$output" = "3.14t" ]
+}
+
+@test "Whitespace trimming: '  3.13t  ' returns 3.13t" {
+    run "$VALIDATE_SCRIPT" "  3.13t  "
+    [ "$status" -eq 0 ]
+    [ "$output" = "3.13t" ]
+}
+
+# Test invalid free-threaded formats (should fail)
+
+@test "Leading 't' 't3.13' fails" {
+    run "$VALIDATE_SCRIPT" "t3.13"
+    [ "$status" -eq 1 ]
+}
+
+@test "Double 't' suffix '3.13tt' fails" {
+    run "$VALIDATE_SCRIPT" "3.13tt"
+    [ "$status" -eq 1 ]
+}
+
+@test "'t' suffix with too many parts '3.13.1.2t' fails" {
+    run "$VALIDATE_SCRIPT" "3.13.1.2t"
+    [ "$status" -eq 1 ]
+}
+
+@test "'t' suffix on major-only version '3t' fails" {
+    run "$VALIDATE_SCRIPT" "3t"
+    [ "$status" -eq 1 ]
+}
+
 # Test edge cases
 
 @test "Whitespace trimming: '  3.10  ' returns 3.10" {
@@ -178,7 +238,7 @@ setup() {
     run "$VALIDATE_SCRIPT" "3"
     [ "$status" -eq 1 ]
     [[ "$output" =~ "Invalid Python version format" ]]
-    [[ "$output" =~ "Expected format: 'X.Y' or 'X.Y.Z'" ]]
+    [[ "$output" =~ "Expected format: 'X.Y', 'X.Y.Z', or the free-threaded variant 'X.Yt'" ]]
 }
 
 @test "Validation script provides helpful error for text input" {
