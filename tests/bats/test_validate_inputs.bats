@@ -44,12 +44,23 @@ setup() {
     [[ "$output" =~ "package-name cannot contain whitespace" ]]
 }
 
+@test "package-name with tab character fails" {
+    run "$VALIDATE_SCRIPT" "$(printf 'num\tpy')" "1.2.3" ""
+    [ "$status" -eq 1 ]
+    [[ "$output" =~ "package-name cannot contain whitespace" ]]
+}
+
 # package-version validation
 
 @test "empty package-version fails" {
     run "$VALIDATE_SCRIPT" "numpy" "" ""
     [ "$status" -eq 1 ]
     [[ "$output" =~ "package-version cannot be empty" ]]
+}
+
+@test "whitespace-only package-version is treated as non-empty and succeeds" {
+    run "$VALIDATE_SCRIPT" "numpy" " " ""
+    [ "$status" -eq 0 ]
 }
 
 # uv-args validation (non-fatal warning)
@@ -64,6 +75,18 @@ setup() {
     run "$VALIDATE_SCRIPT" "numpy" "1.2.3" "--foo | cat"
     [ "$status" -eq 0 ]
     [[ "$output" =~ "shell metacharacters" ]]
+}
+
+@test "uv-args with both semicolon and pipe warns once but succeeds" {
+    run "$VALIDATE_SCRIPT" "numpy" "1.2.3" "--foo; bar | baz"
+    [ "$status" -eq 0 ]
+    [[ "$output" =~ "shell metacharacters" ]]
+}
+
+@test "uv-args with only whitespace does not warn" {
+    run "$VALIDATE_SCRIPT" "numpy" "1.2.3" "   "
+    [ "$status" -eq 0 ]
+    [ -z "$output" ]
 }
 
 # Argument count validation
