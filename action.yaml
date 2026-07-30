@@ -75,27 +75,15 @@ runs:
 
         echo "🔍 Validating action inputs..."
 
-        # Validate package-name is not empty
-        if [ -z "$PACKAGE_NAME" ]; then
-          echo "::error::❌ package-name cannot be empty"
+        SCRIPT_PATH="${{ github.action_path }}/scripts/validate_inputs.sh"
+        if ! ERROR_OUTPUT=$("$SCRIPT_PATH" "$PACKAGE_NAME" "$PACKAGE_VERSION" "$UV_ARGS" 2>&1); then
+          echo "::error::❌ $ERROR_OUTPUT"
           exit 1
         fi
 
-        # Validate package-name doesn't contain obviously invalid characters
-        if [[ "$PACKAGE_NAME" =~ [[:space:]] ]]; then
-          echo "::error::❌ package-name cannot contain whitespace: '$PACKAGE_NAME'"
-          exit 1
-        fi
-
-        # Validate package-version is not empty
-        if [ -z "$PACKAGE_VERSION" ]; then
-          echo "::error::❌ package-version cannot be empty"
-          exit 1
-        fi
-
-        # Check for potentially dangerous characters in uv-args (shell metacharacters)
-        if [[ "$UV_ARGS" =~ [\;|] ]]; then
-          echo "::warning::⚠️  uv-args contains shell metacharacters (';' or '|'). Ensure these are properly escaped and intentional."
+        # Relay any non-fatal warnings (e.g. shell metacharacters in uv-args)
+        if [ -n "$ERROR_OUTPUT" ]; then
+          echo "::warning::⚠️  $ERROR_OUTPUT"
         fi
 
         echo "✅ Input validation passed"

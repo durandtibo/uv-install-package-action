@@ -15,6 +15,8 @@ Testing System).
 
 - `test_validate_python_version.bats` - Tests for the Python version validation and normalization
   script
+- `test_validate_inputs.bats` - Tests for the package-name/package-version/uv-args input
+  validation script
 
 **Coverage:**
 
@@ -23,6 +25,8 @@ Testing System).
 - Edge cases (whitespace, high version numbers)
 - Invalid formats (comprehensive error cases)
 - Error message quality
+- Input validation for package-name, package-version, and uv-args (including the
+  shell-metacharacter warning path)
 
 **Prerequisites:**
 
@@ -72,19 +76,11 @@ inv functional-test
 
 ### 3. Unit Tests (pytest)
 
-Specification tests that document expected behavior for the action's validation logic.
-
 **Location:** `tests/unit/`
 
-**Coverage:**
-
-- Input validation specifications
-- Error message quality requirements
-- Retry logic specifications
-- Post-install verification requirements
-
-**Note:** These are primarily documentation tests that specify expected behavior. The actual
-validation happens in action.yaml shell scripts.
+**Note:** The action's validation logic (input validation, Python version normalization) is
+implemented in standalone scripts under `scripts/` and is unit-tested with BATS (see above), not
+pytest. This directory is reserved for future Python-level unit tests.
 
 **Running the Tests:**
 
