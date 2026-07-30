@@ -165,6 +165,35 @@ jobs:
           python -m pytest tests/functional
 
 
+  free-threaded-python-version:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Install uv and set the python version
+        uses: astral-sh/setup-uv@v7
+        with:
+          python-version: '3.13t'
+          activate-environment: true
+
+      - name: Install packages
+        run: |
+          uv pip install pytest
+
+      - name: Install valid package version
+        uses: ./
+        with:
+          package-name: numpy
+          package-version: 2.4.1
+          python-version: '3.13.0t'
+
+      - name: Run functional tests
+        run: |
+          python -m pytest tests/functional
+
 
   incorrect-python-version:
     runs-on: ubuntu-latest

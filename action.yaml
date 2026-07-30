@@ -268,7 +268,8 @@ runs:
 
         # Convert package name to import name (replace hyphens with underscores)
         # This handles common cases like 'scikit-learn' -> 'sklearn'
-        IMPORT_NAME=$(echo "$PACKAGE_NAME" | sed 's/-/_/g')
+        SCRIPT_PATH="${{ github.action_path }}/scripts/get_import_name.sh"
+        IMPORT_NAME=$("$SCRIPT_PATH" "$PACKAGE_NAME")
 
         # Try to import with converted name first
         if python -c "import importlib, sys; importlib.import_module(sys.argv[1])" "$IMPORT_NAME" 2>/dev/null; then

@@ -17,16 +17,24 @@ Testing System).
   script
 - `test_validate_inputs.bats` - Tests for the package-name/package-version/uv-args input
   validation script
+- `test_get_import_name.bats` - Tests for the package-name → import-name conversion script used
+  by the "Verify installation" step
 
 **Coverage:**
 
-- Valid Python versions (major.minor format)
-- Normalization of patch versions (X.Y.Z → X.Y)
-- Edge cases (whitespace, high version numbers)
+- Valid Python versions (major.minor format), including free-threaded builds (`X.Yt`)
+- Normalization of patch versions (X.Y.Z → X.Y, X.Y.Zt → X.Yt)
+- Edge cases (whitespace, tab characters, high version numbers)
 - Invalid formats (comprehensive error cases)
 - Error message quality
 - Input validation for package-name, package-version, and uv-args (including the
-  shell-metacharacter warning path)
+  shell-metacharacter warning path and combined-warning cases)
+- Package-name to import-name conversion (e.g. `scikit-learn` → `sklearn` module prefix)
+
+All bash logic embedded in `action.yaml` that has meaningful branching (input validation, Python
+version normalization, import-name conversion) is extracted into standalone scripts under
+`scripts/` specifically so it can be unit-tested here rather than only exercised indirectly via
+the slower GitHub Actions integration tests below.
 
 **Prerequisites:**
 
@@ -101,12 +109,17 @@ Full end-to-end tests run in GitHub Actions workflows.
 **Key Workflows:**
 
 - `test.yaml` - Matrix testing across Python versions and OS platforms
-- `test-local.yaml` - Tests local action changes
+- `test-local.yaml` - Tests local action changes (uses `./` action reference), including edge
+  cases: no `python-version` given (auto-detect), a patch `python-version`, a free-threaded
+  `python-version`, an invalid `python-version`, and an empty `package-name`
+- `test-stable.yaml` - Same edge cases and package matrix as `test-local.yaml`, but against the
+  latest published release (run nightly, not on every PR) to catch regressions between what's
+  merged and what's tagged
 - `test-shell.yaml` - Runs BATS shell tests in CI
 
 **Coverage:**
 
-- Multiple Python versions (3.10-3.14)
+- Multiple Python versions (3.10-3.14, plus free-threaded `3.13t`/`3.14t` variants)
 - Multiple OS platforms (Ubuntu, macOS, including ARM variants)
 - Real package installations with various versions
 
