@@ -12,20 +12,20 @@ permissions:
 jobs:
   generate-package-versions:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 2
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Setup python environment
-        uses: durandtibo/setup-venv-uv-action@v0.0.1
+        uses: durandtibo/setup-venv-uv-action@v0.0.4
 
       - name: Generate package versions
         run: |
           python dev/generate_versions.py
 
-      - uses: peter-evans/create-pull-request@v7
+      - uses: peter-evans/create-pull-request@v8
         if: always()
         with:
           token: ${{ secrets.GITHUB_TOKEN }}

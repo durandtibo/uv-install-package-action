@@ -17,7 +17,7 @@ repos:
         types:
           - python
   - repo: https://github.com/pycqa/isort
-    rev: 7.0.0
+    rev: 9.0.0b1
     hooks:
       - id: isort
         name: isort (python)
@@ -42,7 +42,7 @@ repos:
       - id: python-check-blanket-noqa
       - id: python-use-type-annotations
   - repo: https://github.com/psf/black
-    rev: 25.12.0
+    rev: 26.5.1
     hooks:
       - id: black
         language_version: python3.13
@@ -51,9 +51,9 @@ repos:
     hooks:
       - id: blacken-docs
         additional_dependencies:
-          - black>=25.11
+          - black>=26.1
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.14.9
+    rev: v0.16.0
     hooks:
       - id: ruff-check
         types_or: [ python, pyi, jupyter ]

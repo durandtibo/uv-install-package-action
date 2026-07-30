@@ -15,6 +15,13 @@ from feu.testing import (
     xarray_available,
 )
 
+polars_available: pytest.MarkDecorator = pytest.mark.skipif(
+    not is_package_available("polars"), reason="Requires polars"
+)
+pydantic_available: pytest.MarkDecorator = pytest.mark.skipif(
+    not is_package_available("pydantic"), reason="Requires pydantic"
+)
+
 
 @pytest.fixture(autouse=True)
 def _reset_cache() -> None:
@@ -53,6 +60,16 @@ def test_pandas() -> None:
     )
 
 
+@polars_available
+def test_polars() -> None:
+    import polars as pl  # local import because it is an optional dependency
+    import polars.testing  # local import because it is an optional dependency
+
+    polars.testing.assert_series_equal(
+        pl.Series([1, 2, 3, 4, 5]) + pl.Series([5, 4, 3, 2, 1]), pl.Series([6, 6, 6, 6, 6])
+    )
+
+
 @pyarrow_available
 def test_pyarrow() -> None:
     import pyarrow as pa  # local import because it is an optional dependency
@@ -60,6 +77,19 @@ def test_pyarrow() -> None:
     assert pa.array([1.0, 2.0, 3.0], type=pa.float64()).equals(
         pa.array([1.0, 2.0, 3.0], type=pa.float64())
     )
+
+
+@pydantic_available
+def test_pydantic() -> None:
+    from pydantic import BaseModel  # local import because it is an optional dependency
+
+    class User(BaseModel):
+        id: int
+        name: str = "John Doe"
+
+    user = User(id="123")
+    assert user.id == 123
+    assert user.name == "John Doe"
 
 
 @requests_available

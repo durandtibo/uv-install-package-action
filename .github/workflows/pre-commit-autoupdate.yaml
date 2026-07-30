@@ -13,12 +13,13 @@ permissions:
 jobs:
   auto-update:
     runs-on: ubuntu-latest
+    timeout-minutes: 2
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Setup python environment
-        uses: durandtibo/setup-venv-uv-action@v0.0.1
+        uses: durandtibo/setup-venv-uv-action@v0.0.4
 
       - name: Autoupdate pre-commit hooks
         run: |
@@ -28,7 +29,7 @@ jobs:
         run: |
           pre-commit run --all-files
 
-      - uses: peter-evans/create-pull-request@v7
+      - uses: peter-evans/create-pull-request@v8
         if: always()
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
