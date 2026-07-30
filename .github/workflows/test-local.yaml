@@ -198,3 +198,36 @@ jobs:
       - name: Success - it failed as expected
         if: steps.install-package.outcome == 'failure'
         run: echo "✅ Test passed - step failed as expected"
+
+
+  empty-package-name:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Install uv and set the python version
+        uses: astral-sh/setup-uv@v7
+        with:
+          python-version: '3.13'
+          activate-environment: true
+
+      - name: Install with empty package name
+        uses: ./
+        id: install-package
+        with:
+          package-name: ''
+          package-version: 2.4.1
+        continue-on-error: true
+
+      - name: Failure - it did not fail as expected
+        if: steps.install-package.outcome != 'failure'
+        run: |
+          echo "❌ Error: Step should have failed but didn't!"
+          exit 1
+
+      - name: Success - it failed as expected
+        if: steps.install-package.outcome == 'failure'
+        run: echo "✅ Test passed - step failed as expected"
