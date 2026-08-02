@@ -1,7 +1,7 @@
 name: 'uv-install-package'
 description: |
-  Install Python packages with uv, auto-resolving compatible versions for your target
-  Python environment via PyPI.
+  Install Python packages with uv, validating that the requested version is
+  installable for your target Python environment via PyPI before installing.
 
 author: "Thibaut Durand"
 
@@ -26,9 +26,9 @@ inputs:
     default: ''
 
 outputs:
-  closest-valid-version:
-    description: 'The closest valid package version that matches your constraints and is compatible with the specified Python version'
-    value: ${{ steps.find-version.outputs.closest-valid-version }}
+  is-valid-version:
+    description: 'Boolean indicating whether the requested package-version is valid and installable for the target Python version (true or false)'
+    value: ${{ steps.check-version.outputs.is-valid-version }}
   installed-successfully:
     description: 'Boolean indicating whether the package was installed successfully'
     value: ${{ steps.install-package.outcome == 'success' }}
@@ -168,14 +168,14 @@ runs:
         done
 
     # ============================================================================
-    # Step 5: Find the closest valid package version
+    # Step 5: Check requested version validity
     # ============================================================================
-    # Query PyPI to find the closest available version that matches:
-    # - The requested package version (exact or range)
-    # - Compatibility with the specified Python version
-    # This prevents installation failures from incompatible versions.
-    - name: Find closest valid version
-      id: find-version
+    # Query PyPI (via feu) to check whether the exact requested package
+    # version is installable for the target Python version. Unlike the
+    # previous behavior, no substitute version is resolved: the action
+    # either installs exactly what was requested, or skips installation.
+    - name: Check version validity
+      id: check-version
       shell: bash
       env:
         PACKAGE_NAME: ${{ inputs.package-name }}
@@ -184,13 +184,13 @@ runs:
       run: |
         set -euo pipefail
 
-        echo "🔎 Searching for closest valid version..."
+        echo "🔎 Checking version validity..."
         echo "  📦 Package: $PACKAGE_NAME"
-        echo "  🎯 Target version: $PACKAGE_VERSION"
+        echo "  🎯 Requested version: $PACKAGE_VERSION"
         echo "  🐍 Python version: $NORMALIZED_PYTHON_VERSION"
 
-        # Run feu to resolve the closest compatible version
-        if ! VERSION=$(python -m feu find-closest-version \
+        # Run feu to check whether the requested version is valid
+        if ! RESULT=$(python -m feu check-valid-version \
           --pkg-name="$PACKAGE_NAME" \
           --pkg-version="$PACKAGE_VERSION" \
           --python-version="$NORMALIZED_PYTHON_VERSION" 2>&1); then
@@ -203,61 +203,54 @@ runs:
           exit 1
         fi
 
-        # Validate that we got a version back
-        if [ -z "$VERSION" ]; then
-          echo "::error::❌ No compatible version found for package '$PACKAGE_NAME' version '$PACKAGE_VERSION' with Python $NORMALIZED_PYTHON_VERSION"
-          echo "::error::Suggestions:"
-          echo "::error::  - Check if the package supports Python $NORMALIZED_PYTHON_VERSION on PyPI"
-          echo "::error::  - Try a different package version"
-          echo "::error::  - Try a different Python version"
+        if [ "$RESULT" = "True" ]; then
+          echo "✅ Version '$PACKAGE_VERSION' is valid for Python $NORMALIZED_PYTHON_VERSION"
+          echo "is-valid-version=true" >> "$GITHUB_OUTPUT"
+        elif [ "$RESULT" = "False" ]; then
+          echo "::warning::⚠️  Version '$PACKAGE_VERSION' of '$PACKAGE_NAME' is not valid for Python $NORMALIZED_PYTHON_VERSION. Skipping installation."
+          echo "is-valid-version=false" >> "$GITHUB_OUTPUT"
+        else
+          echo "::error::❌ Unexpected output from feu check-valid-version: '$RESULT'"
           exit 1
         fi
 
-        # Validate version format (should be digits.digits.digits or similar)
-        if ! echo "$VERSION" | grep -qE '^[0-9]+\.[0-9]+(\.[0-9]+)*$'; then
-          echo "::error::❌ Invalid version format returned: '$VERSION'"
-          exit 1
-        fi
-
-        echo "✅ Found closest valid version: $VERSION"
-        # Export the version for use in subsequent steps
-        echo "closest-valid-version=$VERSION" >> "$GITHUB_OUTPUT"
-
     # ============================================================================
-    # Step 6: Install the resolved package version
+    # Step 6: Install the requested package version
     # ============================================================================
-    # Use feu's installer wrapper to install the package with uv.
-    # This ensures consistent installation behavior and proper handling of
-    # any additional uv arguments passed by the user.
+    # Use feu's installer wrapper to install the package with uv, only if
+    # Step 5 confirmed the requested version is valid.
     - name: Install package
       id: install-package
+      if: steps.check-version.outputs.is-valid-version == 'true'
       shell: bash
       env:
         PACKAGE_NAME: ${{ inputs.package-name }}
+        PACKAGE_VERSION: ${{ inputs.package-version }}
         UV_ARGS: ${{ inputs.uv-args }}
-        CLOSEST_VERSION: ${{ steps.find-version.outputs.closest-valid-version }}
       run: |
         set -euo pipefail
 
         echo "📥 Installing package..."
         echo "  📦 Package: $PACKAGE_NAME"
-        echo "  🏷️  Version: $CLOSEST_VERSION"
+        echo "  🏷️  Version: $PACKAGE_VERSION"
 
         # Install the package using feu's installer wrapper
         python -m feu install \
           --installer-name=uv \
           --installer-args="$UV_ARGS" \
           --pkg-name="$PACKAGE_NAME" \
-          --pkg-version="$CLOSEST_VERSION"
+          --pkg-version="$PACKAGE_VERSION"
 
-        echo "::notice::✅ Successfully installed ${PACKAGE_NAME}==${CLOSEST_VERSION}"
+        echo "::notice::✅ Successfully installed ${PACKAGE_NAME}==${PACKAGE_VERSION}"
 
     # ============================================================================
     # Step 7: Verify package installation
     # ============================================================================
     # Verify that the installed package can be imported successfully.
     # This catches issues where installation succeeded but the package is broken.
+    # Skipped when Step 5 found the requested version invalid (nothing was installed).
     - name: Verify installation
+      if: steps.check-version.outputs.is-valid-version == 'true'
       shell: bash
       env:
         PACKAGE_NAME: ${{ inputs.package-name }}
