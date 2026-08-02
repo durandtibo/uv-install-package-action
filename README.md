@@ -63,7 +63,7 @@ steps:
       python-version: '3.11'
 
   - name: Install numpy
-    uses: durandtibo/uv-install-package-action@v0.1.1
+    uses: durandtibo/uv-install-package-action@v0.1.3
     with:
       package-name: 'numpy'
       package-version: '2.0.2'
@@ -83,7 +83,7 @@ steps:
       python-version: '3.11'
 
   - name: Install numpy (auto-detect Python version)
-    uses: durandtibo/uv-install-package-action@v0.1.1
+    uses: durandtibo/uv-install-package-action@v0.1.3
     with:
       package-name: 'numpy'
       package-version: '2.0.2'
@@ -94,7 +94,7 @@ steps:
 
 ```yaml
   - name: Install package from custom index
-    uses: durandtibo/uv-install-package-action@v0.1.1
+    uses: durandtibo/uv-install-package-action@v0.1.3
     with:
       package-name: 'my-package'
       package-version: '1.0.0'
@@ -107,7 +107,7 @@ steps:
 ```yaml
   - name: Install and capture version
     id: install
-    uses: durandtibo/uv-install-package-action@v0.1.1
+    uses: durandtibo/uv-install-package-action@v0.1.3
     with:
       package-name: 'torch'
       package-version: '2.0.0'
@@ -214,7 +214,7 @@ Use the `uv-args` input to specify custom indexes:
 ```yaml
 steps:
   - name: Install from custom index
-    uses: durandtibo/uv-install-package-action@v0.1.1
+    uses: durandtibo/uv-install-package-action@v0.1.3
     with:
       package-name: 'my-package'
       package-version: '1.0.0'
@@ -227,7 +227,7 @@ For authenticated indexes, set environment variables:
 ```yaml
 steps:
   - name: Install from authenticated index
-    uses: durandtibo/uv-install-package-action@v0.1.1
+    uses: durandtibo/uv-install-package-action@v0.1.3
     with:
       package-name: 'my-package'
       package-version: '1.0.0'
@@ -259,7 +259,7 @@ This error occurs when the `package-name` input is not provided or is an empty s
 
 ```yaml
 - name: Install package
-  uses: durandtibo/uv-install-package-action@v0.1.1
+  uses: durandtibo/uv-install-package-action@v0.1.3
   with:
     package-name: 'numpy'  # ✅ Must be provided
     package-version: '2.0.0'
@@ -284,7 +284,7 @@ injection or unintended shell operations.
 
 ```yaml
 - name: Install from custom index
-  uses: durandtibo/uv-install-package-action@v0.1.1
+  uses: durandtibo/uv-install-package-action@v0.1.3
   with:
     package-name: 'my-package'
     package-version: '1.0.0'
