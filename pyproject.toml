@@ -1,6 +1,6 @@
 [project]
 name = "uv-install-package-action"
-version = "0.1.2"
+version = "0.1.3"
 description = "GitHub action to find a valid package version and install it with uv"
 readme = "README.md"
 authors = [
