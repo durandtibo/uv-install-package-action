@@ -163,10 +163,10 @@ Versions](#use-output-version-and-stop-the-workflow-on-invalid-versions)).
 
 ### Example Scenario
 
-If you request `numpy==2.0.0` with Python 3.9, but numpy 2.0.0 requires Python ≥3.10:
+If you request `numpy==2.3.0` with Python 3.9, but numpy 2.3.0 requires a newer Python version:
 
 - The action validates your inputs and Python version format
-- Queries PyPI to check whether `numpy==2.0.0` is installable for Python 3.9
+- Queries PyPI to check whether `numpy==2.3.0` is installable for Python 3.9
 - Finds that it is not valid for Python 3.9
 - Skips installation and skips the import verification step
 - Emits a `::warning::` explaining why installation was skipped

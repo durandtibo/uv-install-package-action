@@ -189,19 +189,34 @@ runs:
         echo "  🎯 Requested version: $PACKAGE_VERSION"
         echo "  🐍 Python version: $NORMALIZED_PYTHON_VERSION"
 
-        # Run feu to check whether the requested version is valid
+        # Run feu to check whether the requested version is valid.
+        # stdout (the bare True/False result) and stderr (warnings, logs) are
+        # captured separately so stray stderr output never gets concatenated
+        # into $RESULT and breaks the True/False comparison below.
+        STDERR_FILE=$(mktemp)
         if ! RESULT=$(python -m feu check-valid-version \
           --pkg-name="$PACKAGE_NAME" \
           --pkg-version="$PACKAGE_VERSION" \
-          --python-version="$NORMALIZED_PYTHON_VERSION" 2>&1); then
+          --python-version="$NORMALIZED_PYTHON_VERSION" 2>"$STDERR_FILE"); then
           echo "::error::❌ Failed to query PyPI for package '$PACKAGE_NAME'."
           echo "::error::Possible causes:"
           echo "::error::  - Package name is incorrect (verify on https://pypi.org/)"
           echo "::error::  - Network connectivity issues"
           echo "::error::  - PyPI is temporarily unavailable"
           echo "::error::  - Custom index (via uv-args) is not accessible"
+          if [ -s "$STDERR_FILE" ]; then
+            echo "::error::Details:"
+            cat "$STDERR_FILE" >&2
+          fi
+          rm -f "$STDERR_FILE"
           exit 1
         fi
+
+        if [ -s "$STDERR_FILE" ]; then
+          echo "::warning::feu produced additional output on stderr:"
+          cat "$STDERR_FILE"
+        fi
+        rm -f "$STDERR_FILE"
 
         if [ "$RESULT" = "True" ]; then
           echo "✅ Version '$PACKAGE_VERSION' is valid for Python $NORMALIZED_PYTHON_VERSION"
