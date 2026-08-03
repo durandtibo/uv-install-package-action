@@ -105,11 +105,9 @@ def test_requests() -> None:
 
 @safetensors_available
 def test_safetensors() -> None:
-    import numpy as np  # local import because it is an optional dependency
-    from safetensors.numpy import (
-        load,  # local import because it is an optional dependency
-        save,
-    )
+    # local import because it is an optional dependency
+    import numpy as np
+    from safetensors.numpy import load, save
 
     tensors = {"weight": np.ones((2, 3), dtype=np.float32)}
     loaded = load(save(tensors))
