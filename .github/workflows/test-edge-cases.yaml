@@ -1,0 +1,223 @@
+name: Test Action Edge Cases
+on:
+  workflow_call:
+    inputs:
+      action-ref:
+        description: "Which version of the action to test: 'local' (this checkout) or 'stable' (latest released version)"
+        type: string
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  python-version-with-feature:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Install uv and set the python version
+        uses: astral-sh/setup-uv@v7
+        with:
+          python-version: '3.14'
+          activate-environment: true
+
+      - name: Install packages
+        run: |
+          uv pip install pytest
+
+      - name: Install valid package version (local)
+        if: inputs.action-ref == 'local'
+        id: install-package-local
+        uses: ./
+        with:
+          package-name: numpy
+          package-version: 2.4.1
+          python-version: '3.14.0'
+
+      - name: Install valid package version (stable)
+        if: inputs.action-ref == 'stable'
+        id: install-package-stable
+        uses: durandtibo/uv-install-package-action@v0.1.3
+        with:
+          package-name: numpy
+          package-version: 2.4.1
+          python-version: '3.14.0'
+
+      - name: Run functional tests
+        if: steps.install-package-local.outputs.is-valid-version == 'true' || steps.install-package-stable.outputs.is-valid-version == 'true'
+        run: |
+          python -m pytest tests/functional
+
+
+  no-python-version:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Install uv and set the python version
+        uses: astral-sh/setup-uv@v7
+        with:
+          python-version: '3.14'
+          activate-environment: true
+
+      - name: Install packages
+        run: |
+          uv pip install pytest
+
+      - name: Install valid package version (local)
+        if: inputs.action-ref == 'local'
+        id: install-package-local
+        uses: ./
+        with:
+          package-name: numpy
+          package-version: 2.4.1
+
+      - name: Install valid package version (stable)
+        if: inputs.action-ref == 'stable'
+        id: install-package-stable
+        uses: durandtibo/uv-install-package-action@v0.1.3
+        with:
+          package-name: numpy
+          package-version: 2.4.1
+
+      - name: Run functional tests
+        if: steps.install-package-local.outputs.is-valid-version == 'true' || steps.install-package-stable.outputs.is-valid-version == 'true'
+        run: |
+          python -m pytest tests/functional
+
+
+  free-threaded-python-version:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Install uv and set the python version
+        uses: astral-sh/setup-uv@v7
+        with:
+          python-version: '3.14t'
+          activate-environment: true
+
+      - name: Install packages
+        run: |
+          uv pip install pytest
+
+      - name: Install valid package version (local)
+        if: inputs.action-ref == 'local'
+        id: install-package-local
+        uses: ./
+        with:
+          package-name: numpy
+          package-version: 2.4.1
+          python-version: '3.14.0t'
+
+      - name: Install valid package version (stable)
+        if: inputs.action-ref == 'stable'
+        id: install-package-stable
+        uses: durandtibo/uv-install-package-action@v0.1.3
+        with:
+          package-name: numpy
+          package-version: 2.4.1
+          python-version: '3.14.0t'
+
+      - name: Run functional tests
+        if: steps.install-package-local.outputs.is-valid-version == 'true' || steps.install-package-stable.outputs.is-valid-version == 'true'
+        run: |
+          python -m pytest tests/functional
+
+
+  incorrect-python-version:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Install uv and set the python version
+        uses: astral-sh/setup-uv@v7
+        with:
+          python-version: '3.14'
+          activate-environment: true
+
+      - name: Install valid package version (local)
+        if: inputs.action-ref == 'local'
+        id: install-package-local
+        uses: ./
+        with:
+          package-name: numpy
+          package-version: 2.4.1
+          python-version: v3.14
+        continue-on-error: true
+
+      - name: Install valid package version (stable)
+        if: inputs.action-ref == 'stable'
+        id: install-package-stable
+        uses: durandtibo/uv-install-package-action@v0.1.3
+        with:
+          package-name: numpy
+          package-version: 2.4.1
+          python-version: v3.14
+        continue-on-error: true
+
+      - name: Failure - it did not fail as expected
+        if: (inputs.action-ref == 'local' && steps.install-package-local.outcome != 'failure') || (inputs.action-ref == 'stable' && steps.install-package-stable.outcome != 'failure')
+        run: |
+          echo "❌ Error: Step should have failed but didn't!"
+          exit 1
+
+      - name: Success - it failed as expected
+        if: (inputs.action-ref == 'local' && steps.install-package-local.outcome == 'failure') || (inputs.action-ref == 'stable' && steps.install-package-stable.outcome == 'failure')
+        run: echo "✅ Test passed - step failed as expected"
+
+
+  empty-package-name:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Install uv and set the python version
+        uses: astral-sh/setup-uv@v7
+        with:
+          python-version: '3.14'
+          activate-environment: true
+
+      - name: Install with empty package name (local)
+        if: inputs.action-ref == 'local'
+        id: install-package-local
+        uses: ./
+        with:
+          package-name: ''
+          package-version: 2.4.1
+        continue-on-error: true
+
+      - name: Install with empty package name (stable)
+        if: inputs.action-ref == 'stable'
+        id: install-package-stable
+        uses: durandtibo/uv-install-package-action@v0.1.3
+        with:
+          package-name: ''
+          package-version: 2.4.1
+        continue-on-error: true
+
+      - name: Failure - it did not fail as expected
+        if: (inputs.action-ref == 'local' && steps.install-package-local.outcome != 'failure') || (inputs.action-ref == 'stable' && steps.install-package-stable.outcome != 'failure')
+        run: |
+          echo "❌ Error: Step should have failed but didn't!"
+          exit 1
+
+      - name: Success - it failed as expected
+        if: (inputs.action-ref == 'local' && steps.install-package-local.outcome == 'failure') || (inputs.action-ref == 'stable' && steps.install-package-stable.outcome == 'failure')
+        run: echo "✅ Test passed - step failed as expected"
