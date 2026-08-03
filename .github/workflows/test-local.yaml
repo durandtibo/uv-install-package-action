@@ -125,6 +125,7 @@ jobs:
           uv pip install pytest
 
       - name: Install valid package version
+        id: install-package
         uses: ./
         with:
           package-name: numpy
@@ -132,6 +133,7 @@ jobs:
           python-version: '3.14.0'
 
       - name: Run functional tests
+        if: steps.install-package.outputs.is-valid-version == 'true'
         run: |
           python -m pytest tests/functional
 
@@ -155,12 +157,14 @@ jobs:
           uv pip install pytest
 
       - name: Install valid package version
+        id: install-package
         uses: ./
         with:
           package-name: numpy
           package-version: 2.4.1
 
       - name: Run functional tests
+        if: steps.install-package.outputs.is-valid-version == 'true'
         run: |
           python -m pytest tests/functional
 
@@ -184,6 +188,7 @@ jobs:
           uv pip install pytest
 
       - name: Install valid package version
+        id: install-package
         uses: ./
         with:
           package-name: numpy
@@ -191,6 +196,7 @@ jobs:
           python-version: '3.14.0t'
 
       - name: Run functional tests
+        if: steps.install-package.outputs.is-valid-version == 'true'
         run: |
           python -m pytest tests/functional
 
