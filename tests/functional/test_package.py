@@ -21,6 +21,9 @@ polars_available: pytest.MarkDecorator = pytest.mark.skipif(
 pydantic_available: pytest.MarkDecorator = pytest.mark.skipif(
     not is_package_available("pydantic"), reason="Requires pydantic"
 )
+safetensors_available: pytest.MarkDecorator = pytest.mark.skipif(
+    not is_package_available("safetensors"), reason="Requires safetensors"
+)
 
 
 @pytest.fixture(autouse=True)
@@ -98,6 +101,19 @@ def test_requests() -> None:
 
     r = requests.get("https://google.com", timeout=10)
     assert isinstance(r.status_code, int)
+
+
+@safetensors_available
+def test_safetensors() -> None:
+    import numpy as np  # local import because it is an optional dependency
+    from safetensors.numpy import (
+        load,  # local import because it is an optional dependency
+        save,
+    )
+
+    tensors = {"weight": np.ones((2, 3), dtype=np.float32)}
+    loaded = load(save(tensors))
+    assert np.array_equal(loaded["weight"], tensors["weight"])
 
 
 @sklearn_available

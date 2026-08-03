@@ -1,4 +1,4 @@
-name: Test Local Action with Dependency Version
+name: Test Action with Dependency Version
 on:
   workflow_call:
     inputs:
@@ -6,6 +6,10 @@ on:
         type: string
         required: true
       package-versions:
+        type: string
+        required: true
+      action-ref:
+        description: "Which version of the action to test: 'local' (this checkout) or 'stable' (latest released version)"
         type: string
         required: true
 
@@ -38,15 +42,25 @@ jobs:
         run: |
           uv pip install pytest
 
-      - name: Install valid package version
-        id: install-package
+      - name: Install valid package version (local)
+        if: inputs.action-ref == 'local'
+        id: install-package-local
         uses: ./
         with:
           package-name: ${{ inputs.package-name }}
           package-version: ${{ matrix.package-version }}
           python-version: ${{ matrix.python-version }}
 
+      - name: Install valid package version (stable)
+        if: inputs.action-ref == 'stable'
+        id: install-package-stable
+        uses: durandtibo/uv-install-package-action@v0.1.3
+        with:
+          package-name: ${{ inputs.package-name }}
+          package-version: ${{ matrix.package-version }}
+          python-version: ${{ matrix.python-version }}
+
       - name: Run functional tests
-        if: steps.install-package.outputs.is-valid-version == 'true'
+        if: steps.install-package-local.outputs.is-valid-version == 'true' || steps.install-package-stable.outputs.is-valid-version == 'true'
         run: |
           python -m pytest tests/functional
