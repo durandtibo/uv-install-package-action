@@ -26,16 +26,16 @@
     <br/>
 </p>
 
-GitHub Action to install Python packages with uv, automatically finding compatible versions for your
-target Python environment.
+GitHub Action to install Python packages with uv, validating that the requested version is
+installable for your target Python environment before installing.
 
 ## Overview
 
 This action helps you install Python packages reliably by:
 
-1. Finding the closest compatible version for your Python environment
-2. Installing the package using the fast [uv](https://github.com/astral-sh/uv) package installer
-3. Handling version compatibility automatically via PyPI metadata
+1. Checking whether the requested version is valid for your Python environment (via PyPI metadata)
+2. Installing the package using the fast [uv](https://github.com/astral-sh/uv) package installer, only if the version is valid
+3. Skipping installation (without failing the step) when the requested version is invalid, and reporting that via the `is-valid-version` output
 
 ## Prerequisites
 
@@ -102,10 +102,10 @@ steps:
       uv-args: '--index-url https://custom.pypi.org/simple'
 ```
 
-### Use Output Version
+### Use Output Version and Stop the Workflow on Invalid Versions
 
 ```yaml
-  - name: Install and capture version
+  - name: Install and check validity
     id: install
     uses: durandtibo/uv-install-package-action@v0.1.3
     with:
@@ -113,10 +113,16 @@ steps:
       package-version: '2.0.0'
       python-version: '3.11'
 
-  - name: Display installed version
+  - name: Display result
     run: |
-      echo "Installed torch version: ${{ steps.install.outputs.closest-valid-version }}"
+      echo "Version valid: ${{ steps.install.outputs.is-valid-version }}"
       echo "Installation successful: ${{ steps.install.outputs.installed-successfully }}"
+
+  # Optional: the action itself never fails the job on an invalid version.
+  # Add this step if you want the workflow to stop when the version is invalid.
+  - name: Stop workflow on invalid version
+    if: steps.install.outputs.is-valid-version != 'true'
+    run: exit 1
 ```
 
 ## Inputs
@@ -130,38 +136,41 @@ steps:
 
 ## Outputs
 
-| Name                     | Description                                                                                                         |
-|--------------------------|---------------------------------------------------------------------------------------------------------------------|
-| `closest-valid-version`  | The closest valid package version that matches your constraints and is compatible with the specified Python version |
-| `installed-successfully` | Boolean indicating whether the package was installed successfully (`true` or `false`)                               |
+| Name                     | Description                                                                                            |
+|--------------------------|---------------------------------------------------------------------------------------------------------|
+| `is-valid-version`       | Boolean indicating whether the requested `package-version` is valid and installable for the target Python version (`true` or `false`) |
+| `installed-successfully` | Boolean indicating whether the package was installed successfully (`true` or `false`)                  |
 
 ## How It Works
 
 This action uses [feu](https://github.com/durandtibo/feu) (Find Compatible Version Utility) to
-intelligently resolve and install Python packages:
+validate and install Python packages:
 
 1. **Verify prerequisites** - Check that `uv` package manager is installed and accessible
 2. **Validate inputs** - Ensure package name and version are provided and properly formatted
 3. **Normalize Python version** - Validate and normalize Python version (e.g., `3.10.1` → `3.10`)
 4. **Install feu** - Install the version resolution utility with automatic retry on network failures
-5. **Query PyPI** - Find all available versions and filter by Python compatibility
-6. **Select best match** - Choose the closest version that matches your constraints
-7. **Install package** - Use `uv` to install the resolved version with your custom arguments
-8. **Verify installation** - Confirm the package can be imported successfully
+5. **Check version validity** - Query PyPI to check whether the exact requested version is
+   installable for the target Python version
+6. **Install package** - If valid, use `uv` to install exactly the requested version with your
+   custom arguments; if invalid, skip installation and report `is-valid-version=false`
+7. **Verify installation** - If a package was installed, confirm it can be imported successfully
 
-This multi-step approach ensures reliability and provides clear feedback at each stage, making
-troubleshooting easier.
+This action never auto-substitutes a different version, and it does not fail the job when the
+requested version is invalid — it exits successfully with `is-valid-version=false` so your
+workflow can decide what to do next (see [Use Output Version and Stop the Workflow on Invalid
+Versions](#use-output-version-and-stop-the-workflow-on-invalid-versions)).
 
 ### Example Scenario
 
 If you request `numpy==2.0.0` with Python 3.9, but numpy 2.0.0 requires Python ≥3.10:
 
 - The action validates your inputs and Python version format
-- Queries PyPI for compatible numpy versions
-- Finds the closest compatible version (e.g., `1.26.4`)
-- Installs that version instead
-- Verifies the package imports correctly
-- Reports `1.26.4` as the `closest-valid-version` output
+- Queries PyPI to check whether `numpy==2.0.0` is installable for Python 3.9
+- Finds that it is not valid for Python 3.9
+- Skips installation and skips the import verification step
+- Emits a `::warning::` explaining why installation was skipped
+- Reports `false` as the `is-valid-version` output, and the job still succeeds
 
 ## Troubleshooting
 
@@ -197,15 +206,20 @@ steps:
       python-version: '3.11'
 ```
 
-### Error: "No compatible version found"
+### Warning: "Version is not valid for Python X.Y. Skipping installation."
 
-This happens when no version of the package is compatible with your Python version.
+This happens when the requested `package-version` is not installable for your target
+`python-version`. The action does not fail the job — it skips installation and reports
+`is-valid-version=false`.
 
 **Solutions:**
 
 - Check the package's Python version requirements on PyPI
-- Try a different Python version
-- Try an older version of the package that supports your Python version
+- Try a different `python-version`
+- Try a different `package-version` that supports your Python version
+- If you want the workflow to stop in this case, add a follow-up step that checks
+  `is-valid-version` and exits non-zero (see [Use Output Version and Stop the Workflow on
+  Invalid Versions](#use-output-version-and-stop-the-workflow-on-invalid-versions))
 
 ### Using Custom or Private PyPI Indexes
 
