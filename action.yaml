@@ -188,6 +188,18 @@ runs:
         echo "  🎯 Requested version: $PACKAGE_VERSION"
         echo "  🐍 Python version: $NORMALIZED_PYTHON_VERSION"
 
+        # Wildcard/prefix version patterns (e.g. "2.12.*") are valid uv/pip
+        # version specifiers but are not a single exact version, so they
+        # can't be checked against PyPI metadata via feu. Skip the
+        # pre-validation and let uv resolve and install the best matching
+        # version directly.
+        SCRIPT_PATH="${{ github.action_path }}/scripts/is_wildcard_version.sh"
+        if "$SCRIPT_PATH" "$PACKAGE_VERSION"; then
+          echo "⏭️  Wildcard version pattern detected. Skipping PyPI pre-validation; 'uv' will resolve and install the matching version directly."
+          echo "is-valid-version=true" >> "$GITHUB_OUTPUT"
+          exit 0
+        fi
+
         # Run feu to check whether the requested version is valid.
         # stdout (the bare True/False result) and stderr (warnings, logs) are
         # captured separately so stray stderr output never gets concatenated

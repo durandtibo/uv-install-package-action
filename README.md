@@ -130,7 +130,7 @@ steps:
 | Name              | Description                                                                                                                                                                                                                                                                                   | Required | Default       |
 |-------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------|---------------|
 | `package-name`    | The package name (e.g., `numpy`, `requests`, `django`)                                                                                                                                                                                                                                        | Yes      | -             |
-| `package-version` | The target package version (e.g., `1.2.3`, `2.0.2`)                                                                                                                                                                                                                                           | Yes      | -             |
+| `package-version` | The target package version (e.g., `1.2.3`, `2.0.2`), or a wildcard/prefix pattern (e.g., `2.12.*`) to let `uv` pick the latest matching patch version                                                                                                                                        | Yes      | -             |
 | `python-version`  | The Python version to check compatibility against (e.g., `3.10`, `3.11`, `3.12`). Must be in `X.Y` format. If a patch version is provided (e.g., `3.10.1`), it will be normalized to `X.Y` (e.g., `3.10`). If not provided, the Python version is auto-detected from the current environment. | No       | Auto-detected |
 | `uv-args`         | Additional arguments to pass to uv (e.g., `--index-url https://custom.pypi.org/simple`)                                                                                                                                                                                                       | No       | `''`          |
 
@@ -151,15 +151,32 @@ validate and install Python packages:
 3. **Normalize Python version** - Validate and normalize Python version (e.g., `3.10.1` → `3.10`)
 4. **Install feu** - Install the version resolution utility with automatic retry on network failures
 5. **Check version validity** - Query PyPI to check whether the exact requested version is
-   installable for the target Python version
-6. **Install package** - If valid, use `uv` to install exactly the requested version with your
-   custom arguments; if invalid, skip installation and report `is-valid-version=false`
+   installable for the target Python version. Wildcard/prefix patterns (e.g., `2.12.*`) can't be
+   validated this way (they aren't a single version), so this check is skipped for them and
+   resolution is deferred to `uv` at install time
+6. **Install package** - If valid, use `uv` to install exactly the requested version (or, for a
+   wildcard pattern, whichever matching version `uv` resolves) with your custom arguments; if
+   invalid, skip installation and report `is-valid-version=false`
 7. **Verify installation** - If a package was installed, confirm it can be imported successfully
 
 This action never auto-substitutes a different version, and it does not fail the job when the
 requested version is invalid — it exits successfully with `is-valid-version=false` so your
 workflow can decide what to do next (see [Use Output Version and Stop the Workflow on Invalid
 Versions](#use-output-version-and-stop-the-workflow-on-invalid-versions)).
+
+### Wildcard / Prefix Versions
+
+`package-version` accepts PEP 440 wildcard patterns such as `2.12.*` or `2.*`, in addition to
+exact versions like `2.12.3`. A wildcard is not resolved to a single version up front — it's
+passed straight through to `uv` (e.g., `uv pip install "numpy==2.12.*"`), which installs the
+latest release matching the pattern. Because of this:
+
+- `is-valid-version` is reported as `true` for a wildcard request without a PyPI pre-check;
+  if the pattern doesn't match any published version, the **install step fails the job**
+  (unlike an invalid exact version, which is skipped without failing).
+- `2.12` and `2.12.*` behave differently: `2.12` requires a release literally named `2.12` (or
+  `2.12.0`, since PEP 440 normalizes trailing zero segments) to exist; `2.12.*` matches *any*
+  `2.12.x` release and lets `uv` pick the newest one.
 
 ### Example Scenario
 
