@@ -103,6 +103,7 @@ def test_requests() -> None:
     assert isinstance(r.status_code, int)
 
 
+@numpy_available
 @safetensors_available
 def test_safetensors() -> None:
     # local import because it is an optional dependency
