@@ -1,7 +1,6 @@
 name: 'uv-install-package'
 description: |
-  Install Python packages with uv, validating that the requested version is
-  installable for your target Python environment via PyPI before installing.
+  Install Python packages with uv, validating that the requested version is compatible
 
 author: "Thibaut Durand"
 
