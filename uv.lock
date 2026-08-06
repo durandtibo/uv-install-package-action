@@ -594,15 +594,15 @@ wheels = [
 
 [[package]]
 name = "feu"
-version = "0.8.0a2"
+version = "0.8.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "packaging" },
     { name = "tomli", marker = "python_full_version < '3.11'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/cf/43/9adf42c0dee997b281eb33b06de2cbd5bb9f2ce444d7caa38c9c5aa09efd/feu-0.8.0a2.tar.gz", hash = "sha256:99faa5a420d39e3874286b99a92635581eb670090d602993d5c8c1ca88743e05", size = 54532, upload-time = "2026-08-05T20:49:23.902Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/d8/cd/e126ed0a2888e2dc2cf4d53865c9f34d301cf3059cbb777ab43f38cfe84a/feu-0.8.0.tar.gz", hash = "sha256:0dec3b0b80f9560ff9a02a379df385d9578d656c520b7dc44490b66c51042df1", size = 54538, upload-time = "2026-08-06T06:15:33.261Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/b4/85/74443b97b3456d306a40cd53c98e22f0ed0a8677b9ba878d1cdc72e92d48/feu-0.8.0a2-py3-none-any.whl", hash = "sha256:bda24f62f0915496c4e3d1654aea73e39dc0c26821948184c95b6a7c1c62d7eb", size = 87667, upload-time = "2026-08-05T20:49:22.605Z" },
+    { url = "https://files.pythonhosted.org/packages/95/01/5196e37f27cff1f17111901ff5ad39b4d3794590f33fde0badc168a9442b/feu-0.8.0-py3-none-any.whl", hash = "sha256:664417bee1d547eee417021eef1aff8f2b8e240e64a7d5b6eafc084481e69b35", size = 87661, upload-time = "2026-08-06T06:15:31.951Z" },
 ]
 
 [package.optional-dependencies]
@@ -3115,7 +3115,7 @@ dev = [
     { name = "black", specifier = ">=26.5.1" },
     { name = "coverage", extras = ["toml"], specifier = ">=7.15.2,<8.0" },
     { name = "docformatter", extras = ["tomli"], specifier = ">=1.7.8,<2.0" },
-    { name = "feu", extras = ["all"], specifier = ">=0.8.0a2,<1.0" },
+    { name = "feu", extras = ["all"], specifier = ">=0.8.0,<1.0" },
     { name = "invoke", specifier = ">=3.0,<4.0" },
     { name = "pre-commit", specifier = ">=4.6,<5.0" },
     { name = "pygments", specifier = ">=2.20,<3.0" },
