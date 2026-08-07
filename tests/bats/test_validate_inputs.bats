@@ -63,6 +63,16 @@ setup() {
     [ "$status" -eq 0 ]
 }
 
+@test "wildcard package-version '2.12.*' succeeds" {
+    run "$VALIDATE_SCRIPT" "numpy" "2.12.*" ""
+    [ "$status" -eq 0 ]
+}
+
+@test "wildcard package-version '2.*' succeeds" {
+    run "$VALIDATE_SCRIPT" "numpy" "2.*" ""
+    [ "$status" -eq 0 ]
+}
+
 # uv-args validation (non-fatal warning)
 
 @test "uv-args with semicolon warns but succeeds" {
