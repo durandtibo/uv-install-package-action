@@ -1,16 +1,16 @@
-name: 'uv-install-package'
+name: "uv-install-package"
 description: |
   Install Python packages with uv, validating that the requested version is compatible
 
 author: "Thibaut Durand"
 
 branding:
-  icon: 'box'
-  color: 'purple'
+  icon: "box"
+  color: "purple"
 
 inputs:
   package-name:
-    description: 'The package name (e.g., numpy, requests, django)'
+    description: "The package name (e.g., numpy, requests, django)"
     required: true
   package-version:
     description: 'The target package version (e.g., "1.2.3", "2.0.0")'
@@ -18,18 +18,18 @@ inputs:
   python-version:
     description: 'The Python version to check compatibility against (e.g., "3.10", "3.11", "3.12"). If not provided, the Python version is auto-detected from the current environment.'
     required: false
-    default: ''
+    default: ""
   uv-args:
     description: 'Additional arguments to pass to uv (e.g., "--index-url https://custom.pypi.org/simple")'
     required: false
-    default: ''
+    default: ""
 
 outputs:
   is-valid-version:
-    description: 'Boolean indicating whether the requested package-version is valid and installable for the target Python version (true or false)'
+    description: "Boolean indicating whether the requested package-version is valid and installable for the target Python version (true or false)"
     value: ${{ steps.check-version.outputs.is-valid-version }}
   installed-successfully:
-    description: 'Boolean indicating whether the package was installed successfully'
+    description: "Boolean indicating whether the package was installed successfully"
     value: ${{ steps.install-package.outcome == 'success' }}
 
 runs:
