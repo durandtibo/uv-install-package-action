@@ -18,7 +18,7 @@ from feu.version import (
     read_pyproject_optional_dependencies,
 )
 
-logger = logging.getLogger(__name__)
+logger: logging.Logger = logging.getLogger(__name__)
 
 
 def fetch_package_versions(base_dir: Path) -> dict[str, list[str]]:
@@ -35,7 +35,7 @@ def fetch_package_versions(base_dir: Path) -> dict[str, list[str]]:
     deps = read_pyproject_dependencies(pyproject_path) + read_pyproject_optional_dependencies(
         pyproject_path
     )
-    major_deps, minor_deps = partition_package_bounds(deps, ["pyarrow"])
+    major_deps, minor_deps = partition_package_bounds(deps, ["packaging", "pyarrow"])
 
     return sort_by_keys(
         fetch_latest_major_versions_map(major_deps, include_lower_bound=True)
@@ -44,7 +44,7 @@ def fetch_package_versions(base_dir: Path) -> dict[str, list[str]]:
             name: fetch_sampled_latest_minor_versions(
                 name, lower=get_package_bounds(deps, name).lower, n=n, include_lower_bound=True
             )
-            for name, n in [("xarray", 3)]
+            for name, n in [("polars", 5), ("xarray", 3)]
         }
     )
 
