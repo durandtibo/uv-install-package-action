@@ -1,3 +1,6 @@
+# Reusable workflow for testing the action with specific dependency versions.
+# Used by ci-test-local.yaml and nightly-package.yaml.
+
 name: Test Action with Dependency Version
 on:
   workflow_call:
@@ -12,6 +15,10 @@ on:
         description: "Which version of the action to test: 'local' (this checkout) or 'stable' (latest released version)"
         type: string
         required: true
+      test-matrix:
+        description: "JSON test matrix from lib-get-test-matrix.yaml, loaded once by the caller"
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -24,16 +31,16 @@ jobs:
       max-parallel: 8
       fail-fast: false
       matrix:
-        os: [ ubuntu-latest ]
-        python-version: [ '3.14', '3.14t', '3.13', '3.13t', '3.12', '3.11', '3.10' ]
+        os: [ubuntu-latest]
+        python-version: ${{ fromJson(inputs.test-matrix).python_versions }}
         package-version: ${{ fromJson(inputs.package-versions) }}
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # ratchet:actions/checkout@v7
 
       - name: Install uv and set the python version
-        uses: astral-sh/setup-uv@v7
+        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # ratchet:astral-sh/setup-uv@v10.2.0
         with:
           python-version: ${{ matrix.python-version }}
           activate-environment: true

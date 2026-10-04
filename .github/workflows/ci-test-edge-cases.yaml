@@ -17,10 +17,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # ratchet:actions/checkout@v7
 
       - name: Install uv and set the python version
-        uses: astral-sh/setup-uv@v7
+        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # ratchet:astral-sh/setup-uv@v10.2.0
         with:
           python-version: '3.14'
           activate-environment: true
@@ -59,10 +59,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # ratchet:actions/checkout@v7
 
       - name: Install uv and set the python version
-        uses: astral-sh/setup-uv@v7
+        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # ratchet:astral-sh/setup-uv@v10.2.0
         with:
           python-version: '3.14'
           activate-environment: true
@@ -99,10 +99,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # ratchet:actions/checkout@v7
 
       - name: Install uv and set the python version
-        uses: astral-sh/setup-uv@v7
+        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # ratchet:astral-sh/setup-uv@v10.2.0
         with:
           python-version: '3.14t'
           activate-environment: true
@@ -141,10 +141,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # ratchet:actions/checkout@v7
 
       - name: Install uv and set the python version
-        uses: astral-sh/setup-uv@v7
+        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # ratchet:astral-sh/setup-uv@v10.2.0
         with:
           python-version: '3.14'
           activate-environment: true
@@ -186,10 +186,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # ratchet:actions/checkout@v7
 
       - name: Install uv and set the python version
-        uses: astral-sh/setup-uv@v7
+        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # ratchet:astral-sh/setup-uv@v10.2.0
         with:
           python-version: '3.14'
           activate-environment: true
