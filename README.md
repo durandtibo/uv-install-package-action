@@ -60,14 +60,14 @@ steps:
   - name: Install uv
     uses: astral-sh/setup-uv@v7
     with:
-      python-version: '3.11'
+      python-version: "3.11"
 
   - name: Install numpy
     uses: durandtibo/uv-install-package-action@v0.1.3
     with:
-      package-name: 'numpy'
-      package-version: '2.0.2'
-      python-version: '3.11'
+      package-name: "numpy"
+      package-version: "2.0.2"
+      python-version: "3.11"
 ```
 
 ### Auto-detect Python Version
@@ -80,66 +80,66 @@ steps:
   - name: Install uv
     uses: astral-sh/setup-uv@v7
     with:
-      python-version: '3.11'
+      python-version: "3.11"
 
   - name: Install numpy (auto-detect Python version)
     uses: durandtibo/uv-install-package-action@v0.1.3
     with:
-      package-name: 'numpy'
-      package-version: '2.0.2'
+      package-name: "numpy"
+      package-version: "2.0.2"
       # python-version is optional and will be auto-detected
 ```
 
 ### Install with Custom PyPI Index
 
 ```yaml
-  - name: Install package from custom index
-    uses: durandtibo/uv-install-package-action@v0.1.3
-    with:
-      package-name: 'my-package'
-      package-version: '1.0.0'
-      python-version: '3.12'
-      uv-args: '--index-url https://custom.pypi.org/simple'
+- name: Install package from custom index
+  uses: durandtibo/uv-install-package-action@v0.1.3
+  with:
+    package-name: "my-package"
+    package-version: "1.0.0"
+    python-version: "3.12"
+    uv-args: "--index-url https://custom.pypi.org/simple"
 ```
 
 ### Use Output Version and Stop the Workflow on Invalid Versions
 
 ```yaml
-  - name: Install and check validity
-    id: install
-    uses: durandtibo/uv-install-package-action@v0.1.3
-    with:
-      package-name: 'torch'
-      package-version: '2.0.0'
-      python-version: '3.11'
+- name: Install and check validity
+  id: install
+  uses: durandtibo/uv-install-package-action@v0.1.3
+  with:
+    package-name: "torch"
+    package-version: "2.0.0"
+    python-version: "3.11"
 
-  - name: Display result
-    run: |
-      echo "Version valid: ${{ steps.install.outputs.is-valid-version }}"
-      echo "Installation successful: ${{ steps.install.outputs.installed-successfully }}"
+- name: Display result
+  run: |
+    echo "Version valid: ${{ steps.install.outputs.is-valid-version }}"
+    echo "Installation successful: ${{ steps.install.outputs.installed-successfully }}"
 
-  # Optional: the action itself never fails the job on an invalid version.
-  # Add this step if you want the workflow to stop when the version is invalid.
-  - name: Stop workflow on invalid version
-    if: steps.install.outputs.is-valid-version != 'true'
-    run: exit 1
+# Optional: the action itself never fails the job on an invalid version.
+# Add this step if you want the workflow to stop when the version is invalid.
+- name: Stop workflow on invalid version
+  if: steps.install.outputs.is-valid-version != 'true'
+  run: exit 1
 ```
 
 ## Inputs
 
 | Name              | Description                                                                                                                                                                                                                                                                                   | Required | Default       |
-|-------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------|---------------|
+| ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------------- |
 | `package-name`    | The package name (e.g., `numpy`, `requests`, `django`)                                                                                                                                                                                                                                        | Yes      | -             |
-| `package-version` | The target package version (e.g., `1.2.3`, `2.0.2`), or a wildcard/prefix pattern (e.g., `2.12.*`) to let `uv` pick the latest matching patch version                                                                                                                                        | Yes      | -             |
+| `package-version` | The target package version (e.g., `1.2.3`, `2.0.2`), or a wildcard/prefix pattern (e.g., `2.12.*`) to let `uv` pick the latest matching patch version                                                                                                                                         | Yes      | -             |
 | `python-version`  | The Python version to check compatibility against (e.g., `3.10`, `3.11`, `3.12`). Must be in `X.Y` format. If a patch version is provided (e.g., `3.10.1`), it will be normalized to `X.Y` (e.g., `3.10`). If not provided, the Python version is auto-detected from the current environment. | No       | Auto-detected |
 | `uv-args`         | Additional arguments to pass to uv (e.g., `--index-url https://custom.pypi.org/simple`)                                                                                                                                                                                                       | No       | `''`          |
 
 ## Outputs
 
-| Name                     | Description                                                                                            |
-|--------------------------|---------------------------------------------------------------------------------------------------------|
+| Name                     | Description                                                                                                                           |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------- |
 | `is-valid-version`       | Boolean indicating whether the requested `package-version` is valid and installable for the target Python version (`true` or `false`) |
-| `installed-successfully` | Boolean indicating whether the package was installed successfully (`true` or `false`)                  |
+| `installed-successfully` | Boolean indicating whether the package was installed successfully (`true` or `false`)                                                 |
 
 ## How It Works
 
@@ -175,7 +175,7 @@ latest release matching the pattern. Because of this:
   if the pattern doesn't match any published version, the **install step fails the job**
   (unlike an invalid exact version, which is skipped without failing).
 - `2.12` and `2.12.*` behave differently: `2.12` requires a release literally named `2.12` (or
-  `2.12.0`, since PEP 440 normalizes trailing zero segments) to exist; `2.12.*` matches *any*
+  `2.12.0`, since PEP 440 normalizes trailing zero segments) to exist; `2.12.*` matches _any_
   `2.12.x` release and lets `uv` pick the newest one.
 
 ### Example Scenario
@@ -220,7 +220,7 @@ steps:
   - name: Install uv
     uses: astral-sh/setup-uv@v7
     with:
-      python-version: '3.11'
+      python-version: "3.11"
 ```
 
 ### Warning: "Version is not valid for Python X.Y. Skipping installation."
@@ -247,10 +247,10 @@ steps:
   - name: Install from custom index
     uses: durandtibo/uv-install-package-action@v0.1.3
     with:
-      package-name: 'my-package'
-      package-version: '1.0.0'
-      python-version: '3.11'
-      uv-args: '--index-url https://pypi.example.com/simple --extra-index-url https://pypi.org/simple'
+      package-name: "my-package"
+      package-version: "1.0.0"
+      python-version: "3.11"
+      uv-args: "--index-url https://pypi.example.com/simple --extra-index-url https://pypi.org/simple"
 ```
 
 For authenticated indexes, set environment variables:
@@ -260,10 +260,10 @@ steps:
   - name: Install from authenticated index
     uses: durandtibo/uv-install-package-action@v0.1.3
     with:
-      package-name: 'my-package'
-      package-version: '1.0.0'
-      python-version: '3.11'
-      uv-args: '--index-url https://${{ secrets.PYPI_USER }}:${{ secrets.PYPI_PASSWORD }}@pypi.example.com/simple'
+      package-name: "my-package"
+      package-version: "1.0.0"
+      python-version: "3.11"
+      uv-args: "--index-url https://${{ secrets.PYPI_USER }}:${{ secrets.PYPI_PASSWORD }}@pypi.example.com/simple"
 ```
 
 ### Network or PyPI Connection Issues
@@ -292,9 +292,9 @@ This error occurs when the `package-name` input is not provided or is an empty s
 - name: Install package
   uses: durandtibo/uv-install-package-action@v0.1.3
   with:
-    package-name: 'numpy'  # ✅ Must be provided
-    package-version: '2.0.0'
-    python-version: '3.11'
+    package-name: "numpy" # ✅ Must be provided
+    package-version: "2.0.0"
+    python-version: "3.11"
 ```
 
 ### Warning: "uv-args contains shell metacharacters"
@@ -317,10 +317,10 @@ injection or unintended shell operations.
 - name: Install from custom index
   uses: durandtibo/uv-install-package-action@v0.1.3
   with:
-    package-name: 'my-package'
-    package-version: '1.0.0'
-    python-version: '3.11'
-    uv-args: '--index-url https://pypi.example.com/simple'  # ✅ Safe
+    package-name: "my-package"
+    package-version: "1.0.0"
+    python-version: "3.11"
+    uv-args: "--index-url https://pypi.example.com/simple" # ✅ Safe
 ```
 
 ### Package Installed but Import Verification Fails
