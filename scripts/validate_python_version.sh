@@ -19,8 +19,8 @@ set -euo pipefail
 
 # Check if argument is provided
 if [ $# -ne 1 ]; then
-    echo "Usage: $0 <python-version>" >&2
-    exit 1
+	echo "Usage: $0 <python-version>" >&2
+	exit 1
 fi
 
 PYTHON_VERSION="$1"
@@ -31,8 +31,8 @@ PYTHON_VERSION=$(echo "$PYTHON_VERSION" | xargs)
 # Validate format: digits.digits or digits.digits.digits, with an optional
 # trailing 't' marking a free-threaded build (e.g. "3.13t", "3.14.0t")
 if ! echo "$PYTHON_VERSION" | grep -qE '^[0-9]+\.[0-9]+(\.[0-9]+)?t?$'; then
-    echo "Error: Invalid Python version format: '$PYTHON_VERSION'. Expected format: 'X.Y', 'X.Y.Z', or the free-threaded variant 'X.Yt' (e.g., '3.10', '3.10.1', '3.13t')" >&2
-    exit 1
+	echo "Error: Invalid Python version format: '$PYTHON_VERSION'. Expected format: 'X.Y', 'X.Y.Z', or the free-threaded variant 'X.Yt' (e.g., '3.10', '3.10.1', '3.13t')" >&2
+	exit 1
 fi
 
 # Detect and strip the free-threaded 't' suffix so the numeric part can be
@@ -40,8 +40,8 @@ fi
 FREE_THREADED_SUFFIX=""
 NUMERIC_VERSION="$PYTHON_VERSION"
 if [[ "$PYTHON_VERSION" == *t ]]; then
-    FREE_THREADED_SUFFIX="t"
-    NUMERIC_VERSION="${PYTHON_VERSION%t}"
+	FREE_THREADED_SUFFIX="t"
+	NUMERIC_VERSION="${PYTHON_VERSION%t}"
 fi
 
 # Extract major.minor version (ignore patch version if present)

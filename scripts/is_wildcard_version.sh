@@ -17,14 +17,14 @@
 set -euo pipefail
 
 if [ $# -ne 1 ]; then
-    echo "Usage: $0 <package-version>" >&2
-    exit 1
+	echo "Usage: $0 <package-version>" >&2
+	exit 1
 fi
 
 PACKAGE_VERSION="$1"
 
 if [[ "$PACKAGE_VERSION" == *'*'* ]]; then
-    exit 0
+	exit 0
 fi
 
 exit 1

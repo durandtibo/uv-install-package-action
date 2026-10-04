@@ -19,8 +19,8 @@
 set -euo pipefail
 
 if [ $# -ne 3 ]; then
-    echo "Usage: $0 <package-name> <package-version> <uv-args>" >&2
-    exit 1
+	echo "Usage: $0 <package-name> <package-version> <uv-args>" >&2
+	exit 1
 fi
 
 PACKAGE_NAME="$1"
@@ -29,25 +29,25 @@ UV_ARGS="$3"
 
 # Validate package-name is not empty
 if [ -z "$PACKAGE_NAME" ]; then
-    echo "Error: package-name cannot be empty" >&2
-    exit 1
+	echo "Error: package-name cannot be empty" >&2
+	exit 1
 fi
 
 # Validate package-name doesn't contain obviously invalid characters
 if [[ "$PACKAGE_NAME" =~ [[:space:]] ]]; then
-    echo "Error: package-name cannot contain whitespace: '$PACKAGE_NAME'" >&2
-    exit 1
+	echo "Error: package-name cannot contain whitespace: '$PACKAGE_NAME'" >&2
+	exit 1
 fi
 
 # Validate package-version is not empty
 if [ -z "$PACKAGE_VERSION" ]; then
-    echo "Error: package-version cannot be empty" >&2
-    exit 1
+	echo "Error: package-version cannot be empty" >&2
+	exit 1
 fi
 
 # Check for potentially dangerous characters in uv-args (shell metacharacters)
 if [[ "$UV_ARGS" =~ [\;|] ]]; then
-    echo "Warning: uv-args contains shell metacharacters (';' or '|'). Ensure these are properly escaped and intentional." >&2
+	echo "Warning: uv-args contains shell metacharacters (';' or '|'). Ensure these are properly escaped and intentional." >&2
 fi
 
 exit 0
