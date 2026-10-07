@@ -61,7 +61,7 @@ jobs:
       - name: Install valid package version (stable)
         if: inputs.action-ref == 'stable'
         id: install-package-stable
-        uses: durandtibo/uv-install-package-action@v0.2.0
+        uses: durandtibo/uv-install-package-action@fe64eac38f69e851b5e79b74ee255ed95a159bc0 # ratchet:durandtibo/uv-install-package-action@v0.2.0
         with:
           package-name: ${{ inputs.package-name }}
           package-version: ${{ matrix.package-version }}
