@@ -1,355 +1,246 @@
-# uv-install-package
+# shared-makefiles
 
-<p align="center">
-    <a href="https://github.com/durandtibo/uv-install-package-action/actions">
-        <img alt="CI" src="https://github.com/durandtibo/uv-install-package-action/workflows/CI/badge.svg">
-    </a>
-    <a href="https://github.com/durandtibo/uv-install-package-action/actions">
-        <img alt="Nightly Tests" src="https://github.com/durandtibo/uv-install-package-action/workflows/Nightly%20Tests/badge.svg">
-    </a>
-    <a href="https://github.com/durandtibo/uv-install-package-action/releases">
-        <img alt="PYPI version" src="https://img.shields.io/github/v/release/durandtibo/uv-install-package-action?logo=github&sort=semver">
-    </a>
-    <br/>
-    <a href="https://github.com/psf/black">
-        <img  alt="Code style: black" src="https://img.shields.io/badge/code%20style-black-000000.svg">
-    </a>
-    <a href="https://google.github.io/styleguide/pyguide.html#s3.8-comments-and-docstrings">
-        <img  alt="Doc style: google" src="https://img.shields.io/badge/%20style-google-3666d6.svg">
-    </a>
-    <a href="https://github.com/astral-sh/ruff">
-        <img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json" alt="Ruff" style="max-width:100%;">
-    </a>
-    <a href="https://github.com/guilatrova/tryceratops">
-        <img  alt="Doc style: google" src="https://img.shields.io/badge/try%2Fexcept%20style-tryceratops%20%F0%9F%A6%96%E2%9C%A8-black">
-    </a>
-    <br/>
-</p>
+Shared/reusable Makefiles for formatting and linting common file types across projects.
 
-GitHub Action to install Python packages with uv, validating that the requested version is
-installable for your target Python environment before installing.
-
-## Overview
-
-This action helps you install Python packages reliably by:
-
-1. Checking whether the requested version is valid for your Python environment (via PyPI metadata)
-2. Installing the package using the fast [uv](https://github.com/astral-sh/uv) package installer, only if the version is valid
-3. Skipping installation (without failing the step) when the requested version is invalid, and reporting that via the `is-valid-version` output
-
-## Prerequisites
-
-This action requires **uv** to be installed and available in your workflow. We recommend using the
-official [astral-sh/setup-uv](https://github.com/astral-sh/setup-uv) action to install uv.
-
-## What's new
-
-Please refer to
-the [release page](https://github.com/durandtibo/uv-install-package-action/releases) for
-the latest release notes.
+Each file is self-contained, include-guarded, and configurable via variables — pull in only what
+you need.
 
 ## Usage
 
-### Basic Example
+Include the files you need in your project's `Makefile`:
 
-```yaml
-steps:
-  - name: Checkout repository
-    uses: actions/checkout@v6
+```makefile
+include yaml.mk
+include makefile.mk
+include shell.mk
+include toml.mk
+include markdown.mk
+include actions.mk
+include help.mk
 
-  - name: Install uv
-    uses: astral-sh/setup-uv@v7
-    with:
-      python-version: '3.11'
+.DEFAULT_GOAL := help
 
-  - name: Install numpy
-    uses: durandtibo/uv-install-package-action@v0.1.3
-    with:
-      package-name: 'numpy'
-      package-version: '2.0.2'
-      python-version: '3.11'
+.PHONY: install-tools
+install-tools: install-prettier install-yamllint install-mbake install-checkmake install-shellcheck install-shfmt install-bats install-taplo install-markdownlint install-actionlint ## Install all formatting/linting tools
+
+.PHONY: format
+format: format-yaml format-makefile format-shell format-toml format-markdown ## Format all files
+
+.PHONY: lint
+lint: lint-yaml lint-makefile lint-shell lint-markdown lint-actions ## Lint all files
 ```
 
-### Auto-detect Python Version
+Required tools (`prettier`, `yamllint`, `mbake`, `checkmake`, `shellcheck`, `shfmt`, `markdownlint`,
+`actionlint`) are installed on demand — each
+`format-*`/`lint-*` target depends on an `install-*` target that installs the tool if it isn't
+already on `PATH`. Run `make install-tools` to install all of them upfront.
 
-```yaml
-steps:
-  - name: Checkout repository
-    uses: actions/checkout@v6
+Run `make help` to list every target that has a `## description` comment (see `help.mk` below).
 
-  - name: Install uv
-    uses: astral-sh/setup-uv@v7
-    with:
-      python-version: '3.11'
+## Adding as a git subtree
 
-  - name: Install numpy (auto-detect Python version)
-    uses: durandtibo/uv-install-package-action@v0.1.3
-    with:
-      package-name: 'numpy'
-      package-version: '2.0.2'
-      # python-version is optional and will be auto-detected
+This repo is meant to be vendored into consuming projects as a git subtree (conventionally at
+`.make/`), rather than being added as a submodule or copy-pasted:
+
+```shell
+git remote add shared-makefiles https://github.com/durandtibo/shared-makefiles.git
+git fetch shared-makefiles main
+
+git subtree add --prefix=.make shared-makefiles main --squash
 ```
 
-### Install with Custom PyPI Index
+Then `include` the files you need from `.make/` in your project's `Makefile`, e.g.
+`include .make/yaml.mk`.
 
-```yaml
-  - name: Install package from custom index
-    uses: durandtibo/uv-install-package-action@v0.1.3
-    with:
-      package-name: 'my-package'
-      package-version: '1.0.0'
-      python-version: '3.12'
-      uv-args: '--index-url https://custom.pypi.org/simple'
+To pull in upstream changes later, `include .make/self.mk` and run `make update-subtree` — see
+[`self.mk`](#self-mk) below. It fetches the latest commits and runs `git subtree pull`, so you
+don't need to remember the raw `git subtree`/`git remote` invocations yourself.
+
+## Available files
+
+| File          | Targets                                     | Tools                      | Description                                                           |
+| ------------- | ------------------------------------------- | -------------------------- | --------------------------------------------------------------------- |
+| `yaml.mk`     | `format-yaml`, `lint-yaml`                  | `prettier`, `yamllint`     | Format and lint YAML files                                            |
+| `makefile.mk` | `format-makefile`, `lint-makefile`          | `mbake`, `checkmake`       | Format and lint Makefiles and `.mk` files                             |
+| `shell.mk`    | `format-shell`, `lint-shell`                | `shfmt`, `shellcheck`      | Format and lint shell scripts                                         |
+| `toml.mk`     | `format-toml`                               | `taplo`                    | Format TOML files                                                     |
+| `markdown.mk` | `format-markdown`, `lint-markdown`          | `prettier`, `markdownlint` | Format and lint Markdown files                                        |
+| `actions.mk`  | `lint-actions`                              | `actionlint`               | Lint GitHub Actions workflow files                                    |
+| `uv.mk`       | `install-invoke`, `update-uv`, `setup-venv` | `uv`                       | Manage Python virtual environments with `uv`                          |
+| `prettier.mk` | `install-prettier`                          | `prettier`                 | Shared `install-prettier` target, included by `yaml.mk`/`markdown.mk` |
+| `self.mk`     | `update-subtree`                            | `git`                      | Sync the `.make` shared-makefiles subtree                             |
+| `help.mk`     | `help`                                      | —                          | List all documented (`## ...`) targets                                |
+
+### `yaml.mk`
+
+Optional variables (set before `include`):
+
+| Variable           | Default | Description                                                   |
+| ------------------ | ------- | ------------------------------------------------------------- |
+| `YAML_FORMAT_PATH` | `.`     | Root path globbed for `**/*.{yml,yaml}`, passed to `prettier` |
+| `YAML_LINT_PATH`   | `.`     | Path passed to `yamllint`                                     |
+
+```makefile
+include yaml.mk
+
+YAML_LINT_PATH = .github/workflows
 ```
 
-### Use Output Version and Stop the Workflow on Invalid Versions
+### `makefile.mk`
 
-```yaml
-  - name: Install and check validity
-    id: install
-    uses: durandtibo/uv-install-package-action@v0.1.3
-    with:
-      package-name: 'torch'
-      package-version: '2.0.0'
-      python-version: '3.11'
+Optional variables (set before `include`):
 
-  - name: Display result
-    run: |
-      echo "Version valid: ${{ steps.install.outputs.is-valid-version }}"
-      echo "Installation successful: ${{ steps.install.outputs.installed-successfully }}"
+| Variable                | Default         | Description                    |
+| ----------------------- | --------------- | ------------------------------ |
+| `MAKEFILE_FORMAT_FILES` | `Makefile *.mk` | Files passed to `mbake format` |
+| `MAKEFILE_LINT_FILES`   | `Makefile *.mk` | Files passed to `checkmake`    |
 
-  # Optional: the action itself never fails the job on an invalid version.
-  # Add this step if you want the workflow to stop when the version is invalid.
-  - name: Stop workflow on invalid version
-    if: steps.install.outputs.is-valid-version != 'true'
-    run: exit 1
+```makefile
+include makefile.mk
+
+MAKEFILE_LINT_FILES = Makefile makefile.mk yaml.mk
 ```
 
-## Inputs
+### `shell.mk`
 
-| Name              | Description                                                                                                                                                                                                                                                                                   | Required | Default       |
-|-------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------|---------------|
-| `package-name`    | The package name (e.g., `numpy`, `requests`, `django`)                                                                                                                                                                                                                                        | Yes      | -             |
-| `package-version` | The target package version (e.g., `1.2.3`, `2.0.2`), or a wildcard/prefix pattern (e.g., `2.12.*`) to let `uv` pick the latest matching patch version                                                                                                                                        | Yes      | -             |
-| `python-version`  | The Python version to check compatibility against (e.g., `3.10`, `3.11`, `3.12`). Must be in `X.Y` format. If a patch version is provided (e.g., `3.10.1`), it will be normalized to `X.Y` (e.g., `3.10`). If not provided, the Python version is auto-detected from the current environment. | No       | Auto-detected |
-| `uv-args`         | Additional arguments to pass to uv (e.g., `--index-url https://custom.pypi.org/simple`)                                                                                                                                                                                                       | No       | `''`          |
+Optional variables (set before `include`):
 
-## Outputs
+| Variable            | Default | Description                                           |
+| ------------------- | ------- | ----------------------------------------------------- |
+| `SHELL_FORMAT_PATH` | `.`     | Path passed to `shfmt` (walked recursively)           |
+| `SHELL_LINT_PATH`   | `.`     | Path searched for `*.sh` files passed to `shellcheck` |
 
-| Name                     | Description                                                                                            |
-|--------------------------|---------------------------------------------------------------------------------------------------------|
-| `is-valid-version`       | Boolean indicating whether the requested `package-version` is valid and installable for the target Python version (`true` or `false`) |
-| `installed-successfully` | Boolean indicating whether the package was installed successfully (`true` or `false`)                  |
+```makefile
+include shell.mk
 
-## How It Works
-
-This action uses [feu](https://github.com/durandtibo/feu) (Find Compatible Version Utility) to
-validate and install Python packages:
-
-1. **Verify prerequisites** - Check that `uv` package manager is installed and accessible
-2. **Validate inputs** - Ensure package name and version are provided and properly formatted
-3. **Normalize Python version** - Validate and normalize Python version (e.g., `3.10.1` → `3.10`)
-4. **Install feu** - Install the version resolution utility with automatic retry on network failures
-5. **Check version validity** - Query PyPI to check whether the exact requested version is
-   installable for the target Python version. Wildcard/prefix patterns (e.g., `2.12.*`) can't be
-   validated this way (they aren't a single version), so this check is skipped for them and
-   resolution is deferred to `uv` at install time
-6. **Install package** - If valid, use `uv` to install exactly the requested version (or, for a
-   wildcard pattern, whichever matching version `uv` resolves) with your custom arguments; if
-   invalid, skip installation and report `is-valid-version=false`
-7. **Verify installation** - If a package was installed, confirm it can be imported successfully
-
-This action never auto-substitutes a different version, and it does not fail the job when the
-requested version is invalid — it exits successfully with `is-valid-version=false` so your
-workflow can decide what to do next (see [Use Output Version and Stop the Workflow on Invalid
-Versions](#use-output-version-and-stop-the-workflow-on-invalid-versions)).
-
-### Wildcard / Prefix Versions
-
-`package-version` accepts PEP 440 wildcard patterns such as `2.12.*` or `2.*`, in addition to
-exact versions like `2.12.3`. A wildcard is not resolved to a single version up front — it's
-passed straight through to `uv` (e.g., `uv pip install "numpy==2.12.*"`), which installs the
-latest release matching the pattern. Because of this:
-
-- `is-valid-version` is reported as `true` for a wildcard request without a PyPI pre-check;
-  if the pattern doesn't match any published version, the **install step fails the job**
-  (unlike an invalid exact version, which is skipped without failing).
-- `2.12` and `2.12.*` behave differently: `2.12` requires a release literally named `2.12` (or
-  `2.12.0`, since PEP 440 normalizes trailing zero segments) to exist; `2.12.*` matches *any*
-  `2.12.x` release and lets `uv` pick the newest one.
-
-### Example Scenario
-
-If you request `numpy==2.3.0` with Python 3.9, but numpy 2.3.0 requires a newer Python version:
-
-- The action validates your inputs and Python version format
-- Queries PyPI to check whether `numpy==2.3.0` is installable for Python 3.9
-- Finds that it is not valid for Python 3.9
-- Skips installation and skips the import verification step
-- Emits a `::warning::` explaining why installation was skipped
-- Reports `false` as the `is-valid-version` output, and the job still succeeds
-
-## Troubleshooting
-
-### Error: "Invalid Python version format"
-
-This error occurs when the `python-version` input is not in the expected format.
-
-**Solution:** Use the `X.Y` format for Python version (e.g., `3.10`, `3.11`, `3.12`). If you
-accidentally provide a patch version (e.g., `3.10.1`), the action will automatically normalize it to
-`3.10` and show a warning.
-
-Valid formats:
-
-- `3.10` ✅
-- `3.11` ✅
-- `3.10.1` ✅ (normalized to `3.10`)
-
-Invalid formats:
-
-- `3` ❌
-- `python3.10` ❌
-- `3.x` ❌
-
-### Error: "uv is not installed or not in PATH"
-
-**Solution:** Install uv before using this action:
-
-```yaml
-steps:
-  - name: Install uv
-    uses: astral-sh/setup-uv@v7
-    with:
-      python-version: '3.11'
+SHELL_LINT_PATH = scripts
 ```
 
-### Warning: "Version is not valid for Python X.Y. Skipping installation."
+### `toml.mk`
 
-This happens when the requested `package-version` is not installable for your target
-`python-version`. The action does not fail the job — it skips installation and reports
-`is-valid-version=false`.
+Optional variables (set before `include`):
 
-**Solutions:**
+| Variable           | Default | Description                                        |
+| ------------------ | ------- | -------------------------------------------------- |
+| `TOML_FORMAT_PATH` | `.`     | Path searched for `*.toml` files passed to `taplo` |
 
-- Check the package's Python version requirements on PyPI
-- Try a different `python-version`
-- Try a different `package-version` that supports your Python version
-- If you want the workflow to stop in this case, add a follow-up step that checks
-  `is-valid-version` and exits non-zero (see [Use Output Version and Stop the Workflow on
-  Invalid Versions](#use-output-version-and-stop-the-workflow-on-invalid-versions))
+```makefile
+include toml.mk
 
-### Using Custom or Private PyPI Indexes
-
-Use the `uv-args` input to specify custom indexes:
-
-```yaml
-steps:
-  - name: Install from custom index
-    uses: durandtibo/uv-install-package-action@v0.1.3
-    with:
-      package-name: 'my-package'
-      package-version: '1.0.0'
-      python-version: '3.11'
-      uv-args: '--index-url https://pypi.example.com/simple --extra-index-url https://pypi.org/simple'
+TOML_FORMAT_PATH = config
 ```
 
-For authenticated indexes, set environment variables:
+### `markdown.mk`
 
-```yaml
-steps:
-  - name: Install from authenticated index
-    uses: durandtibo/uv-install-package-action@v0.1.3
-    with:
-      package-name: 'my-package'
-      package-version: '1.0.0'
-      python-version: '3.11'
-      uv-args: '--index-url https://${{ secrets.PYPI_USER }}:${{ secrets.PYPI_PASSWORD }}@pypi.example.com/simple'
+Optional variables (set before `include`):
+
+| Variable               | Default   | Description                                           |
+| ---------------------- | --------- | ----------------------------------------------------- |
+| `MARKDOWN_FORMAT_PATH` | `.`       | Root path globbed for `**/*.md`, passed to `prettier` |
+| `MARKDOWN_LINT_GLOB`   | `**/*.md` | Glob passed to `markdownlint`                         |
+
+```makefile
+include markdown.mk
+
+MARKDOWN_LINT_GLOB = docs/**/*.md
 ```
 
-### Network or PyPI Connection Issues
+### `actions.mk`
 
-If PyPI queries fail due to network issues:
+Optional variables (set before `include`):
 
-- Check GitHub Actions service status
-- Verify network connectivity in your workflow
-- Try adding retry logic around the action
+| Variable            | Default | Description                                                                      |
+| ------------------- | ------- | -------------------------------------------------------------------------------- |
+| `ACTIONS_LINT_PATH` | `.`     | Path searched for `.github/workflows/*.{yml,yaml}` files, passed to `actionlint` |
 
-### Installation Fails After Finding Version
+```makefile
+include actions.mk
 
-If the action finds a version but installation fails:
-
-- Check the package's dependencies for compatibility issues
-- Review the full error output
-- Try installing with additional uv arguments (e.g., `--no-deps` to skip dependencies)
-
-### Error: "package-name cannot be empty"
-
-This error occurs when the `package-name` input is not provided or is an empty string.
-
-**Solution:** Ensure you provide a valid package name:
-
-```yaml
-- name: Install package
-  uses: durandtibo/uv-install-package-action@v0.1.3
-  with:
-    package-name: 'numpy'  # ✅ Must be provided
-    package-version: '2.0.0'
-    python-version: '3.11'
+ACTIONS_LINT_PATH = .
 ```
 
-### Warning: "uv-args contains shell metacharacters"
+### `uv.mk`
 
-This warning appears when the `uv-args` input contains potentially dangerous shell metacharacters
-like `;` or `|`.
+Optional variables (set before `include`):
 
-**What it means:** The action detects characters that could potentially be used for command
-injection or unintended shell operations.
+| Variable         | Default | Description                                 |
+| ---------------- | ------- | ------------------------------------------- |
+| `PYTHON_VERSION` | `3.14`  | Python version passed to `uv venv --python` |
 
-**Action required:**
+```makefile
+include uv.mk
 
-- If these characters are intentional (e.g., part of a URL), ensure they're properly escaped
-- Review your `uv-args` to ensure they're safe and as intended
-- Consider using environment variables for sensitive values instead of inline arguments
-
-**Example:**
-
-```yaml
-- name: Install from custom index
-  uses: durandtibo/uv-install-package-action@v0.1.3
-  with:
-    package-name: 'my-package'
-    package-version: '1.0.0'
-    python-version: '3.11'
-    uv-args: '--index-url https://pypi.example.com/simple'  # ✅ Safe
+PYTHON_VERSION = 3.12
 ```
 
-### Package Installed but Import Verification Fails
+`install-invoke` installs `uv` on demand and then `invoke>=3.0` and `invoke-tasklib>=0.0.8` via `uv pip install` into the
+active virtual environment (create one first, e.g. with `uv venv`).
+`update-uv` runs `uv self update`. `setup-venv` updates `uv`, creates a fresh `.venv`
+(`uv venv --python $(PYTHON_VERSION) --clear`), installs `invoke` into it, and runs
+`uv run inv env.create-venv` and `uv run inv env.install` — it assumes the project's
+`tasks.py` exposes the `invoke-tasklib` tasks (`from invoke_tasklib import ns`).
 
-The action includes post-installation verification that attempts to import the package. If you see a
-warning about import verification:
+### `self.mk`
 
-**Common causes:**
+For projects that vendor this repo as a subtree (e.g. at `.make/`), `self.mk` provides a target
+to pull in upstream changes.
 
-1. **CLI-only packages**: Some packages (like command-line tools) don't have importable Python
-   modules. This is normal and the warning can be ignored.
-2. **Different import name**: Some packages have different import names than their package names (
-   e.g., `scikit-learn` → `sklearn`). The action handles common cases automatically.
-3. **Installation issues**: The package installed but files are missing or corrupted.
+Optional variables (set before `include`):
 
-**What to do:**
+| Variable                       | Default                                              | Description     |
+| ------------------------------ | ---------------------------------------------------- | --------------- |
+| `SHARED_MAKEFILES_REMOTE_NAME` | `shared-makefiles`                                   | Git remote name |
+| `SHARED_MAKEFILES_REMOTE_URL`  | `https://github.com/durandtibo/shared-makefiles.git` | Git remote URL  |
+| `SHARED_MAKEFILES_BRANCH`      | `main`                                               | Branch to pull  |
+| `SHARED_MAKEFILES_PREFIX`      | `.make`                                              | Subtree prefix  |
 
-- For CLI tools: The warning is expected and can be ignored if the tool works
-- For Python libraries: Check the package's documentation for the correct import name
-- If installation is broken: Check the full error logs and try reinstalling
+```makefile
+include self.mk
+```
 
-## Suggestions and Communication
+`update-subtree` adds the `$(SHARED_MAKEFILES_REMOTE_NAME)` remote if missing, fetches
+`$(SHARED_MAKEFILES_BRANCH)`, and runs `git subtree pull --prefix=$(SHARED_MAKEFILES_PREFIX)
+$(SHARED_MAKEFILES_REMOTE_NAME) $(SHARED_MAKEFILES_BRANCH) --squash` to sync the subtree. It then
+removes the `.github/` and `testdata/` folders from within `$(SHARED_MAKEFILES_PREFIX)` (not
+needed in consuming projects) and commits the removal.
 
-Everyone is welcome to contribute to the community.
-If you have any questions or suggestions, you can
-submit [Github Issues](https://github.com/durandtibo/uv-install-package-action/issues).
-We will reply to you as soon as possible. Thank you very much.
+### `help.mk`
+
+```makefile
+include help.mk
+
+.PHONY: format
+format: format-yaml ## Format all files
+```
+
+`help` scans every included Makefile (`$(MAKEFILE_LIST)`) for lines matching
+`target: ... ## description` and prints them, sorted, as `target` / `description` pairs. Only
+targets with a trailing `## ...` comment show up — add one to any target you want documented. Every
+target defined in this repo's own `.mk` files is already annotated this way, so `include`-ing any
+of them and running `make help` lists them for free.
+
+## Design
+
+- **Include guards** — each file defines an `_MK_INCLUDED` variable so it's safe to `include`
+  more than once (e.g. transitively from multiple project Makefiles).
+- **On-demand install** — every lint/format target depends on an `install-<tool>` target that
+  checks `command -v` before installing, so CI and local runs don't need the tool preinstalled.
+- **Configurable paths** — variables default to sensible project-wide values but can be
+  overridden per project or per target invocation.
+- **`.make/` excluded by default** — this repo is meant to be vendored as a subtree at `.make/`
+  in consuming projects, so every formatter/linter skips that folder by default:
+  [`.prettierignore`](.prettierignore) and [`.markdownlintignore`](.markdownlintignore) exclude
+  it, `.yamllint.yaml` sets `ignore: .make/`, and `shell.mk`'s `find` commands `-prune` it.
+
+## Testing
+
+[`.github/workflows/ci-test.yml`](.github/workflows/ci-test.yml) exercises every file against the
+Unix OS matrix (Ubuntu and macOS runners) resolved dynamically via
+[`durandtibo/workflow-config-action`](https://github.com/durandtibo/workflow-config-action) on
+every push/PR to `main`, running both the lint and format targets (including on-demand tool
+installation) to make sure the rules stay portable across platforms.
 
 ## License
 
-`uv-install-package-action` is licensed under BSD 3-Clause "New" or "Revised" license available
-in [LICENSE](LICENSE) file.
+This repo is licensed under BSD 3-Clause "New" or "Revised" license available in [LICENSE](LICENSE)
+file.
