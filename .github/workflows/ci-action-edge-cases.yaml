@@ -7,11 +7,12 @@ on:
         type: string
         required: true
 
-permissions:
-  contents: read
+permissions: {}
 
 jobs:
   python-version-with-feature:
+    permissions:
+      contents: read
     runs-on: ubuntu-latest
     timeout-minutes: 5
 
@@ -53,6 +54,8 @@ jobs:
           python -m pytest tests/functional
 
   no-python-version:
+    permissions:
+      contents: read
     runs-on: ubuntu-latest
     timeout-minutes: 5
 
@@ -92,6 +95,8 @@ jobs:
           python -m pytest tests/functional
 
   free-threaded-python-version:
+    permissions:
+      contents: read
     runs-on: ubuntu-latest
     timeout-minutes: 5
 
@@ -133,6 +138,8 @@ jobs:
           python -m pytest tests/functional
 
   incorrect-python-version:
+    permissions:
+      contents: read
     runs-on: ubuntu-latest
     timeout-minutes: 5
 
@@ -177,6 +184,8 @@ jobs:
         run: echo "✅ Test passed - step failed as expected"
 
   empty-package-name:
+    permissions:
+      contents: read
     runs-on: ubuntu-latest
     timeout-minutes: 5
 
