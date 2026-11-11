@@ -57,14 +57,14 @@ Files are prefixed by role:
 - `ci.yaml`: entry point for pull requests, pushes to `main`, a nightly schedule and manual runs. It
   holds no steps, only jobs that call the reusable `ci-*.yaml` workflows below.
   - `ci-format.yaml`, `ci-pre-commit.yaml`: format and lint checks.
-  - `ci-test-shell.yaml`: bats tests.
+  - `ci-shell.yaml`: bats tests.
   - `ci-test.yaml`: Python tests.
-  - `ci-test-local.yaml`, `ci-test-edge-cases.yaml`: run the action from this checkout
+  - `ci-action.yaml`, `ci-action-edge-cases.yaml`: run the action from this checkout
     (`uses: ./`), i.e. the version not released yet.
-  - `ci-test-action.yaml`: reusable workflow that runs the action.
+  - `ci-action-deps.yaml`: reusable workflow that runs the action.
 - `ci-verify-workflows.yaml`: lints the workflow files themselves. It has its own triggers and is not
   called from `ci.yaml`, so it can be a required check.
-- `nightly-package.yaml`: scheduled test of the latest released action on real packages. It is not
+- `nightly.yaml`: scheduled test of the latest released action on real packages. It is not
   part of `ci.yaml`.
 - `lib-*.yaml`: reusable workflows that load shared data (test matrix, package versions, deps,
   extras); callers pass results down through inputs.
