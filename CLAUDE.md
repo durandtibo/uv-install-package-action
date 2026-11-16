@@ -48,6 +48,12 @@ action.
 - Pin third-party actions in workflows to commit SHAs with a `# ratchet:<owner>/<repo>@<tag>`
   comment, never to tags or branches.
 - Workflows use least-privilege `permissions` and set `timeout-minutes` on jobs.
+- Only ship what the action needs at runtime: files the action itself uses (`action.yaml`,
+  `LICENSE`, the scripts it calls in `scripts/`) are exported, and `.gitattributes` marks everything
+  else `export-ignore`. When the action starts using a new file, un-ignore it there, and add any
+  new top-level file or directory to `.gitattributes`. Never make the action read tests, fixtures or
+  other repo files that are not exported. Check the exported set with
+  `git archive --worktree-attributes HEAD | tar t`.
 
 ## Shell script rules (`scripts/*.sh`)
 

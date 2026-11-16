@@ -1,0 +1,19 @@
+# Ship only what the action needs at runtime (action.yaml, LICENSE, scripts/).
+# Everything else is excluded from `git archive`. When the action starts using a new file,
+# un-ignore it here.
+/.github/ export-ignore
+/.make/ export-ignore
+/dev/ export-ignore
+/tests/ export-ignore
+/.gitattributes export-ignore
+/.gitignore export-ignore
+/.pre-commit-config.yaml export-ignore
+/CLAUDE.md export-ignore
+/CODEOWNERS export-ignore
+/Makefile export-ignore
+/README.md export-ignore
+/environment.yaml export-ignore
+/invoke.yaml export-ignore
+/pyproject.toml export-ignore
+/tasks.py export-ignore
+/uv.lock export-ignore
