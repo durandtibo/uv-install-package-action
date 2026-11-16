@@ -28,9 +28,15 @@ action.
   push to `main`.
 - Name branches `<type>/<short-description>` in kebab-case, with type one of: `feat`, `bugfix`,
   `hotfix`, `docs`, `refactor`, `perf`, `test`, `chore`, `ci`.
+- Write commit messages and PR titles as a short imperative sentence starting with a verb such as
+  `Add`, `Fix`, `Update`, `Remove` or `Improve`. Do not use conventional-commit prefixes like
+  `docs:` or `feat:` (the type prefix is only for branch names). The squash-merge appends the PR
+  number, so do not add one.
 - PR descriptions cover what changed, what was deliberately left alone, and any behaviour change.
 - On conflicts with `main`, merge `origin/main` into the branch; do not rebase and force-push.
 - Update `README.md` when inputs, outputs, behaviour, or workflows change.
+- Releases are immutable exact version tags (`v0.2.0`, ...). Do not create or move floating tags
+  (`v0`, `latest`) and do not document them as an option.
 
 ## Action rules (`action.yaml`)
 
@@ -46,8 +52,11 @@ action.
 ## Shell script rules (`scripts/*.sh`)
 
 - Must stay portable between GNU and BSD tools (`sed`, `xargs`, etc.).
-- Keep logic in small single-purpose scripts so each can be unit tested.
-- Quote all variables; validate inputs early with clear error messages.
+- Keep logic in small single-purpose scripts so each can be unit tested. `action.yaml` calls them
+  through `${{ github.action_path }}/scripts/`, so a new script goes in `scripts/` with its bats
+  file.
+- Validate inputs early with clear `::error` messages.
+- Quote all variables.
 - Code must pass `shellcheck` and `shfmt` via `make lint` / `make format`.
 
 ## Workflow structure (`.github/workflows/`)
@@ -64,8 +73,8 @@ Files are prefixed by role:
   - `ci-action-deps.yaml`: reusable workflow that runs the action.
 - `ci-verify-workflows.yaml`: lints the workflow files themselves. It has its own triggers and is not
   called from `ci.yaml`, so it can be a required check.
-- `nightly.yaml`: scheduled test of the latest released action on real packages. It is not
-  part of `ci.yaml`.
+- `nightly.yaml`: scheduled test of the latest released action on real packages (complements
+  `ci.yaml`, which tests the local version). It is not part of `ci.yaml`.
 - `lib-*.yaml`: reusable workflows that load shared data (test matrix, package versions, deps,
   extras); callers pass results down through inputs.
 - `bot-*.yaml`: scheduled automation that opens PRs or acts on runs (format files, pin actions,
@@ -74,8 +83,8 @@ Files are prefixed by role:
 
 Conventions:
 
-- Set `permissions` explicitly, including on jobs that call a reusable workflow; prefer
-  `permissions: {}` at the workflow level and grant only what a job needs.
+- Set `permissions` on every job (including jobs that call a reusable workflow). Every workflow
+  has `permissions: {}` at the workflow level (it grants nothing), never a grant.
 - Each `ci-*` check is a `workflow_call` workflow that also has `workflow_dispatch`, so it can be run
   alone. Add a new check as a new `ci-<name>.yaml` plus a job in `ci.yaml`.
 - Put `make` targets in the steps rather than duplicating commands, so local runs and CI match.
@@ -84,7 +93,7 @@ Conventions:
 ## Tests
 
 - Each script in `scripts/` has its own `tests/bats/test_<script_name>.bats` file.
-- One behaviour per test; mock external commands rather than calling the network.
+- One behaviour per test; mock external commands (`uv`, `feu`, ...) rather than calling the network.
 - Cover success, failure, and edge cases (empty input, wildcard versions, free-threaded `3.13t`,
   invalid formats).
 - Every bug fix needs a regression test that fails without the fix.
