@@ -41,7 +41,7 @@ jobs:
         with:
           package-name: numpy
           package-version: 2.4.1
-          python-version: "3.14.0"
+          python-version: "3.14"
 
       - name: Install valid package version (stable)
         if: inputs.action-ref == 'stable'
@@ -50,7 +50,7 @@ jobs:
         with:
           package-name: numpy
           package-version: 2.4.1
-          python-version: "3.14.0"
+          python-version: "3.14"
 
       - name: Run functional tests
         if: steps.install-package-local.outputs.is-valid-version == 'true' || steps.install-package-stable.outputs.is-valid-version == 'true'
@@ -125,7 +125,7 @@ jobs:
         with:
           package-name: numpy
           package-version: 2.4.1
-          python-version: "3.14.0t"
+          python-version: "3.14t"
 
       - name: Install valid package version (stable)
         if: inputs.action-ref == 'stable'
@@ -134,7 +134,7 @@ jobs:
         with:
           package-name: numpy
           package-version: 2.4.1
-          python-version: "3.14.0t"
+          python-version: "3.14t"
 
       - name: Run functional tests
         if: steps.install-package-local.outputs.is-valid-version == 'true' || steps.install-package-stable.outputs.is-valid-version == 'true'
