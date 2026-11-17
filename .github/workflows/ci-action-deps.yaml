@@ -68,6 +68,38 @@ jobs:
           package-version: ${{ matrix.package-version }}
           python-version: ${{ matrix.python-version }}
 
+      # An output regression fails here instead of silently skipping the functional tests.
+      # `installed` does not exist in the released version.
+      - name: Check the outputs
+        shell: bash
+        env:
+          ACTION_REF: ${{ inputs.action-ref }}
+          VALID: ${{ steps.install-package-local.outputs.is-valid-version || steps.install-package-stable.outputs.is-valid-version }}
+          INSTALLED: ${{ steps.install-package-local.outputs.installed }}
+          INSTALLED_VERSION: ${{ steps.install-package-local.outputs.installed-version }}
+        run: |
+          set -euo pipefail
+
+          if [ "$VALID" != "true" ] && [ "$VALID" != "false" ]; then
+            echo "::error::is-valid-version must be 'true' or 'false', got '$VALID'"
+            exit 1
+          fi
+
+          if [ "$ACTION_REF" = "local" ]; then
+            if [ "$INSTALLED" != "$VALID" ]; then
+              echo "::error::installed ('$INSTALLED') must equal is-valid-version ('$VALID')"
+              exit 1
+            fi
+            if [ "$INSTALLED" = "true" ] && [ -z "$INSTALLED_VERSION" ]; then
+              echo "::error::installed-version is empty although the package was installed"
+              exit 1
+            fi
+            if [ "$INSTALLED" = "false" ] && [ -n "$INSTALLED_VERSION" ]; then
+              echo "::error::installed-version must be empty when the installation was skipped"
+              exit 1
+            fi
+          fi
+
       - name: Run functional tests
         if: steps.install-package-local.outputs.is-valid-version == 'true' || steps.install-package-stable.outputs.is-valid-version == 'true'
         run: |

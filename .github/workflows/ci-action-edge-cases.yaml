@@ -1,6 +1,22 @@
-# Reusable workflow testing the action on edge cases: Python versions with a feature release or a
-# free-threaded build, a missing or incorrect Python version, and an empty package name.
+# Reusable workflow testing the action on edge cases, driven by a table of cases (the matrix
+# below). Each case runs the action once and asserts the outcome (success or failure) and the
+# outputs: Python versions with a free-threaded build, no/incorrect/patch Python version, an
+# invalid version in `skip` and `fail` mode, wildcards, an invalid mode and an invalid package name.
 # Used by ci-action.yaml (local version) and nightly-test-released.yaml (released version).
+# Cases marked `local-only` need behaviour that is not released yet, so they are skipped for the
+# released version.
+#
+# Columns of the table (the defaults apply when a column is omitted):
+#   name              display name of the case
+#   setup-python      Python (and build) given to setup-uv (default 3.14)
+#   package-name      input of the action (default numpy; a blank name is an empty name)
+#   package-version   input of the action (default 2.4.1)
+#   python-version    input of the action (always set: an empty value is auto-detected)
+#   mode              invalid-version-mode input (default skip)
+#   expect            `success` (default) or `failure`: expected outcome of the action step
+#   valid, installed  expected outputs `is-valid-version` and `installed` (not asserted when empty)
+#   version-prefix    expected prefix of the output `installed-version` (not asserted when empty)
+#   local-only        skip the case when testing the released version
 
 name: Test Action Edge Cases
 on:
@@ -14,219 +30,158 @@ on:
 permissions: {}
 
 jobs:
-  python-version-with-feature:
+  edge-case:
+    name: ${{ matrix.name }}
     permissions:
       contents: read
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: valid exact version with a Python version
+            python-version: "3.14"
+            valid: "true"
+            installed: "true"
+            version-prefix: "2.4.1"
+          - name: valid exact version without a Python version
+            python-version: ""
+            valid: "true"
+            installed: "true"
+            version-prefix: "2.4.1"
+          - name: free-threaded Python version
+            setup-python: "3.14t"
+            python-version: "3.14t"
+            valid: "true"
+            installed: "true"
+            version-prefix: "2.4.1"
+          - name: free-threaded Python version auto-detected
+            setup-python: "3.14t"
+            python-version: ""
+            valid: "true"
+            installed: "true"
+            version-prefix: "2.4.1"
+            local-only: true
+          - name: invalid exact version is skipped
+            python-version: "3.9"
+            valid: "false"
+            installed: "false"
+          - name: invalid exact version fails in fail mode
+            python-version: "3.9"
+            mode: fail
+            expect: failure
+            valid: "false"
+            installed: "false"
+            local-only: true
+          - name: valid wildcard
+            package-version: "2.4.*"
+            python-version: "3.14"
+            valid: "true"
+            installed: "true"
+            version-prefix: "2.4."
+            local-only: true
+          - name: wildcard matching no release is skipped
+            package-version: "9.9.*"
+            python-version: "3.14"
+            valid: "false"
+            installed: "false"
+            local-only: true
+          - name: wildcard not valid for the Python version is skipped
+            package-version: "2.4.*"
+            python-version: "3.9"
+            valid: "false"
+            installed: "false"
+            local-only: true
+          - name: incorrect Python version
+            python-version: v3.14
+            expect: failure
+          - name: patch Python version is rejected
+            python-version: "3.14.0"
+            expect: failure
+            local-only: true
+          - name: empty package name
+            package-name: " "
+            python-version: "3.14"
+            expect: failure
+          - name: package name that is an option
+            package-name: "--pre"
+            python-version: "3.14"
+            expect: failure
+            local-only: true
+          - name: invalid mode
+            python-version: "3.14"
+            mode: ignore
+            expect: failure
+            local-only: true
 
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # ratchet:actions/checkout@v7
 
       - name: Install uv and set the python version
+        if: inputs.action-ref == 'local' || !matrix.local-only
         uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # ratchet:astral-sh/setup-uv@v10.3.3
         with:
-          python-version: "3.14"
+          python-version: ${{ matrix.setup-python || '3.14' }}
           activate-environment: true
 
-      - name: Install packages
-        run: |
-          uv pip install pytest
-
-      - name: Install valid package version (local)
+      - name: Run the action (local)
         if: inputs.action-ref == 'local'
-        id: install-package-local
+        id: local
         uses: ./
         with:
-          package-name: numpy
-          package-version: 2.4.1
-          python-version: "3.14"
-
-      - name: Install valid package version (stable)
-        if: inputs.action-ref == 'stable'
-        id: install-package-stable
-        uses: durandtibo/uv-install-package-action@fe64eac38f69e851b5e79b74ee255ed95a159bc0 # ratchet:durandtibo/uv-install-package-action@v0.2.0
-        with:
-          package-name: numpy
-          package-version: 2.4.1
-          python-version: "3.14"
-
-      - name: Run functional tests
-        if: steps.install-package-local.outputs.is-valid-version == 'true' || steps.install-package-stable.outputs.is-valid-version == 'true'
-        run: |
-          python -m pytest tests/functional
-
-  no-python-version:
-    permissions:
-      contents: read
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # ratchet:actions/checkout@v7
-
-      - name: Install uv and set the python version
-        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # ratchet:astral-sh/setup-uv@v10.3.3
-        with:
-          python-version: "3.14"
-          activate-environment: true
-
-      - name: Install packages
-        run: |
-          uv pip install pytest
-
-      - name: Install valid package version (local)
-        if: inputs.action-ref == 'local'
-        id: install-package-local
-        uses: ./
-        with:
-          package-name: numpy
-          package-version: 2.4.1
-
-      - name: Install valid package version (stable)
-        if: inputs.action-ref == 'stable'
-        id: install-package-stable
-        uses: durandtibo/uv-install-package-action@fe64eac38f69e851b5e79b74ee255ed95a159bc0 # ratchet:durandtibo/uv-install-package-action@v0.2.0
-        with:
-          package-name: numpy
-          package-version: 2.4.1
-
-      - name: Run functional tests
-        if: steps.install-package-local.outputs.is-valid-version == 'true' || steps.install-package-stable.outputs.is-valid-version == 'true'
-        run: |
-          python -m pytest tests/functional
-
-  free-threaded-python-version:
-    permissions:
-      contents: read
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # ratchet:actions/checkout@v7
-
-      - name: Install uv and set the python version
-        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # ratchet:astral-sh/setup-uv@v10.3.3
-        with:
-          python-version: "3.14t"
-          activate-environment: true
-
-      - name: Install packages
-        run: |
-          uv pip install pytest
-
-      - name: Install valid package version (local)
-        if: inputs.action-ref == 'local'
-        id: install-package-local
-        uses: ./
-        with:
-          package-name: numpy
-          package-version: 2.4.1
-          python-version: "3.14t"
-
-      - name: Install valid package version (stable)
-        if: inputs.action-ref == 'stable'
-        id: install-package-stable
-        uses: durandtibo/uv-install-package-action@fe64eac38f69e851b5e79b74ee255ed95a159bc0 # ratchet:durandtibo/uv-install-package-action@v0.2.0
-        with:
-          package-name: numpy
-          package-version: 2.4.1
-          python-version: "3.14t"
-
-      - name: Run functional tests
-        if: steps.install-package-local.outputs.is-valid-version == 'true' || steps.install-package-stable.outputs.is-valid-version == 'true'
-        run: |
-          python -m pytest tests/functional
-
-  incorrect-python-version:
-    permissions:
-      contents: read
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # ratchet:actions/checkout@v7
-
-      - name: Install uv and set the python version
-        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # ratchet:astral-sh/setup-uv@v10.3.3
-        with:
-          python-version: "3.14"
-          activate-environment: true
-
-      - name: Install valid package version (local)
-        if: inputs.action-ref == 'local'
-        id: install-package-local
-        uses: ./
-        with:
-          package-name: numpy
-          package-version: 2.4.1
-          python-version: v3.14
+          package-name: ${{ matrix.package-name || 'numpy' }}
+          package-version: ${{ matrix.package-version || '2.4.1' }}
+          python-version: ${{ matrix.python-version }}
+          invalid-version-mode: ${{ matrix.mode || 'skip' }}
         continue-on-error: true
 
-      - name: Install valid package version (stable)
-        if: inputs.action-ref == 'stable'
-        id: install-package-stable
+      - name: Run the action (stable)
+        if: inputs.action-ref == 'stable' && !matrix.local-only
+        id: stable
         uses: durandtibo/uv-install-package-action@fe64eac38f69e851b5e79b74ee255ed95a159bc0 # ratchet:durandtibo/uv-install-package-action@v0.2.0
         with:
-          package-name: numpy
-          package-version: 2.4.1
-          python-version: v3.14
+          package-name: ${{ matrix.package-name || 'numpy' }}
+          package-version: ${{ matrix.package-version || '2.4.1' }}
+          python-version: ${{ matrix.python-version }}
         continue-on-error: true
 
-      - name: Failure - it did not fail as expected
-        if: (inputs.action-ref == 'local' && steps.install-package-local.outcome != 'failure') || (inputs.action-ref == 'stable' && steps.install-package-stable.outcome != 'failure')
+      # `installed` and `installed-version` do not exist in the released version
+      - name: Assert the outcome and the outputs
+        if: inputs.action-ref == 'local' || !matrix.local-only
+        shell: bash
+        env:
+          ACTION_REF: ${{ inputs.action-ref }}
+          EXPECT: ${{ matrix.expect || 'success' }}
+          EXPECT_VALID: ${{ matrix.valid }}
+          EXPECT_INSTALLED: ${{ matrix.installed }}
+          EXPECT_VERSION_PREFIX: ${{ matrix.version-prefix }}
+          OUTCOME: ${{ steps.local.outcome || steps.stable.outcome }}
+          VALID: ${{ steps.local.outputs.is-valid-version || steps.stable.outputs.is-valid-version }}
+          INSTALLED: ${{ steps.local.outputs.installed }}
+          INSTALLED_VERSION: ${{ steps.local.outputs.installed-version }}
         run: |
-          echo "❌ Error: Step should have failed but didn't!"
-          exit 1
+          set -euo pipefail
 
-      - name: Success - it failed as expected
-        if: (inputs.action-ref == 'local' && steps.install-package-local.outcome == 'failure') || (inputs.action-ref == 'stable' && steps.install-package-stable.outcome == 'failure')
-        run: echo "✅ Test passed - step failed as expected"
+          fail=0
+          check() { # check <what> <actual> <expected>
+            if [ "$2" != "$3" ]; then
+              echo "::error::$1: expected '$3', got '$2'"
+              fail=1
+            fi
+          }
 
-  empty-package-name:
-    permissions:
-      contents: read
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # ratchet:actions/checkout@v7
-
-      - name: Install uv and set the python version
-        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # ratchet:astral-sh/setup-uv@v10.3.3
-        with:
-          python-version: "3.14"
-          activate-environment: true
-
-      - name: Install with empty package name (local)
-        if: inputs.action-ref == 'local'
-        id: install-package-local
-        uses: ./
-        with:
-          package-name: ""
-          package-version: 2.4.1
-        continue-on-error: true
-
-      - name: Install with empty package name (stable)
-        if: inputs.action-ref == 'stable'
-        id: install-package-stable
-        uses: durandtibo/uv-install-package-action@fe64eac38f69e851b5e79b74ee255ed95a159bc0 # ratchet:durandtibo/uv-install-package-action@v0.2.0
-        with:
-          package-name: ""
-          package-version: 2.4.1
-        continue-on-error: true
-
-      - name: Failure - it did not fail as expected
-        if: (inputs.action-ref == 'local' && steps.install-package-local.outcome != 'failure') || (inputs.action-ref == 'stable' && steps.install-package-stable.outcome != 'failure')
-        run: |
-          echo "❌ Error: Step should have failed but didn't!"
-          exit 1
-
-      - name: Success - it failed as expected
-        if: (inputs.action-ref == 'local' && steps.install-package-local.outcome == 'failure') || (inputs.action-ref == 'stable' && steps.install-package-stable.outcome == 'failure')
-        run: echo "✅ Test passed - step failed as expected"
+          check "outcome" "$OUTCOME" "$EXPECT"
+          if [ -n "$EXPECT_VALID" ]; then
+            check "is-valid-version" "$VALID" "$EXPECT_VALID"
+          fi
+          if [ "$ACTION_REF" = "local" ]; then
+            if [ -n "$EXPECT_INSTALLED" ]; then
+              check "installed" "$INSTALLED" "$EXPECT_INSTALLED"
+            fi
+            if [ -n "$EXPECT_VERSION_PREFIX" ]; then
+              check "installed-version prefix" "${INSTALLED_VERSION:0:${#EXPECT_VERSION_PREFIX}}" "$EXPECT_VERSION_PREFIX"
+            fi
+          fi
+          exit "$fail"

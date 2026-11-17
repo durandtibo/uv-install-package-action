@@ -117,9 +117,15 @@ Full end-to-end tests run in GitHub Actions workflows.
 - `ci.yaml` - Entry point of the checks; calls the `ci-*.yaml` workflows below
 - `ci-test.yaml` - Functional tests across Python versions and OS platforms
 - `ci-action.yaml` - Tests local action changes (uses `./` action reference) with each optional
-  dependency of the package (`ci-action-deps.yaml`) and with edge cases
-  (`ci-action-edge-cases.yaml`): no `python-version` given (auto-detect), a free-threaded
-  `python-version`, an invalid `python-version`, and an empty `package-name`
+  dependency of the package (`ci-action-deps.yaml`, which also asserts the `is-valid-version`,
+  `installed` and `installed-version` outputs) and with edge cases
+  (`ci-action-edge-cases.yaml`). The edge cases are a table (one matrix entry per case, with the
+  expected outcome and outputs): free-threaded and auto-detected Python versions, an invalid
+  version in `skip` and `fail` mode, wildcards, an incorrect or patch `python-version`, an invalid
+  `invalid-version-mode`, and an invalid `package-name`. Cases that need unreleased behaviour are
+  marked `local-only`
+- `ci-export.yaml` - Checks with `make check-export` that the release archive contains only
+  `action.yaml`, `LICENSE` and `scripts/*.sh`
 - `nightly.yaml` / `nightly-test-released.yaml` - Same edge cases and package matrix as
   `ci-action.yaml`, but against the latest published release (run nightly, not on every PR) to
   catch regressions between what's merged and what's tagged
