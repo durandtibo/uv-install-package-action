@@ -1,0 +1,11 @@
+# markdownlint configuration.
+default: true
+
+# Prose is wrapped at 100 columns; tables cannot be rewrapped easily.
+MD013:
+  line_length: 100
+  tables: false
+
+# Repeated headings are fine under different parents.
+MD024:
+  siblings_only: true

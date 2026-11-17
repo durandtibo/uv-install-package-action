@@ -1,30 +1,10 @@
 # uv-install-package
 
-<p align="center">
-    <a href="https://github.com/durandtibo/uv-install-package-action/actions">
-        <img alt="CI" src="https://github.com/durandtibo/uv-install-package-action/workflows/CI/badge.svg">
-    </a>
-    <a href="https://github.com/durandtibo/uv-install-package-action/actions">
-        <img alt="Nightly Tests" src="https://github.com/durandtibo/uv-install-package-action/workflows/Nightly%20Tests/badge.svg">
-    </a>
-    <a href="https://github.com/durandtibo/uv-install-package-action/releases">
-        <img alt="PYPI version" src="https://img.shields.io/github/v/release/durandtibo/uv-install-package-action?logo=github&sort=semver">
-    </a>
-    <br/>
-    <a href="https://github.com/psf/black">
-        <img  alt="Code style: black" src="https://img.shields.io/badge/code%20style-black-000000.svg">
-    </a>
-    <a href="https://google.github.io/styleguide/pyguide.html#s3.8-comments-and-docstrings">
-        <img  alt="Doc style: google" src="https://img.shields.io/badge/%20style-google-3666d6.svg">
-    </a>
-    <a href="https://github.com/astral-sh/ruff">
-        <img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json" alt="Ruff" style="max-width:100%;">
-    </a>
-    <a href="https://github.com/guilatrova/tryceratops">
-        <img  alt="Doc style: google" src="https://img.shields.io/badge/try%2Fexcept%20style-tryceratops%20%F0%9F%A6%96%E2%9C%A8-black">
-    </a>
-    <br/>
-</p>
+[![CI](https://github.com/durandtibo/uv-install-package-action/actions/workflows/ci.yaml/badge.svg)](https://github.com/durandtibo/uv-install-package-action/actions/workflows/ci.yaml)
+[![Nightly](https://github.com/durandtibo/uv-install-package-action/actions/workflows/nightly.yaml/badge.svg)](https://github.com/durandtibo/uv-install-package-action/actions/workflows/nightly.yaml)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/durandtibo/uv-install-package-action/badge)](https://scorecard.dev/viewer/?uri=github.com/durandtibo/uv-install-package-action)
+[![License](https://img.shields.io/badge/license-BSD--3--Clause-blue)](LICENSE)
+[![Latest release](https://img.shields.io/github/v/tag/durandtibo/uv-install-package-action?label=release)](https://github.com/durandtibo/uv-install-package-action/tags)
 
 GitHub Action to install Python packages with uv, validating that the requested version is
 installable for your target Python environment before installing.
@@ -34,8 +14,10 @@ installable for your target Python environment before installing.
 This action helps you install Python packages reliably by:
 
 1. Checking whether the requested version is valid for your Python environment (via PyPI metadata)
-2. Installing the package using the fast [uv](https://github.com/astral-sh/uv) package installer, only if the version is valid
-3. Skipping installation (without failing the step) when the requested version is invalid, and reporting that via the `is-valid-version` output
+2. Installing the package using the fast [uv](https://github.com/astral-sh/uv) package installer,
+   only if the version is valid
+3. Skipping installation (without failing the step) when the requested version is invalid, and
+   reporting that via the `is-valid-version` output
 
 ## Prerequisites
 
