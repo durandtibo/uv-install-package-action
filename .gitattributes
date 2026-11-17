@@ -17,3 +17,4 @@
 /pyproject.toml export-ignore
 /tasks.py export-ignore
 /uv.lock export-ignore
+/.yamllint.yaml export-ignore

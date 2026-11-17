@@ -1,0 +1,8 @@
+# yamllint config: extends the shared config synced in .make/ and relaxes line-length for
+# workflow files, where long lines (URLs, ratchet comments, shell commands) are common.
+extends: .make/.yamllint.yaml
+
+rules:
+  line-length:
+    ignore: |
+      .github/
