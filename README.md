@@ -13,7 +13,9 @@ installable for your target Python environment before installing.
 
 This action helps you install Python packages reliably by:
 
-1. Checking whether the requested version is valid for your Python environment (with [feu](https://github.com/durandtibo/feu), which holds a table of valid versions per package and Python version)
+1. Checking whether the requested version is valid for your Python environment, with
+   [feu](https://github.com/durandtibo/feu) (it holds a table of valid versions per package and
+   Python version)
 2. Installing the package using the fast [uv](https://github.com/astral-sh/uv) package installer,
    only if the version is valid
 3. Skipping installation (without failing the step) when the requested version is invalid, and
