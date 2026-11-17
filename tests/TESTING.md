@@ -19,8 +19,8 @@ Testing System).
 - `test_handle_invalid_version.bats` - Tests for the `skip` and `fail` modes
 - `test_validate_inputs.bats` - Tests for the package-name/package-version/invalid-version-mode
   input validation script
-- `test_get_import_name.bats` - Tests for the package-name → import-name conversion script used
-  by the "Verify installation" step
+- `test_get_installed_version.bats` - Tests for the script that reads the installed version with
+  `uv pip show` (mocked `uv`)
 
 **Coverage:**
 
@@ -31,10 +31,10 @@ Testing System).
 - Error message quality
 - Input validation for package-name (PEP 508 name, no leading `-`), package-version and
   invalid-version-mode
-- Package-name to import-name conversion (e.g. `scikit-learn` → `sklearn` module prefix)
+- Reading the installed version (package found, not found, extra output lines)
 
 All bash logic embedded in `action.yaml` that has meaningful branching (input validation, Python
-version validation, import-name conversion) is extracted into standalone scripts under
+version validation, installed-version lookup) is extracted into standalone scripts under
 `scripts/` specifically so it can be unit-tested here rather than only exercised indirectly via
 the slower GitHub Actions integration tests below.
 
