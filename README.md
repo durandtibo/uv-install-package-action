@@ -14,8 +14,10 @@ installable for your target Python environment before installing.
 This action helps you install Python packages reliably by:
 
 1. Checking whether the requested version is valid for your Python environment (via PyPI metadata)
-2. Installing the package using the fast [uv](https://github.com/astral-sh/uv) package installer, only if the version is valid
-3. Skipping installation (without failing the step) when the requested version is invalid, and reporting that via the `is-valid-version` output
+2. Installing the package using the fast [uv](https://github.com/astral-sh/uv) package installer,
+   only if the version is valid
+3. Skipping installation (without failing the step) when the requested version is invalid, and
+   reporting that via the `is-valid-version` output
 
 ## Prerequisites
 
