@@ -2,6 +2,12 @@
 # workflow files, where long lines (URLs, ratchet comments, shell commands) are common.
 extends: .make/.yamllint.yaml
 
+# yamllint does not read .gitignore, so list third-party directories here. This replaces the
+# `ignore` of the extended config, so `.make/` is repeated.
+ignore: |
+  .make/
+  .venv/
+
 rules:
   line-length:
     ignore: |
