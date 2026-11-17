@@ -13,7 +13,9 @@ installable for your target Python environment before installing.
 
 This action helps you install Python packages reliably by:
 
-1. Checking whether the requested version is valid for your Python environment (via PyPI metadata)
+1. Checking whether the requested version is valid for your Python environment, with
+   [feu](https://github.com/durandtibo/feu) (it holds a table of valid versions per package and
+   Python version)
 2. Installing the package using the fast [uv](https://github.com/astral-sh/uv) package installer,
    only if the version is valid
 3. Skipping installation (without failing the step) when the requested version is invalid, and
@@ -109,12 +111,12 @@ steps:
 
 ## Inputs
 
-| Name              | Description                                                                                                                                                                                                                                                                   | Required | Default       |
-| ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------------- |
-| `package-name`    | The package name (e.g., `numpy`, `requests`, `django`)                                                                                                                                                                                                                        | Yes      | -             |
-| `package-version` | The target package version (e.g., `1.2.3`, `2.0.2`), or a wildcard/prefix pattern (e.g., `2.12.*`) to let `uv` pick the latest matching patch version                                                                                                                         | Yes      | -             |
-| `python-version`  | The Python version to check compatibility against (e.g., `3.10`, `3.11`, `3.12`). Must be `X.Y` or the free-threaded `X.Yt` (e.g., `3.13t`). Patch versions such as `3.10.1` are rejected. If not provided, the Python version is auto-detected from the current environment. | No       | Auto-detected |
-| `uv-args`         | Additional arguments to pass to uv (e.g., `--index-url https://custom.pypi.org/simple`)                                                                                                                                                                                       | No       | `''`          |
+| Name              | Description                                                                                                                                                                                                                                                                                         | Required | Default       |
+| ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------------- |
+| `package-name`    | The package name (e.g., `numpy`, `requests`, `django`)                                                                                                                                                                                                                                              | Yes      | -             |
+| `package-version` | The target package version (e.g., `1.2.3`, `2.0.2`), or a wildcard pattern (e.g., `2.12.*`) to install the newest valid release matching it                                                                                                                                                         | Yes      | -             |
+| `python-version`  | The Python version to check compatibility against (e.g., `3.10`, `3.11`, `3.12`). Must be `X.Y` or the free-threaded `X.Yt` (e.g., `3.13t`). Patch versions such as `3.10.1` are rejected. If not provided, `feu` uses the Python interpreter it runs in, including free-threaded builds (`3.13t`). | No       | Auto-detected |
+| `uv-args`         | Additional arguments to pass to uv (e.g., `--index-url https://custom.pypi.org/simple`)                                                                                                                                                                                                             | No       | `''`          |
 
 ## Outputs
 
@@ -133,14 +135,12 @@ validate and install Python packages:
    without whitespace or a leading `-`
 3. **Validate Python version** - Accept empty, `X.Y` or `X.Yt` (e.g., `3.13t`); patch versions such
    as `3.10.1` are rejected
-4. **Install feu** - Install the version resolution utility with automatic retry on network failures
-5. **Check version validity** - Query PyPI to check whether the exact requested version is
-   installable for the target Python version. Wildcard/prefix patterns (e.g., `2.12.*`) can't be
-   validated this way (they aren't a single version), so this check is skipped for them and
-   resolution is deferred to `uv` at install time
-6. **Install package** - If valid, use `uv` to install exactly the requested version (or, for a
-   wildcard pattern, whichever matching version `uv` resolves) with your custom arguments; if
-   invalid, skip installation and report `is-valid-version=false`
+4. **Install feu** - Install `feu[cli,requests]>=0.9.0a0,<1` in the same environment as the
+   package (no retry loop: `uv` retries network errors itself)
+5. **Check version validity** - Run `feu check-valid-version` for the exact version or the
+   wildcard. An invalid version is skipped; a crash or unexpected output fails the job
+6. **Install package** - If valid, use `feu install` (with `uv`) to install the package with your
+   custom arguments; if invalid, skip installation and report `is-valid-version=false`
 7. **Verify installation** - If a package was installed, confirm it can be imported successfully
 
 This action never auto-substitutes a different version, and it does not fail the job when the
@@ -148,26 +148,25 @@ requested version is invalid — it exits successfully with `is-valid-version=fa
 workflow can decide what to do next (see [Use Output Version and Stop the Workflow on Invalid
 Versions](#use-output-version-and-stop-the-workflow-on-invalid-versions)).
 
-### Wildcard / Prefix Versions
+### Wildcard Versions
 
-`package-version` accepts PEP 440 wildcard patterns such as `2.12.*` or `2.*`, in addition to
-exact versions like `2.12.3`. A wildcard is not resolved to a single version up front — it's
-passed straight through to `uv` (e.g., `uv pip install "numpy==2.12.*"`), which installs the
-latest release matching the pattern. Because of this:
+`package-version` accepts wildcards such as `2.12.*` or `2.*`, in addition to exact versions like
+`2.12.3`. `feu` checks them like exact versions: the wildcard is valid when a release matching it
+is valid for the target Python, and `feu install` then installs the newest such release. A wildcard
+that matches nothing is skipped like an invalid exact version, it does not fail the job.
 
-- `is-valid-version` is reported as `true` for a wildcard request without a PyPI pre-check;
-  if the pattern doesn't match any published version, the **install step fails the job**
-  (unlike an invalid exact version, which is skipped without failing).
-- `2.12` and `2.12.*` behave differently: `2.12` requires a release literally named `2.12` (or
-  `2.12.0`, since PEP 440 normalizes trailing zero segments) to exist; `2.12.*` matches _any_
-  `2.12.x` release and lets `uv` pick the newest one.
+- Wildcard checks fetch the release list from PyPI, so they need network access.
+- The check does not use `uv-args`: exact versions are checked against `feu`'s table and wildcards
+  against the default PyPI index, even if `uv-args` sets another index.
+- A package that is not in `feu`'s table is always considered valid. A typo in `package-name` is
+  caught by the install step, with the error of `uv`.
 
 ### Example Scenario
 
 If you request `numpy==2.3.0` with Python 3.9, but numpy 2.3.0 requires a newer Python version:
 
 - The action validates your inputs and Python version format
-- Queries PyPI to check whether `numpy==2.3.0` is installable for Python 3.9
+- Asks `feu` whether `numpy==2.3.0` is installable for Python 3.9
 - Finds that it is not valid for Python 3.9
 - Skips installation and skips the import verification step
 - Emits a `::warning::` explaining why installation was skipped
@@ -206,7 +205,7 @@ This happens when the requested `package-version` is not installable for your ta
 
 **Solutions:**
 
-- Check the package's Python version requirements on PyPI
+- Check the package's Python version requirements
 - Try a different `python-version`
 - Try a different `package-version` that supports your Python version
 - If you want the workflow to stop in this case, add a follow-up step that checks
@@ -241,13 +240,11 @@ steps:
       uv-args: "--index-url https://${{ secrets.PYPI_USER }}:${{ secrets.PYPI_PASSWORD }}@pypi.example.com/simple"
 ```
 
-### Network or PyPI Connection Issues
+### Network Issues
 
-If PyPI queries fail due to network issues:
-
-- Check GitHub Actions service status
-- Verify network connectivity in your workflow
-- Try adding retry logic around the action
+If installing `feu` or the install step fails because of the network, check the GitHub Actions
+service status and the network access of your runner. `uv` already retries network errors; set
+`UV_HTTP_RETRIES` to change the number of retries.
 
 ### Installation Fails After Finding Version
 

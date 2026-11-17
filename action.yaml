@@ -63,8 +63,7 @@ runs:
     # Step 1.3: Validate the Python version
     # ============================================================================
     # python-version must be empty, "X.Y" or the free-threaded "X.Yt". Patch
-    # versions are rejected. When empty, the version of the current interpreter
-    # is detected.
+    # versions are rejected. When empty, feu uses the interpreter it runs in.
     - name: "Step 1.3: Validate the Python version"
       id: validate-python-version
       shell: bash
@@ -72,148 +71,65 @@ runs:
         PYTHON_VERSION: ${{ inputs.python-version }}
       run: |
         set -euo pipefail
-
-        if [ -z "$PYTHON_VERSION" ]; then
-          PYTHON_VERSION=$(python --version 2>&1 | cut -d' ' -f2 | cut -d'.' -f1,2)
-          echo "Step 1.3: auto-detected Python version $PYTHON_VERSION"
-        fi
-
         VALIDATED_VERSION=$("${{ github.action_path }}/scripts/validate_python_version.sh" "$PYTHON_VERSION")
-        echo "normalized-python-version=$VALIDATED_VERSION" >> "$GITHUB_OUTPUT"
+        echo "python-version=$VALIDATED_VERSION" >> "$GITHUB_OUTPUT"
 
     # ============================================================================
-    # Step 2.1: Install feu package for version resolution
+    # Step 2.1: Install feu
     # ============================================================================
-    # The 'feu' package provides utilities to find compatible package versions
-    # based on Python version constraints. We install it with the [cli] extra
-    # to get command-line tools.
+    # feu holds the compatibility knowledge (valid versions per package and
+    # Python version) and installs the package. It is installed in the same
+    # environment as the package so both agree on the interpreter. The
+    # specifier names a pre-release, so uv allows it. No retry loop: uv retries
+    # network errors itself (UV_HTTP_RETRIES).
     - name: "Step 2.1: Install feu"
       shell: bash
       run: |
-        # Exit immediately if any command fails
         set -euo pipefail
-        echo "📦 Installing feu package..."
-
-        # Try to install feu with retry logic for transient network issues
-        MAX_ATTEMPTS=3
-        ATTEMPT=1
-        while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
-          if uv pip install "feu[cli]>=0.8.0,<1.0"; then
-            echo "✅ Dependencies installed"
-            break
-          else
-            if [ $ATTEMPT -eq $MAX_ATTEMPTS ]; then
-              echo "::error::❌ Failed to install feu package after $MAX_ATTEMPTS attempts. Check network connectivity and ensure uv is configured correctly."
-              exit 1
-            fi
-            echo "::warning::⚠️  Installation attempt $ATTEMPT failed, retrying..."
-            sleep 2
-            ATTEMPT=$((ATTEMPT + 1))
-          fi
-        done
+        uv pip install "feu[cli,requests]>=0.9.0a0,<1"
 
     # ============================================================================
-    # Step 2.2: Check requested version validity
+    # Step 2.2: Check the requested version
     # ============================================================================
-    # Query PyPI (via feu) to check whether the exact requested package
-    # version is installable for the target Python version. Unlike the
-    # previous behavior, no substitute version is resolved: the action
-    # either installs exactly what was requested, or skips installation.
-    - name: "Step 2.2: Check version validity"
+    # Ask feu whether the exact version (or wildcard) is valid for the target
+    # Python. No substitute version is resolved: the action either installs
+    # what was requested or skips the installation.
+    - name: "Step 2.2: Check the version"
       id: check-version
       shell: bash
       env:
         PACKAGE_NAME: ${{ inputs.package-name }}
         PACKAGE_VERSION: ${{ inputs.package-version }}
-        NORMALIZED_PYTHON_VERSION: ${{ steps.validate-python-version.outputs.normalized-python-version }}
+        PYTHON_VERSION: ${{ steps.validate-python-version.outputs.python-version }}
       run: |
         set -euo pipefail
-
-        echo "🔎 Checking version validity..."
-        echo "  📦 Package: $PACKAGE_NAME"
-        echo "  🎯 Requested version: $PACKAGE_VERSION"
-        echo "  🐍 Python version: $NORMALIZED_PYTHON_VERSION"
-
-        # Wildcard/prefix version patterns (e.g. "2.12.*") are valid uv/pip
-        # version specifiers but are not a single exact version, so they
-        # can't be checked against PyPI metadata via feu. Skip the
-        # pre-validation and let uv resolve and install the best matching
-        # version directly.
-        SCRIPT_PATH="${{ github.action_path }}/scripts/is_wildcard_version.sh"
-        if "$SCRIPT_PATH" "$PACKAGE_VERSION"; then
-          echo "⏭️  Wildcard version pattern detected. Skipping PyPI pre-validation; 'uv' will resolve and install the matching version directly."
-          echo "is-valid-version=true" >> "$GITHUB_OUTPUT"
-          exit 0
-        fi
-
-        # Run feu to check whether the requested version is valid.
-        # stdout (the bare True/False result) and stderr (warnings, logs) are
-        # captured separately so stray stderr output never gets concatenated
-        # into $RESULT and breaks the True/False comparison below.
-        STDERR_FILE=$(mktemp)
-        if ! RESULT=$(python -m feu check-valid-version \
-          --pkg-name="$PACKAGE_NAME" \
-          --pkg-version="$PACKAGE_VERSION" \
-          --python-version="$NORMALIZED_PYTHON_VERSION" 2>"$STDERR_FILE"); then
-          echo "::error::❌ Failed to query PyPI for package '$PACKAGE_NAME'."
-          echo "::error::Possible causes:"
-          echo "::error::  - Package name is incorrect (verify on https://pypi.org/)"
-          echo "::error::  - Network connectivity issues"
-          echo "::error::  - PyPI is temporarily unavailable"
-          echo "::error::  - Custom index (via uv-args) is not accessible"
-          if [ -s "$STDERR_FILE" ]; then
-            echo "::error::Details:"
-            cat "$STDERR_FILE" >&2
-          fi
-          rm -f "$STDERR_FILE"
-          exit 1
-        fi
-
-        if [ -s "$STDERR_FILE" ]; then
-          echo "::warning::feu produced additional output on stderr:"
-          cat "$STDERR_FILE"
-        fi
-        rm -f "$STDERR_FILE"
-
-        if [ "$RESULT" = "True" ]; then
-          echo "✅ Version '$PACKAGE_VERSION' is valid for Python $NORMALIZED_PYTHON_VERSION"
-          echo "is-valid-version=true" >> "$GITHUB_OUTPUT"
-        elif [ "$RESULT" = "False" ]; then
-          echo "::warning::⚠️  Version '$PACKAGE_VERSION' of '$PACKAGE_NAME' is not valid for Python $NORMALIZED_PYTHON_VERSION. Skipping installation."
-          echo "is-valid-version=false" >> "$GITHUB_OUTPUT"
-        else
-          echo "::error::❌ Unexpected output from feu check-valid-version: '$RESULT'"
-          exit 1
-        fi
+        "${{ github.action_path }}/scripts/check_version.sh" "$PACKAGE_NAME" "$PACKAGE_VERSION" "$PYTHON_VERSION"
 
     # ============================================================================
-    # Step 3.1: Install the requested package version
+    # Step 3.1: Install the package
     # ============================================================================
-    # Use feu's installer wrapper to install the package with uv, only if
-    # Step 2.2 confirmed the requested version is valid.
-    - name: "Step 3.1: Install package"
+    # Use feu's installer wrapper, only if Step 2.2 confirmed the requested
+    # version is valid. feu would otherwise replace an invalid exact version by
+    # the closest compatible one, which is why Step 2.2 must run first.
+    - name: "Step 3.1: Install the package"
       id: install-package
       if: steps.check-version.outputs.is-valid-version == 'true'
       shell: bash
       env:
         PACKAGE_NAME: ${{ inputs.package-name }}
         PACKAGE_VERSION: ${{ inputs.package-version }}
+        PYTHON_VERSION: ${{ steps.validate-python-version.outputs.python-version }}
         UV_ARGS: ${{ inputs.uv-args }}
       run: |
         set -euo pipefail
 
-        echo "📥 Installing package..."
-        echo "  📦 Package: $PACKAGE_NAME"
-        echo "  🏷️  Version: $PACKAGE_VERSION"
+        FEU_ARGS=(--installer-name=uv --installer-args="$UV_ARGS" --pkg-name="$PACKAGE_NAME" --pkg-version="$PACKAGE_VERSION")
+        if [ -n "$PYTHON_VERSION" ]; then
+          FEU_ARGS+=(--python-version="$PYTHON_VERSION")
+        fi
 
-        # Install the package using feu's installer wrapper
-        python -m feu install \
-          --installer-name=uv \
-          --installer-args="$UV_ARGS" \
-          --pkg-name="$PACKAGE_NAME" \
-          --pkg-version="$PACKAGE_VERSION"
-
-        echo "::notice::✅ Successfully installed ${PACKAGE_NAME}==${PACKAGE_VERSION}"
+        python -m feu install "${FEU_ARGS[@]}"
+        echo "Step 3.1: installed ${PACKAGE_NAME} (requested ${PACKAGE_VERSION})"
 
     # ============================================================================
     # Step 3.2: Verify package installation
