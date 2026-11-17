@@ -6,270 +6,158 @@
 [![License](https://img.shields.io/badge/license-BSD--3--Clause-blue)](LICENSE)
 [![Latest release](https://img.shields.io/github/v/tag/durandtibo/uv-install-package-action?label=release)](https://github.com/durandtibo/uv-install-package-action/tags)
 
-GitHub Action to install Python packages with uv, validating that the requested version is
-installable for your target Python environment before installing.
+GitHub Action to install a Python package with [uv](https://github.com/astral-sh/uv), but only
+when the requested version is valid for the target Python version.
+
+> **Note:** this page documents the version in development (`v0.3.0`, not released yet). For
+> `v0.2.0`, read the README of that tag.
 
 ## Overview
 
-This action helps you install Python packages reliably by:
+The action is designed for **matrix jobs** (Python version × OS × package version). In such a
+matrix it is hard to list by hand which package versions work with which Python version (for
+example 3.13 vs 3.14 vs 3.15). The action answers "is this version usable here?" so the workflow
+can stay a plain cross product, and the invalid cells skip cleanly (or fail, on request).
 
-1. Checking whether the requested version is valid for your Python environment, with
-   [feu](https://github.com/durandtibo/feu) (it holds a table of valid versions per package and
-   Python version)
-2. Installing the package using the fast [uv](https://github.com/astral-sh/uv) package installer,
-   only if the version is valid
-3. Skipping installation (without failing the step) when the requested version is invalid, and
-   reporting that via the `is-valid-version` output
+It checks the requested version with [feu](https://github.com/durandtibo/feu), which holds curated
+version ranges per package and Python version, then installs it with `uv`. `feu` is installed by the
+action. An exact version is never replaced by another one, and a wildcard such as `2.12.*` installs
+the newest valid release matching it.
 
 ## Prerequisites
 
-This action requires **uv** to be installed and available in your workflow. We recommend using the
-official [astral-sh/setup-uv](https://github.com/astral-sh/setup-uv) action to install uv.
-
-## What's new
-
-Please refer to
-the [release page](https://github.com/durandtibo/uv-install-package-action/releases) for
-the latest release notes.
+- **uv** must be available, for example with
+  [astral-sh/setup-uv](https://github.com/astral-sh/setup-uv).
+- `uv pip install` needs an environment to install into: either activate a virtual environment
+  (`activate-environment: true` in `setup-uv`) or set `UV_SYSTEM_PYTHON=1`.
+- Linux and macOS runners (GitHub-hosted or self-hosted) are supported. Windows is not.
 
 ## Usage
 
-### Basic Example
+### Matrix of Python and package versions
+
+```yaml
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.13", "3.14"]
+        numpy-version: ["1.26.4", "2.2.*", "2.3.*"]
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: astral-sh/setup-uv@v7
+        with:
+          python-version: ${{ matrix.python-version }}
+          activate-environment: true
+
+      - name: Install numpy
+        id: numpy
+        uses: durandtibo/uv-install-package-action@v0.3.0
+        with:
+          package-name: numpy
+          package-version: ${{ matrix.numpy-version }}
+          python-version: ${{ matrix.python-version }}
+
+      - name: Run tests
+        if: steps.numpy.outputs.installed == 'true'
+        run: pytest
+```
+
+The cells where the numpy version does not support the Python version are skipped with a warning
+instead of failing.
+
+### Basic example
 
 ```yaml
 steps:
-  - name: Checkout repository
-    uses: actions/checkout@v6
-
-  - name: Install uv
-    uses: astral-sh/setup-uv@v7
+  - uses: astral-sh/setup-uv@v7
     with:
-      python-version: "3.11"
+      python-version: "3.12"
+      activate-environment: true
 
-  - name: Install numpy
-    uses: durandtibo/uv-install-package-action@v0.1.3
+  - uses: durandtibo/uv-install-package-action@v0.3.0
     with:
-      package-name: "numpy"
+      package-name: numpy
       package-version: "2.0.2"
-      python-version: "3.11"
 ```
 
-### Auto-detect Python Version
+`python-version` is optional: `feu` uses the Python interpreter of the environment.
+
+### Fail on an invalid version
 
 ```yaml
-steps:
-  - name: Checkout repository
-    uses: actions/checkout@v6
-
-  - name: Install uv
-    uses: astral-sh/setup-uv@v7
-    with:
-      python-version: "3.11"
-
-  - name: Install numpy (auto-detect Python version)
-    uses: durandtibo/uv-install-package-action@v0.1.3
-    with:
-      package-name: "numpy"
-      package-version: "2.0.2"
-      # python-version is optional and will be auto-detected
-```
-
-### Install with Custom PyPI Index
-
-```yaml
-- name: Install package from custom index
-  uses: durandtibo/uv-install-package-action@v0.1.3
+- name: Install torch
+  id: torch
+  uses: durandtibo/uv-install-package-action@v0.3.0
   with:
-    package-name: "my-package"
-    package-version: "1.0.0"
-    python-version: "3.12"
-    uv-args: "--index-url https://custom.pypi.org/simple"
-```
-
-### Use the Outputs and Fail on Invalid Versions
-
-```yaml
-- name: Install and check validity
-  id: install
-  uses: durandtibo/uv-install-package-action@v0.1.3
-  with:
-    package-name: "torch"
+    package-name: torch
     package-version: "2.0.0"
-    python-version: "3.11"
-    # By default an invalid version is skipped with a warning.
-    # Use "fail" to fail the job instead.
-    invalid-version-mode: "skip"
+    invalid-version-mode: fail
 
-- name: Display result
-  run: |
-    echo "Version valid: ${{ steps.install.outputs.is-valid-version }}"
-    echo "Installed: ${{ steps.install.outputs.installed }}"
-    echo "Installed version: ${{ steps.install.outputs.installed-version }}"
+- name: Show the result
+  run: echo "Installed ${{ steps.torch.outputs.installed-version }}"
 ```
+
+### Custom index
+
+```yaml
+- uses: durandtibo/uv-install-package-action@v0.3.0
+  with:
+    package-name: my-package
+    package-version: "1.0.0"
+    uv-args: "--index-url https://pypi.example.com/simple"
+```
+
+`uv-args` is split with `shlex`, so quoted arguments work. It applies to the install only, not to
+the version check (see [Limitations](#limitations)).
 
 ## Inputs
 
-| Name                   | Description                                                                                                                                                                                                                                                                                         | Required | Default       |
-| ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------------- |
-| `package-name`         | The package name (e.g., `numpy`, `requests`, `django`)                                                                                                                                                                                                                                              | Yes      | -             |
-| `package-version`      | The target package version (e.g., `1.2.3`, `2.0.2`), or a wildcard pattern (e.g., `2.12.*`) to install the newest valid release matching it                                                                                                                                                         | Yes      | -             |
-| `python-version`       | The Python version to check compatibility against (e.g., `3.10`, `3.11`, `3.12`). Must be `X.Y` or the free-threaded `X.Yt` (e.g., `3.13t`). Patch versions such as `3.10.1` are rejected. If not provided, `feu` uses the Python interpreter it runs in, including free-threaded builds (`3.13t`). | No       | Auto-detected |
-| `invalid-version-mode` | What to do when the version is not valid for the target Python: `skip` (default) warns and installs nothing, `fail` fails the job. Any other value is an input error.                                                                                                                               | No       | `skip`        |
-| `uv-args`              | Additional arguments to pass to uv (e.g., `--index-url https://custom.pypi.org/simple`)                                                                                                                                                                                                             | No       | `''`          |
+| Name                   | Required | Default       | Description                                                                                                                                                                      |
+| ---------------------- | -------- | ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `package-name`         | Yes      | -             | Distribution name (e.g. `numpy`). Must be a valid package name.                                                                                                                  |
+| `package-version`      | Yes      | -             | Exact version (`2.0.2`) or wildcard (`2.12.*`).                                                                                                                                  |
+| `python-version`       | No       | auto-detected | Target Python: `X.Y` or free-threaded `X.Yt` (e.g. `3.13t`). Patch versions such as `3.12.1` are rejected. When empty, `feu` uses the interpreter the package is installed into. |
+| `invalid-version-mode` | No       | `skip`        | `skip`: warn, install nothing and succeed. `fail`: fail the job. Any other value is an input error.                                                                              |
+| `uv-args`              | No       | `""`          | Extra arguments for `uv pip install` (e.g. `--index-url https://...`), parsed with `shlex`.                                                                                      |
 
 ## Outputs
 
-| Name                | Description                                                                                                                           |
-| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| `is-valid-version`  | Boolean indicating whether the requested `package-version` is valid and installable for the target Python version (`true` or `false`) |
-| `installed`         | `true` if the package was installed, `false` if the installation was skipped                                                          |
-| `installed-version` | Version actually installed (e.g. `2.3.5` for `2.3.*`), empty if the installation was skipped                                          |
+| Name                | Description                                                                                   |
+| ------------------- | --------------------------------------------------------------------------------------------- |
+| `is-valid-version`  | `true` or `false`: result of the check, for exact versions and wildcards.                     |
+| `installed`         | `true` if the package was installed, `false` if the installation was skipped.                 |
+| `installed-version` | Version actually installed (e.g. `2.3.5` for `2.3.*`), empty if the installation was skipped. |
 
-## How It Works
+## Behavior
 
-This action uses [feu](https://github.com/durandtibo/feu) (Find Compatible Version Utility) to
-validate and install Python packages:
+| Situation                             | Result                                                              |
+| ------------------------------------- | ------------------------------------------------------------------- |
+| Valid version                         | Installs. `is-valid-version=true`, `installed=true`.                |
+| Invalid version, `skip` mode          | Warning, nothing installed, `false` / `false`, the job succeeds.    |
+| Invalid version, `fail` mode          | `::error::`, the job fails (`is-valid-version=false` is still set). |
+| Bad input, uv missing, feu cannot run | `::error::`, the job fails (never reported as an invalid version).  |
+| Install fails                         | The job fails, the output of `uv` is visible.                       |
 
-1. **Verify prerequisites** - Check that `uv` package manager is installed and accessible
-2. **Validate inputs** - Ensure the package name is a valid name and the version is non-empty,
-   without whitespace or a leading `-`
-3. **Validate Python version** - Accept empty, `X.Y` or `X.Yt` (e.g., `3.13t`); patch versions such
-   as `3.10.1` are rejected
-4. **Install feu** - Install `feu[cli,requests]>=0.9.0a0,<1` in the same environment as the
-   package (no retry loop: `uv` retries network errors itself)
-5. **Check version validity** - Run `feu check-valid-version` for the exact version or the
-   wildcard. A crash or unexpected output fails the job
-6. **Handle an invalid version** - Only when the version is invalid: in `skip` mode print a warning
-   and go on, in `fail` mode fail the job
-7. **Install package** - If valid, use `feu install` (with `uv`) to install the package with your
-   custom arguments; if invalid, skip installation and report `is-valid-version=false`
-8. **Read the installed version** - If a package was installed, read its version with
-   `uv pip show` for the `installed-version` output
+A wildcard that matches no valid release counts as an invalid version.
 
-This action never auto-substitutes a different version. By default (`invalid-version-mode: skip`) it
-does not fail the job when the requested version is invalid: it exits successfully with
-`is-valid-version=false`. With `invalid-version-mode: fail` the job fails with an `::error::`, and
-`is-valid-version` is still set to `false`.
+## Limitations
 
-### Wildcard Versions
+- The check does not use `uv-args`: exact versions are checked against the table of `feu`, and
+  wildcards against the release list of the default PyPI index (which needs network access), even
+  if `uv-args` sets another index.
+- A package that is not in the table of `feu` is always considered valid. A typo in `package-name`
+  is caught by the install step, with the error of `uv`.
+- The action requires `feu>=0.9.0a0` (a pre-release, installed by the action).
+- Windows is not supported.
 
-`package-version` accepts wildcards such as `2.12.*` or `2.*`, in addition to exact versions like
-`2.12.3`. `feu` checks them like exact versions: the wildcard is valid when a release matching it
-is valid for the target Python, and `feu install` then installs the newest such release. A wildcard
-that matches nothing is skipped like an invalid exact version, it does not fail the job.
+## What's new
 
-- Wildcard checks fetch the release list from PyPI, so they need network access.
-- The check does not use `uv-args`: exact versions are checked against `feu`'s table and wildcards
-  against the default PyPI index, even if `uv-args` sets another index.
-- A package that is not in `feu`'s table is always considered valid. A typo in `package-name` is
-  caught by the install step, with the error of `uv`.
-
-### Example Scenario
-
-If you request `numpy==2.3.0` with Python 3.9, but numpy 2.3.0 requires a newer Python version:
-
-- The action validates your inputs and Python version format
-- Asks `feu` whether `numpy==2.3.0` is installable for Python 3.9
-- Finds that it is not valid for Python 3.9
-- Skips installation and the remaining steps
-- In `skip` mode, emits a `::warning::` explaining why installation was skipped, reports `false`
-  as the `is-valid-version` output, and the job still succeeds
-- In `fail` mode, emits an `::error::` and the job fails
-
-## Troubleshooting
-
-### Error: "Invalid Python version format"
-
-This error occurs when the `python-version` input is not in the expected format.
-
-**Solution:** Use the `X.Y` format for the Python version (e.g., `3.10`, `3.11`, `3.12`), or
-`X.Yt` for a free-threaded build (e.g., `3.13t`). Patch versions such as `3.10.1` are rejected.
-
-Valid formats: `3.10` ✅, `3.13t` ✅
-
-Invalid formats: `3` ❌, `3.10.1` ❌, `python3.10` ❌, `3.x` ❌
-
-### Error: "uv is not installed or not in PATH"
-
-**Solution:** Install uv before using this action:
-
-```yaml
-steps:
-  - name: Install uv
-    uses: astral-sh/setup-uv@v7
-    with:
-      python-version: "3.11"
-```
-
-### Warning: "Version is not valid for Python X.Y. Skipping installation."
-
-This happens when the requested `package-version` is not installable for your target
-`python-version`. The action does not fail the job — it skips installation and reports
-`is-valid-version=false`.
-
-**Solutions:**
-
-- Check the package's Python version requirements
-- Try a different `python-version`
-- Try a different `package-version` that supports your Python version
-- If you want the workflow to stop in this case, set `invalid-version-mode: fail`
-
-### Using Custom or Private PyPI Indexes
-
-Use the `uv-args` input to specify custom indexes:
-
-```yaml
-steps:
-  - name: Install from custom index
-    uses: durandtibo/uv-install-package-action@v0.1.3
-    with:
-      package-name: "my-package"
-      package-version: "1.0.0"
-      python-version: "3.11"
-      uv-args: "--index-url https://pypi.example.com/simple --extra-index-url https://pypi.org/simple"
-```
-
-For authenticated indexes, set environment variables:
-
-```yaml
-steps:
-  - name: Install from authenticated index
-    uses: durandtibo/uv-install-package-action@v0.1.3
-    with:
-      package-name: "my-package"
-      package-version: "1.0.0"
-      python-version: "3.11"
-      uv-args: "--index-url https://${{ secrets.PYPI_USER }}:${{ secrets.PYPI_PASSWORD }}@pypi.example.com/simple"
-```
-
-### Network Issues
-
-If installing `feu` or the install step fails because of the network, check the GitHub Actions
-service status and the network access of your runner. `uv` already retries network errors; set
-`UV_HTTP_RETRIES` to change the number of retries.
-
-### Installation Fails After Finding Version
-
-If the action finds a version but installation fails:
-
-- Check the package's dependencies for compatibility issues
-- Review the full error output
-- Try installing with additional uv arguments (e.g., `--no-deps` to skip dependencies)
-
-### Error: "package-name cannot be empty"
-
-This error occurs when the `package-name` input is not provided or is an empty string.
-
-**Solution:** Ensure you provide a valid package name:
-
-```yaml
-- name: Install package
-  uses: durandtibo/uv-install-package-action@v0.1.3
-  with:
-    package-name: "numpy" # ✅ Must be provided
-    package-version: "2.0.0"
-    python-version: "3.11"
-```
+Please refer to the [release page](https://github.com/durandtibo/uv-install-package-action/releases)
+for the release notes. Releases are immutable exact version tags (e.g. `v0.2.0`).
 
 ## Suggestions and Communication
 

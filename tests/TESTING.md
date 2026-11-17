@@ -24,11 +24,15 @@ Testing System).
 
 **Coverage:**
 
+- uv present or missing
 - Valid Python versions (major.minor format), including free-threaded builds (`X.Yt`)
 - Rejection of patch versions (X.Y.Z, X.Y.Zt)
 - Edge cases (whitespace, tab characters, high version numbers)
 - Invalid formats (comprehensive error cases)
 - Error message quality
+- Version check: `True`, `False` (exit status 1), garbage stdout, crash with stderr, wildcards,
+  `--python-version` passed only when set, free-threaded `3.13t`
+- `skip` (warning, exit 0) and `fail` (error, exit 1) modes
 - Input validation for package-name (PEP 508 name, no leading `-`), package-version and
   invalid-version-mode
 - Reading the installed version (package found, not found, extra output lines)
@@ -114,9 +118,8 @@ Full end-to-end tests run in GitHub Actions workflows.
 - `ci-test.yaml` - Functional tests across Python versions and OS platforms
 - `ci-action.yaml` - Tests local action changes (uses `./` action reference) with each optional
   dependency of the package (`ci-action-deps.yaml`) and with edge cases
-  (`ci-action-edge-cases.yaml`): no `python-version` given (auto-detect), a patch
-  `python-version`, a free-threaded `python-version`, an invalid `python-version`, and an empty
-  `package-name`
+  (`ci-action-edge-cases.yaml`): no `python-version` given (auto-detect), a free-threaded
+  `python-version`, an invalid `python-version`, and an empty `package-name`
 - `nightly.yaml` / `nightly-test-released.yaml` - Same edge cases and package matrix as
   `ci-action.yaml`, but against the latest published release (run nightly, not on every PR) to
   catch regressions between what's merged and what's tagged
