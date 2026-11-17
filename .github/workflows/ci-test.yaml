@@ -1,7 +1,6 @@
 # Functional test suite workflow.
 # Runs the functional tests across multiple Python versions and operating systems.
 # Tests both with all dependencies and with minimal dependencies.
-# The environment is created with uv from the locked dependencies (uv.lock).
 
 name: Functional Tests
 on:
@@ -31,18 +30,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # ratchet:actions/checkout@v7
 
-      - name: Install uv and set the python version
-        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # ratchet:astral-sh/setup-uv@v10.3.3
+      - name: Setup python environment
+        uses: durandtibo/setup-venv-uv-action@a592cf6a2b2788f2e5846e4e29151f8895e1c643 # ratchet:durandtibo/setup-venv-uv-action@v0.3.0
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Install the dependencies
-        run: |
-          uv sync --locked --group dev --all-extras
-
       - name: Run functional tests
         run: |
-          uv run --no-sync pytest tests/functional
+          inv test.functional
 
   # Test with minimal dependencies to ensure optional dependencies are truly optional
   min:
@@ -60,15 +55,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # ratchet:actions/checkout@v7
 
-      - name: Install uv and set the python version
-        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # ratchet:astral-sh/setup-uv@v10.3.3
+      - name: Setup python environment
+        uses: durandtibo/setup-venv-uv-action@a592cf6a2b2788f2e5846e4e29151f8895e1c643 # ratchet:durandtibo/setup-venv-uv-action@v0.3.0
         with:
           python-version: ${{ matrix.python-version }}
-
-      - name: Install the dependencies without the optional ones
-        run: |
-          uv sync --locked --group dev
+          install-args: "--no-optional-deps"
 
       - name: Run functional tests
         run: |
-          uv run --no-sync pytest tests/functional
+          inv test.functional

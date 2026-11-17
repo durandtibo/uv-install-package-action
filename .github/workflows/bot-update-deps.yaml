@@ -31,28 +31,29 @@ jobs:
           token: ${{ steps.app-token.outputs.token }}
           persist-credentials: false
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # ratchet:astral-sh/setup-uv@v10.3.3
+      - name: Setup python environment
+        uses: durandtibo/setup-venv-uv-action@a592cf6a2b2788f2e5846e4e29151f8895e1c643 # ratchet:durandtibo/setup-venv-uv-action@v0.3.0
 
       # Update all dependencies to their latest compatible versions
       - name: Update dependencies
         run: |
-          uv lock --upgrade
+          inv env.update
 
-      # Install the updated dependencies, including the optional ones
-      - name: Install dependencies
+      # Install dependencies including documentation dependencies
+      - name: Install dependencies with docs
         run: |
-          uv sync --locked --group dev --all-extras
+          inv env.install --groups dev
 
       # Display updated dependency tree
       - name: Show dependency tree
+        shell: bash
         run: |
           uv pip tree --show-version-specifiers
 
       # Run tests to ensure updates don't break functionality
       - name: Run functional tests
         run: |
-          uv run --no-sync pytest tests/functional
+          inv test.functional
 
       # Create a pull request with the dependency updates
       - name: Create pull request
