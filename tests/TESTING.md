@@ -15,6 +15,8 @@ Testing System).
 
 - `test_check_uv.bats` - Tests for the uv availability check
 - `test_validate_python_version.bats` - Tests for the Python version validation script
+- `test_check_version.bats` - Tests for the `feu` version check (mocked `python`)
+- `test_handle_invalid_version.bats` - Tests for the `skip` and `fail` modes
 - `test_validate_inputs.bats` - Tests for the package-name/package-version/invalid-version-mode
   input validation script
 - `test_get_import_name.bats` - Tests for the package-name → import-name conversion script used

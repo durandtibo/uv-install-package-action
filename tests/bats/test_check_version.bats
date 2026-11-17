@@ -39,7 +39,8 @@ MOCK
 	run "$SCRIPT" numpy 2.3.0 3.9
 	[ "$status" -eq 0 ]
 	[ "$(cat "$GITHUB_OUTPUT")" = "is-valid-version=false" ]
-	[[ "$output" =~ "::warning::numpy 2.3.0 is not valid for Python 3.9" ]]
+	[[ "$output" != *"::warning::"* ]]
+	[[ "$output" != *"::error::"* ]]
 }
 
 @test "True with a nonzero exit status is still valid" {

@@ -47,7 +47,7 @@ if [ "$RESULT" = "True" ]; then
 	echo "Step 2.2: ${PACKAGE_NAME} ${PACKAGE_VERSION} is valid for Python ${TARGET}"
 	echo "is-valid-version=true" >>"$GITHUB_OUTPUT"
 elif [ "$RESULT" = "False" ]; then
-	echo "::warning::${PACKAGE_NAME} ${PACKAGE_VERSION} is not valid for Python ${TARGET}. Skipping installation."
+	echo "Step 2.2: ${PACKAGE_NAME} ${PACKAGE_VERSION} is not valid for Python ${TARGET}"
 	echo "is-valid-version=false" >>"$GITHUB_OUTPUT"
 else
 	echo "::error::feu check-valid-version failed for ${PACKAGE_NAME} ${PACKAGE_VERSION}: expected 'True' or 'False' on stdout, got '${RESULT}'" >&2
