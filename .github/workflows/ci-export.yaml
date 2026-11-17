@@ -1,0 +1,23 @@
+# Checks that the release archive (`git archive`) contains only action.yaml, LICENSE and the
+# scripts the action calls. Everything else must be `export-ignore` in .gitattributes.
+
+name: Check Export
+on:
+  workflow_call:
+  workflow_dispatch: # to trigger manually
+
+permissions: {}
+
+jobs:
+  export:
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # ratchet:actions/checkout@v7
+
+      - name: Check the exported files
+        run: make check-export

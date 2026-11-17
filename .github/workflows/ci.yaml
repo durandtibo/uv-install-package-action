@@ -46,6 +46,12 @@ jobs:
     permissions:
       contents: read
 
+  # Check that the release archive contains only what the action needs
+  export:
+    uses: ./.github/workflows/ci-export.yaml
+    permissions:
+      contents: read
+
   # Run the functional tests on multiple Python versions and OS
   python:
     needs: get-matrix

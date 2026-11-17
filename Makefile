@@ -10,6 +10,10 @@ test: ## Run the bats and pytest tests
 	bats tests/bats/
 	pytest
 
+.PHONY: check-export
+check-export: ## Check that the release archive contains only what the action needs
+	./dev/check_export.sh
+
 .PHONY: clean
 clean: ## Remove generated caches
 	rm -rf .pytest_cache .ruff_cache
