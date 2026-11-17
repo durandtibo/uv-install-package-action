@@ -23,6 +23,10 @@ inputs:
     description: 'Additional arguments to pass to uv (e.g., "--index-url https://custom.pypi.org/simple")'
     required: false
     default: ""
+  invalid-version-mode:
+    description: 'What to do when the requested version is not valid for the target Python version: "skip" (default) warns and installs nothing, "fail" fails the job.'
+    required: false
+    default: "skip"
 
 outputs:
   is-valid-version:
@@ -49,15 +53,17 @@ runs:
     # Step 1.2: Validate package inputs
     # ============================================================================
     # package-name must be a valid package name and package-version a non-empty
-    # version without whitespace or a leading '-'.
+    # version without whitespace or a leading '-'. invalid-version-mode must be
+    # "skip" or "fail".
     - name: "Step 1.2: Validate package inputs"
       shell: bash
       env:
         PACKAGE_NAME: ${{ inputs.package-name }}
         PACKAGE_VERSION: ${{ inputs.package-version }}
+        INVALID_VERSION_MODE: ${{ inputs.invalid-version-mode }}
       run: |
         set -euo pipefail
-        "${{ github.action_path }}/scripts/validate_inputs.sh" "$PACKAGE_NAME" "$PACKAGE_VERSION"
+        "${{ github.action_path }}/scripts/validate_inputs.sh" "$PACKAGE_NAME" "$PACKAGE_VERSION" "$INVALID_VERSION_MODE"
 
     # ============================================================================
     # Step 1.3: Validate the Python version
@@ -104,6 +110,23 @@ runs:
       run: |
         set -euo pipefail
         "${{ github.action_path }}/scripts/check_version.sh" "$PACKAGE_NAME" "$PACKAGE_VERSION" "$PYTHON_VERSION"
+
+    # ============================================================================
+    # Step 2.3: Handle an invalid version
+    # ============================================================================
+    # Runs only when Step 2.2 found the version invalid. In "skip" mode it warns
+    # and the job goes on without installing; in "fail" mode it fails the job.
+    - name: "Step 2.3: Handle an invalid version"
+      if: steps.check-version.outputs.is-valid-version == 'false'
+      shell: bash
+      env:
+        PACKAGE_NAME: ${{ inputs.package-name }}
+        PACKAGE_VERSION: ${{ inputs.package-version }}
+        PYTHON_VERSION: ${{ steps.validate-python-version.outputs.python-version }}
+        INVALID_VERSION_MODE: ${{ inputs.invalid-version-mode }}
+      run: |
+        set -euo pipefail
+        "${{ github.action_path }}/scripts/handle_invalid_version.sh" "$PACKAGE_NAME" "$PACKAGE_VERSION" "$PYTHON_VERSION" "$INVALID_VERSION_MODE"
 
     # ============================================================================
     # Step 3.1: Install the package

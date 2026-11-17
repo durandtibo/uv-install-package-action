@@ -86,7 +86,7 @@ steps:
     uv-args: "--index-url https://custom.pypi.org/simple"
 ```
 
-### Use Output Version and Stop the Workflow on Invalid Versions
+### Use the Outputs and Fail on Invalid Versions
 
 ```yaml
 - name: Install and check validity
@@ -96,27 +96,25 @@ steps:
     package-name: "torch"
     package-version: "2.0.0"
     python-version: "3.11"
+    # By default an invalid version is skipped with a warning.
+    # Use "fail" to fail the job instead.
+    invalid-version-mode: "skip"
 
 - name: Display result
   run: |
     echo "Version valid: ${{ steps.install.outputs.is-valid-version }}"
     echo "Installation successful: ${{ steps.install.outputs.installed-successfully }}"
-
-# Optional: the action itself never fails the job on an invalid version.
-# Add this step if you want the workflow to stop when the version is invalid.
-- name: Stop workflow on invalid version
-  if: steps.install.outputs.is-valid-version != 'true'
-  run: exit 1
 ```
 
 ## Inputs
 
-| Name              | Description                                                                                                                                                                                                                                                                                         | Required | Default       |
-| ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------------- |
-| `package-name`    | The package name (e.g., `numpy`, `requests`, `django`)                                                                                                                                                                                                                                              | Yes      | -             |
-| `package-version` | The target package version (e.g., `1.2.3`, `2.0.2`), or a wildcard pattern (e.g., `2.12.*`) to install the newest valid release matching it                                                                                                                                                         | Yes      | -             |
-| `python-version`  | The Python version to check compatibility against (e.g., `3.10`, `3.11`, `3.12`). Must be `X.Y` or the free-threaded `X.Yt` (e.g., `3.13t`). Patch versions such as `3.10.1` are rejected. If not provided, `feu` uses the Python interpreter it runs in, including free-threaded builds (`3.13t`). | No       | Auto-detected |
-| `uv-args`         | Additional arguments to pass to uv (e.g., `--index-url https://custom.pypi.org/simple`)                                                                                                                                                                                                             | No       | `''`          |
+| Name                   | Description                                                                                                                                                                                                                                                                                         | Required | Default       |
+| ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------------- |
+| `package-name`         | The package name (e.g., `numpy`, `requests`, `django`)                                                                                                                                                                                                                                              | Yes      | -             |
+| `package-version`      | The target package version (e.g., `1.2.3`, `2.0.2`), or a wildcard pattern (e.g., `2.12.*`) to install the newest valid release matching it                                                                                                                                                         | Yes      | -             |
+| `python-version`       | The Python version to check compatibility against (e.g., `3.10`, `3.11`, `3.12`). Must be `X.Y` or the free-threaded `X.Yt` (e.g., `3.13t`). Patch versions such as `3.10.1` are rejected. If not provided, `feu` uses the Python interpreter it runs in, including free-threaded builds (`3.13t`). | No       | Auto-detected |
+| `invalid-version-mode` | What to do when the version is not valid for the target Python: `skip` (default) warns and installs nothing, `fail` fails the job. Any other value is an input error.                                                                                                                               | No       | `skip`        |
+| `uv-args`              | Additional arguments to pass to uv (e.g., `--index-url https://custom.pypi.org/simple`)                                                                                                                                                                                                             | No       | `''`          |
 
 ## Outputs
 
@@ -138,15 +136,17 @@ validate and install Python packages:
 4. **Install feu** - Install `feu[cli,requests]>=0.9.0a0,<1` in the same environment as the
    package (no retry loop: `uv` retries network errors itself)
 5. **Check version validity** - Run `feu check-valid-version` for the exact version or the
-   wildcard. An invalid version is skipped; a crash or unexpected output fails the job
-6. **Install package** - If valid, use `feu install` (with `uv`) to install the package with your
+   wildcard. A crash or unexpected output fails the job
+6. **Handle an invalid version** - Only when the version is invalid: in `skip` mode print a warning
+   and go on, in `fail` mode fail the job
+7. **Install package** - If valid, use `feu install` (with `uv`) to install the package with your
    custom arguments; if invalid, skip installation and report `is-valid-version=false`
-7. **Verify installation** - If a package was installed, confirm it can be imported successfully
+8. **Verify installation** - If a package was installed, confirm it can be imported successfully
 
-This action never auto-substitutes a different version, and it does not fail the job when the
-requested version is invalid — it exits successfully with `is-valid-version=false` so your
-workflow can decide what to do next (see [Use Output Version and Stop the Workflow on Invalid
-Versions](#use-output-version-and-stop-the-workflow-on-invalid-versions)).
+This action never auto-substitutes a different version. By default (`invalid-version-mode: skip`) it
+does not fail the job when the requested version is invalid: it exits successfully with
+`is-valid-version=false`. With `invalid-version-mode: fail` the job fails with an `::error::`, and
+`is-valid-version` is still set to `false`.
 
 ### Wildcard Versions
 
@@ -169,8 +169,9 @@ If you request `numpy==2.3.0` with Python 3.9, but numpy 2.3.0 requires a newer 
 - Asks `feu` whether `numpy==2.3.0` is installable for Python 3.9
 - Finds that it is not valid for Python 3.9
 - Skips installation and skips the import verification step
-- Emits a `::warning::` explaining why installation was skipped
-- Reports `false` as the `is-valid-version` output, and the job still succeeds
+- In `skip` mode, emits a `::warning::` explaining why installation was skipped, reports `false`
+  as the `is-valid-version` output, and the job still succeeds
+- In `fail` mode, emits an `::error::` and the job fails
 
 ## Troubleshooting
 
@@ -208,9 +209,7 @@ This happens when the requested `package-version` is not installable for your ta
 - Check the package's Python version requirements
 - Try a different `python-version`
 - Try a different `package-version` that supports your Python version
-- If you want the workflow to stop in this case, add a follow-up step that checks
-  `is-valid-version` and exits non-zero (see [Use Output Version and Stop the Workflow on
-  Invalid Versions](#use-output-version-and-stop-the-workflow-on-invalid-versions))
+- If you want the workflow to stop in this case, set `invalid-version-mode: fail`
 
 ### Using Custom or Private PyPI Indexes
 
