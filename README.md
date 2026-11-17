@@ -103,7 +103,8 @@ steps:
 - name: Display result
   run: |
     echo "Version valid: ${{ steps.install.outputs.is-valid-version }}"
-    echo "Installation successful: ${{ steps.install.outputs.installed-successfully }}"
+    echo "Installed: ${{ steps.install.outputs.installed }}"
+    echo "Installed version: ${{ steps.install.outputs.installed-version }}"
 ```
 
 ## Inputs
@@ -118,10 +119,11 @@ steps:
 
 ## Outputs
 
-| Name                     | Description                                                                                                                           |
-| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------- |
-| `is-valid-version`       | Boolean indicating whether the requested `package-version` is valid and installable for the target Python version (`true` or `false`) |
-| `installed-successfully` | Boolean indicating whether the package was installed successfully (`true` or `false`)                                                 |
+| Name                | Description                                                                                                                           |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `is-valid-version`  | Boolean indicating whether the requested `package-version` is valid and installable for the target Python version (`true` or `false`) |
+| `installed`         | `true` if the package was installed, `false` if the installation was skipped                                                          |
+| `installed-version` | Version actually installed (e.g. `2.3.5` for `2.3.*`), empty if the installation was skipped                                          |
 
 ## How It Works
 
@@ -141,7 +143,8 @@ validate and install Python packages:
    and go on, in `fail` mode fail the job
 7. **Install package** - If valid, use `feu install` (with `uv`) to install the package with your
    custom arguments; if invalid, skip installation and report `is-valid-version=false`
-8. **Verify installation** - If a package was installed, confirm it can be imported successfully
+8. **Read the installed version** - If a package was installed, read its version with
+   `uv pip show` for the `installed-version` output
 
 This action never auto-substitutes a different version. By default (`invalid-version-mode: skip`) it
 does not fail the job when the requested version is invalid: it exits successfully with
@@ -168,7 +171,7 @@ If you request `numpy==2.3.0` with Python 3.9, but numpy 2.3.0 requires a newer 
 - The action validates your inputs and Python version format
 - Asks `feu` whether `numpy==2.3.0` is installable for Python 3.9
 - Finds that it is not valid for Python 3.9
-- Skips installation and skips the import verification step
+- Skips installation and the remaining steps
 - In `skip` mode, emits a `::warning::` explaining why installation was skipped, reports `false`
   as the `is-valid-version` output, and the job still succeeds
 - In `fail` mode, emits an `::error::` and the job fails
@@ -267,25 +270,6 @@ This error occurs when the `package-name` input is not provided or is an empty s
     package-version: "2.0.0"
     python-version: "3.11"
 ```
-
-### Package Installed but Import Verification Fails
-
-The action includes post-installation verification that attempts to import the package. If you see a
-warning about import verification:
-
-**Common causes:**
-
-1. **CLI-only packages**: Some packages (like command-line tools) don't have importable Python
-   modules. This is normal and the warning can be ignored.
-2. **Different import name**: Some packages have different import names than their package names (
-   e.g., `scikit-learn` → `sklearn`). The action handles common cases automatically.
-3. **Installation issues**: The package installed but files are missing or corrupted.
-
-**What to do:**
-
-- For CLI tools: The warning is expected and can be ignored if the tool works
-- For Python libraries: Check the package's documentation for the correct import name
-- If installation is broken: Check the full error logs and try reinstalling
 
 ## Suggestions and Communication
 

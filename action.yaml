@@ -32,9 +32,12 @@ outputs:
   is-valid-version:
     description: "Boolean indicating whether the requested package-version is valid and installable for the target Python version (true or false)"
     value: ${{ steps.check-version.outputs.is-valid-version }}
-  installed-successfully:
-    description: "Boolean indicating whether the package was installed successfully"
+  installed:
+    description: "Boolean indicating whether the package was installed (true) or skipped because the version is invalid (false)"
     value: ${{ steps.install-package.outcome == 'success' }}
+  installed-version:
+    description: "Version actually installed (e.g. 2.3.5 for the wildcard 2.3.*), or an empty string if the installation was skipped"
+    value: ${{ steps.get-installed-version.outputs.installed-version }}
 
 runs:
   using: "composite"
@@ -155,37 +158,20 @@ runs:
         echo "Step 3.1: installed ${PACKAGE_NAME} (requested ${PACKAGE_VERSION})"
 
     # ============================================================================
-    # Step 3.2: Verify package installation
+    # Step 3.2: Read the installed version
     # ============================================================================
-    # Verify that the installed package can be imported successfully.
-    # This catches issues where installation succeeded but the package is broken.
-    # Skipped when Step 2.2 found the requested version invalid (nothing was installed).
-    - name: "Step 3.2: Verify installation"
-      if: steps.check-version.outputs.is-valid-version == 'true'
+    # Report what is really in the environment, which matters for wildcards
+    # (e.g. "2.3.*" installs 2.3.5). Runs only after a successful Step 3.1, so
+    # a package missing here is a real error. The output stays empty when the
+    # installation was skipped.
+    - name: "Step 3.2: Read the installed version"
+      id: get-installed-version
+      if: steps.install-package.outcome == 'success'
       shell: bash
       env:
         PACKAGE_NAME: ${{ inputs.package-name }}
       run: |
         set -euo pipefail
-
-        echo "🔍 Verifying package installation..."
-
-        # Convert package name to import name (replace hyphens with underscores)
-        # This handles common cases like 'scikit-learn' -> 'sklearn'
-        SCRIPT_PATH="${{ github.action_path }}/scripts/get_import_name.sh"
-        IMPORT_NAME=$("$SCRIPT_PATH" "$PACKAGE_NAME")
-
-        # Try to import with converted name first
-        if python -c "import importlib, sys; importlib.import_module(sys.argv[1])" "$IMPORT_NAME" 2>/dev/null; then
-          echo "✅ Package '$PACKAGE_NAME' imports successfully as '$IMPORT_NAME'"
-        else
-          # Fallback: try with original package name (handles edge cases)
-          if python -c "import importlib, sys; importlib.import_module(sys.argv[1])" "$PACKAGE_NAME" 2>/dev/null; then
-            echo "✅ Package '$PACKAGE_NAME' imports successfully"
-          else
-            echo "::warning::⚠️  Package installed but could not verify import. This may be normal for:"
-            echo "::warning::    - CLI tools without importable modules"
-            echo "::warning::    - Packages with non-standard import names"
-            echo "::warning::    - Namespace packages"
-          fi
-        fi
+        VERSION=$("${{ github.action_path }}/scripts/get_installed_version.sh" "$PACKAGE_NAME")
+        echo "Step 3.2: installed ${PACKAGE_NAME} ${VERSION}"
+        echo "installed-version=$VERSION" >> "$GITHUB_OUTPUT"
