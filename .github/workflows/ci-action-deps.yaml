@@ -1,5 +1,5 @@
 # Reusable workflow for testing the action with specific dependency versions.
-# Used by ci-action.yaml and nightly.yaml.
+# Used by ci-action.yaml and nightly-test-released.yaml.
 
 name: Test Action with Dependency Version
 on:
