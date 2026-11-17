@@ -14,7 +14,9 @@
 /CODEOWNERS export-ignore
 /Makefile export-ignore
 /README.md export-ignore
+/invoke.yaml export-ignore
 /pyproject.toml export-ignore
+/tasks.py export-ignore
 /uv.lock export-ignore
 /.yamllint.yaml export-ignore
 /.markdownlint.yaml export-ignore

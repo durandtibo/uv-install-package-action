@@ -51,9 +51,9 @@ jobs:
           uv pip tree --show-version-specifiers
 
       # Run tests to ensure updates don't break functionality
-      - name: Run unit tests
+      - name: Run functional tests
         run: |
-          inv test.unit --cov
+          inv test.functional
 
       # Create a pull request with the dependency updates
       - name: Create pull request
