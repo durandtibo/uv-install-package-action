@@ -2817,7 +2817,7 @@ provides-extras = ["click", "jax", "matplotlib", "numpy", "pandas", "polars", "p
 [package.metadata.requires-dev]
 dev = [
     { name = "codespell", specifier = ">=2.4,<3.0" },
-    { name = "coverage", extras = ["toml"], specifier = ">=7.17.0,<8.0" },
+    { name = "coverage", extras = ["toml"], specifier = ">=7.17.2,<8.0" },
     { name = "docformatter", specifier = ">=1.7.8,<2.0" },
     { name = "feu", extras = ["all"], specifier = ">=0.8.4,<1.0" },
     { name = "invoke", specifier = ">=3.0,<4.0" },
