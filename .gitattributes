@@ -18,3 +18,4 @@
 /tasks.py export-ignore
 /uv.lock export-ignore
 /.yamllint.yaml export-ignore
+/.markdownlint.yaml export-ignore
