@@ -1,53 +1,58 @@
 #!/bin/bash
-# Validates the action's package-name, package-version, and uv-args inputs.
+# Validates the package-name, package-version and invalid-version-mode inputs.
 #
-# Usage: validate_inputs.sh <package-name> <package-version> <uv-args>
+# Usage: validate_inputs.sh <package-name> <package-version> [<invalid-version-mode>]
 #
 # Arguments:
-#   package-name:    The package name (e.g., "numpy", "requests")
-#   package-version: The target package version (e.g., "1.2.3")
-#   uv-args:         Additional arguments to pass to uv (may be empty)
-#
-# Outputs:
-#   Prints warnings to stderr for non-fatal issues (e.g., shell metacharacters
-#   in uv-args)
+#   package-name:         Distribution name (PEP 508 name syntax, e.g. "numpy", "scikit-learn")
+#   package-version:      Exact version ("2.0.2") or wildcard ("2.12.*"): non-empty, no
+#                         whitespace, no leading '-'
+#   invalid-version-mode: "skip" or "fail" (default: "skip")
 #
 # Exit codes:
-#   0: Success - inputs are valid
-#   1: Error - a required input is missing or invalid
+#   0: inputs are valid
+#   1: an input is missing or invalid (an ::error:: message is printed to stderr)
 
 set -euo pipefail
 
-if [ $# -ne 3 ]; then
-	echo "Usage: $0 <package-name> <package-version> <uv-args>" >&2
+if [ $# -lt 2 ] || [ $# -gt 3 ]; then
+	echo "Usage: $0 <package-name> <package-version> [<invalid-version-mode>]" >&2
 	exit 1
 fi
 
 PACKAGE_NAME="$1"
 PACKAGE_VERSION="$2"
-UV_ARGS="$3"
+MODE="${3-skip}"
 
-# Validate package-name is not empty
 if [ -z "$PACKAGE_NAME" ]; then
-	echo "Error: package-name cannot be empty" >&2
+	echo "::error::package-name cannot be empty" >&2
 	exit 1
 fi
 
-# Validate package-name doesn't contain obviously invalid characters
-if [[ "$PACKAGE_NAME" =~ [[:space:]] ]]; then
-	echo "Error: package-name cannot contain whitespace: '$PACKAGE_NAME'" >&2
+# PEP 508 name: letters, digits, '.', '_' and '-', starting and ending with a letter or digit.
+if ! [[ "$PACKAGE_NAME" =~ ^[A-Za-z0-9]([A-Za-z0-9._-]*[A-Za-z0-9])?$ ]]; then
+	echo "::error::package-name '${PACKAGE_NAME}' is not a valid package name (letters, digits, '.', '_' and '-' only, starting and ending with a letter or digit)" >&2
 	exit 1
 fi
 
-# Validate package-version is not empty
 if [ -z "$PACKAGE_VERSION" ]; then
-	echo "Error: package-version cannot be empty" >&2
+	echo "::error::package-version cannot be empty" >&2
 	exit 1
 fi
 
-# Check for potentially dangerous characters in uv-args (shell metacharacters)
-if [[ "$UV_ARGS" =~ [\;|] ]]; then
-	echo "Warning: uv-args contains shell metacharacters (';' or '|'). Ensure these are properly escaped and intentional." >&2
+if [[ "$PACKAGE_VERSION" =~ [[:space:]] ]]; then
+	echo "::error::package-version cannot contain whitespace: '${PACKAGE_VERSION}'" >&2
+	exit 1
 fi
 
-exit 0
+if [[ "$PACKAGE_VERSION" == -* ]]; then
+	echo "::error::package-version cannot start with '-': '${PACKAGE_VERSION}'" >&2
+	exit 1
+fi
+
+if [ "$MODE" != "skip" ] && [ "$MODE" != "fail" ]; then
+	echo "::error::invalid-version-mode must be 'skip' or 'fail', got '${MODE}'" >&2
+	exit 1
+fi
+
+echo "Step 1.2: inputs are valid (package '${PACKAGE_NAME}', version '${PACKAGE_VERSION}', mode '${MODE}')"

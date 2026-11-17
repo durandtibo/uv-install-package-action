@@ -109,12 +109,12 @@ steps:
 
 ## Inputs
 
-| Name              | Description                                                                                                                                                                                                                                                                                   | Required | Default       |
-| ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------------- |
-| `package-name`    | The package name (e.g., `numpy`, `requests`, `django`)                                                                                                                                                                                                                                        | Yes      | -             |
-| `package-version` | The target package version (e.g., `1.2.3`, `2.0.2`), or a wildcard/prefix pattern (e.g., `2.12.*`) to let `uv` pick the latest matching patch version                                                                                                                                         | Yes      | -             |
-| `python-version`  | The Python version to check compatibility against (e.g., `3.10`, `3.11`, `3.12`). Must be in `X.Y` format. If a patch version is provided (e.g., `3.10.1`), it will be normalized to `X.Y` (e.g., `3.10`). If not provided, the Python version is auto-detected from the current environment. | No       | Auto-detected |
-| `uv-args`         | Additional arguments to pass to uv (e.g., `--index-url https://custom.pypi.org/simple`)                                                                                                                                                                                                       | No       | `''`          |
+| Name              | Description                                                                                                                                                                                                                                                                   | Required | Default       |
+| ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------------- |
+| `package-name`    | The package name (e.g., `numpy`, `requests`, `django`)                                                                                                                                                                                                                        | Yes      | -             |
+| `package-version` | The target package version (e.g., `1.2.3`, `2.0.2`), or a wildcard/prefix pattern (e.g., `2.12.*`) to let `uv` pick the latest matching patch version                                                                                                                         | Yes      | -             |
+| `python-version`  | The Python version to check compatibility against (e.g., `3.10`, `3.11`, `3.12`). Must be `X.Y` or the free-threaded `X.Yt` (e.g., `3.13t`). Patch versions such as `3.10.1` are rejected. If not provided, the Python version is auto-detected from the current environment. | No       | Auto-detected |
+| `uv-args`         | Additional arguments to pass to uv (e.g., `--index-url https://custom.pypi.org/simple`)                                                                                                                                                                                       | No       | `''`          |
 
 ## Outputs
 
@@ -129,8 +129,10 @@ This action uses [feu](https://github.com/durandtibo/feu) (Find Compatible Versi
 validate and install Python packages:
 
 1. **Verify prerequisites** - Check that `uv` package manager is installed and accessible
-2. **Validate inputs** - Ensure package name and version are provided and properly formatted
-3. **Normalize Python version** - Validate and normalize Python version (e.g., `3.10.1` → `3.10`)
+2. **Validate inputs** - Ensure the package name is a valid name and the version is non-empty,
+   without whitespace or a leading `-`
+3. **Validate Python version** - Accept empty, `X.Y` or `X.Yt` (e.g., `3.13t`); patch versions such
+   as `3.10.1` are rejected
 4. **Install feu** - Install the version resolution utility with automatic retry on network failures
 5. **Check version validity** - Query PyPI to check whether the exact requested version is
    installable for the target Python version. Wildcard/prefix patterns (e.g., `2.12.*`) can't be
@@ -177,21 +179,12 @@ If you request `numpy==2.3.0` with Python 3.9, but numpy 2.3.0 requires a newer 
 
 This error occurs when the `python-version` input is not in the expected format.
 
-**Solution:** Use the `X.Y` format for Python version (e.g., `3.10`, `3.11`, `3.12`). If you
-accidentally provide a patch version (e.g., `3.10.1`), the action will automatically normalize it to
-`3.10` and show a warning.
+**Solution:** Use the `X.Y` format for the Python version (e.g., `3.10`, `3.11`, `3.12`), or
+`X.Yt` for a free-threaded build (e.g., `3.13t`). Patch versions such as `3.10.1` are rejected.
 
-Valid formats:
+Valid formats: `3.10` ✅, `3.13t` ✅
 
-- `3.10` ✅
-- `3.11` ✅
-- `3.10.1` ✅ (normalized to `3.10`)
-
-Invalid formats:
-
-- `3` ❌
-- `python3.10` ❌
-- `3.x` ❌
+Invalid formats: `3` ❌, `3.10.1` ❌, `python3.10` ❌, `3.x` ❌
 
 ### Error: "uv is not installed or not in PATH"
 
@@ -277,32 +270,6 @@ This error occurs when the `package-name` input is not provided or is an empty s
     package-name: "numpy" # ✅ Must be provided
     package-version: "2.0.0"
     python-version: "3.11"
-```
-
-### Warning: "uv-args contains shell metacharacters"
-
-This warning appears when the `uv-args` input contains potentially dangerous shell metacharacters
-like `;` or `|`.
-
-**What it means:** The action detects characters that could potentially be used for command
-injection or unintended shell operations.
-
-**Action required:**
-
-- If these characters are intentional (e.g., part of a URL), ensure they're properly escaped
-- Review your `uv-args` to ensure they're safe and as intended
-- Consider using environment variables for sensitive values instead of inline arguments
-
-**Example:**
-
-```yaml
-- name: Install from custom index
-  uses: durandtibo/uv-install-package-action@v0.1.3
-  with:
-    package-name: "my-package"
-    package-version: "1.0.0"
-    python-version: "3.11"
-    uv-args: "--index-url https://pypi.example.com/simple" # ✅ Safe
 ```
 
 ### Package Installed but Import Verification Fails

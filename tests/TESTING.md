@@ -13,26 +13,26 @@ Testing System).
 
 **Test Files:**
 
-- `test_validate_python_version.bats` - Tests for the Python version validation and normalization
-  script
-- `test_validate_inputs.bats` - Tests for the package-name/package-version/uv-args input
-  validation script
+- `test_check_uv.bats` - Tests for the uv availability check
+- `test_validate_python_version.bats` - Tests for the Python version validation script
+- `test_validate_inputs.bats` - Tests for the package-name/package-version/invalid-version-mode
+  input validation script
 - `test_get_import_name.bats` - Tests for the package-name → import-name conversion script used
   by the "Verify installation" step
 
 **Coverage:**
 
 - Valid Python versions (major.minor format), including free-threaded builds (`X.Yt`)
-- Normalization of patch versions (X.Y.Z → X.Y, X.Y.Zt → X.Yt)
+- Rejection of patch versions (X.Y.Z, X.Y.Zt)
 - Edge cases (whitespace, tab characters, high version numbers)
 - Invalid formats (comprehensive error cases)
 - Error message quality
-- Input validation for package-name, package-version, and uv-args (including the
-  shell-metacharacter warning path and combined-warning cases)
+- Input validation for package-name (PEP 508 name, no leading `-`), package-version and
+  invalid-version-mode
 - Package-name to import-name conversion (e.g. `scikit-learn` → `sklearn` module prefix)
 
 All bash logic embedded in `action.yaml` that has meaningful branching (input validation, Python
-version normalization, import-name conversion) is extracted into standalone scripts under
+version validation, import-name conversion) is extracted into standalone scripts under
 `scripts/` specifically so it can be unit-tested here rather than only exercised indirectly via
 the slower GitHub Actions integration tests below.
 
@@ -86,7 +86,7 @@ inv functional-test
 
 **Location:** `tests/unit/`
 
-**Note:** The action's validation logic (input validation, Python version normalization) is
+**Note:** The action's validation logic (input validation, Python version validation) is
 implemented in standalone scripts under `scripts/` and is unit-tested with BATS (see above), not
 pytest. This directory is reserved for future Python-level unit tests.
 
