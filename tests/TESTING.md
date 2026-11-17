@@ -83,30 +83,9 @@ Tests that verify installed packages can be imported and used correctly.
 ```bash
 # Run functional tests
 pytest tests/functional/
-
-# Or via invoke
-inv functional-test
 ```
 
-### 3. Unit Tests (pytest)
-
-**Location:** `tests/unit/`
-
-**Note:** The action's validation logic (input validation, Python version validation) is
-implemented in standalone scripts under `scripts/` and is unit-tested with BATS (see above), not
-pytest. This directory is reserved for future Python-level unit tests.
-
-**Running the Tests:**
-
-```bash
-# Run unit tests
-pytest tests/unit/
-
-# Or via invoke
-inv unit-test
-```
-
-### 4. Integration Tests (GitHub Actions)
+### 3. Integration Tests (GitHub Actions)
 
 Full end-to-end tests run in GitHub Actions workflows.
 
@@ -157,7 +136,6 @@ pytest tests/ --cov
 
 # Specific test type
 pytest tests/functional/
-pytest tests/unit/
 ```
 
 ## Continuous Integration
