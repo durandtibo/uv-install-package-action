@@ -6,3 +6,4 @@ rules:
   line-length:
     ignore: |
       .github/
+      action.yaml
