@@ -1,9 +1,0 @@
-tasklib:
-  package:
-    name: uv-install-package-action
-  paths:
-    src: dev
-    functional_tests: tests/functional
-  groups:
-    install: dev
-    update: dev
