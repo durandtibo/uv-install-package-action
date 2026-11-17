@@ -108,6 +108,107 @@ Full end-to-end tests run in GitHub Actions workflows.
 
 **Key Workflows:**
 
+- `ci.yaml` - Entry point of the checks; calls the `ci-*.yaml` workflows below
+- `ci-test.yaml` - Functional tests across Python versions and OS platforms
+- `ci-action.yaml` - Tests local action changes (uses `./` action reference) with each optional
+  dependency of the package (`ci-action-deps.yaml`) and with edge cases
+  (`ci-action-edge-cases.yaml`): no `python-version` given (auto-detect), a patch
+  `python-version`, a free-threaded `python-version`, an invalid `python-version`, and an empty
+  `package-name`
+- `nightly.yaml` / `nightly-test-released.yaml` - Same edge cases and package matrix as
+  `ci-action.yaml`, but against the latest published release (run nightly, not on every PR) to
+  catch regressions between what's merged and what's tagged
+- `ci-shell.yaml` / `ci-shell-bash32.yaml` - Runs BATS shell tests in CI (the second one with the
+  system bash 3.2 of macOS)
+
+**Coverage:**
+
+- Valid Python versions (major.minor format), including free-threaded builds (`X.Yt`)
+- Normalization of patch versions (X.Y.Z → X.Y, X.Y.Zt → X.Yt)
+- Edge cases (whitespace, tab characters, high version numbers)
+- Invalid formats (comprehensive error cases)
+- Error message quality
+- Input validation for package-name, package-version, and uv-args (including the
+  shell-metacharacter warning path and combined-warning cases)
+- Package-name to import-name conversion (e.g. `scikit-learn` → `sklearn` module prefix)
+
+All bash logic embedded in `action.yaml` that has meaningful branching (input validation, Python
+version normalization, import-name conversion) is extracted into standalone scripts under
+`scripts/` specifically so it can be unit-tested here rather than only exercised indirectly via
+the slower GitHub Actions integration tests below.
+
+**Prerequisites:**
+
+Install BATS on your system:
+
+```bash
+# On macOS with Homebrew
+brew install bats-core
+
+# On Ubuntu/Debian
+sudo apt-get install bats
+```
+
+**Running the Tests:**
+
+```bash
+# Run all BATS tests
+bats --recursive tests/bats/
+
+# Run with timing information
+bats --recursive --timing tests/bats/
+
+# Run with verbose output
+bats --recursive -t tests/bats/
+```
+
+### 2. Functional Tests (pytest)
+
+Tests that verify installed packages can be imported and used correctly.
+
+**Location:** `tests/functional/`
+
+**Coverage:**
+
+- Package import verification for common packages (numpy, pandas, torch, etc.)
+- Uses conditional decorators to skip if package not available
+
+**Running the Tests:**
+
+```bash
+# Run functional tests
+pytest tests/functional/
+
+# Or via invoke
+inv functional-test
+```
+
+### 3. Unit Tests (pytest)
+
+**Location:** `tests/unit/`
+
+**Note:** The action's validation logic (input validation, Python version normalization) is
+implemented in standalone scripts under `scripts/` and is unit-tested with BATS (see above), not
+pytest. This directory is reserved for future Python-level unit tests.
+
+**Running the Tests:**
+
+```bash
+# Run unit tests
+pytest tests/unit/
+
+# Or via invoke
+inv unit-test
+```
+
+### 4. Integration Tests (GitHub Actions)
+
+Full end-to-end tests run in GitHub Actions workflows.
+
+**Location:** `.github/workflows/`
+
+**Key Workflows:**
+
 - `test.yaml` - Matrix testing across Python versions and OS platforms
 - `test-local.yaml` - Tests local action changes (uses `./` action reference), including edge
   cases: no `python-version` given (auto-detect), a patch `python-version`, a free-threaded

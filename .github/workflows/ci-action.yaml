@@ -1,8 +1,9 @@
-# Action test workflow (local version).
-# Tests the version of the action in this checkout with each optional
-# dependency of the package, and with edge cases.
+# Workflow testing the action from the current repository code (uses: ./)
+# on multiple Python versions and operating systems, with each optional
+# dependency of the package and with edge cases.
+# The released version is tested by nightly-test-released.yaml.
 
-name: Test Action (Local)
+name: Test Action
 on:
   workflow_call:
     inputs:
@@ -10,7 +11,6 @@ on:
         description: "JSON test matrix from lib-get-test-matrix.yaml, loaded once by the caller"
         required: true
         type: string
-  workflow_dispatch: # to trigger manually
 
 permissions: {}
 
@@ -18,15 +18,13 @@ jobs:
   # Get the extra names from pyproject.toml, and their version bounds from
   # dev/config/package_versions.json.
   get-deps:
+    uses: ./.github/workflows/lib-get-package-deps.yaml
     permissions:
       contents: read
-    uses: ./.github/workflows/lib-get-package-deps.yaml
 
   # One job per optional dependency, driven by get-deps instead of a
   # hardcoded list.
   test-dep:
-    permissions:
-      contents: read
     needs: get-deps
     strategy:
       fail-fast: false
@@ -38,10 +36,12 @@ jobs:
       package-versions: ${{ toJson(fromJson(needs.get-deps.outputs.package_versions)[matrix.package-name]) }}
       action-ref: local
       test-matrix: ${{ inputs.test-matrix }}
-
-  edge-cases:
     permissions:
       contents: read
+
+  edge-cases:
     uses: ./.github/workflows/ci-action-edge-cases.yaml
     with:
       action-ref: local
+    permissions:
+      contents: read

@@ -2,7 +2,7 @@ name: Get Package Dependencies
 
 # Combines lib-get-package-extras.yaml and lib-get-package-versions.yaml into
 # one reusable workflow, since every caller that tests per-dependency
-# compatibility (ci-action.yaml, nightly.yaml) needs both the
+# compatibility (ci-action.yaml, nightly-test-released.yaml) needs both the
 # extra names and their version bounds together, to build a
 # package-name x package-version matrix.
 #

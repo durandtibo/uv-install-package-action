@@ -1,7 +1,9 @@
-# Nightly tests of the stable (released) version of the action.
-# Complements ci.yaml, which tests the local version of the action.
+# Nightly workflow testing the latest released action, to catch regressions in
+# what consumers pick up. The current (unreleased) code is tested nightly by ci.yaml.
+#
+# Permissions are set at the job level, not the workflow level.
 
-name: Nightly Package Tests
+name: Nightly Tests
 on:
   schedule:
     - cron: "30 10 * * *" # run at 10:30 AM UTC
@@ -10,40 +12,18 @@ on:
 permissions: {}
 
 jobs:
-  # Get the extra names from pyproject.toml, and their version bounds from
-  # dev/config/package_versions.json.
-  get-deps:
-    permissions:
-      contents: read
-    uses: ./.github/workflows/lib-get-package-deps.yaml
-
-  # Load the shared python-version/OS matrix once, and pass it down to every
-  # job below that needs it.
+  # Load the shared Python-version and OS matrices from the default config of
+  # durandtibo/workflow-config-action once.
   get-matrix:
-    permissions:
-      contents: read
     uses: ./.github/workflows/lib-get-test-matrix.yaml
-
-  # One job per optional dependency, driven by get-deps instead of a
-  # hardcoded list.
-  test-dep:
     permissions:
       contents: read
-    needs: [get-deps, get-matrix]
-    strategy:
-      fail-fast: false
-      matrix:
-        package-name: ${{ fromJson(needs.get-deps.outputs.extras) }}
-    uses: ./.github/workflows/ci-action-deps.yaml
+
+  # Test the latest released action
+  test-released:
+    needs: get-matrix
+    uses: ./.github/workflows/nightly-test-released.yaml
     with:
-      package-name: ${{ matrix.package-name }}
-      package-versions: ${{ toJson(fromJson(needs.get-deps.outputs.package_versions)[matrix.package-name]) }}
-      action-ref: stable
       test-matrix: ${{ needs.get-matrix.outputs.test_matrix }}
-
-  edge-cases:
     permissions:
       contents: read
-    uses: ./.github/workflows/ci-action-edge-cases.yaml
-    with:
-      action-ref: stable

@@ -1,8 +1,7 @@
 # Shell unit tests workflow.
-# Runs the bats tests of the action scripts on multiple operating systems.
+# Runs the bats tests of the shell scripts on multiple operating systems.
 
 name: Shell Unit Tests
-
 on:
   workflow_call:
     inputs:
@@ -18,7 +17,7 @@ jobs:
     permissions:
       contents: read
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 5
+    timeout-minutes: 10
     strategy:
       max-parallel: 8
       fail-fast: false
@@ -29,27 +28,18 @@ jobs:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # ratchet:actions/checkout@v7
 
-      - name: Install bats-core (Linux)
-        if: runner.os == 'Linux'
-        run: |
-          echo "📦 Installing bats-core..."
-          sudo apt-get update -qq
-          sudo apt-get install -y bats
-          echo "✅ Installation complete"
-
-      - name: Install bats-core (macOS)
-        if: runner.os == 'macOS'
-        run: |
-          echo "🍺 Installing bats-core..."
-          brew update
-          brew install bats-core
-          echo "✅ Installation complete"
+      - name: Install bats-core
+        shell: bash
+        run: make install-bats
 
       - name: Verify bats installation
         run: |
-          echo "✓ Verifying bats installation..."
           bats --version
-          echo "✅ bats is installed and ready"
+
+      - name: Show the versions of bash and bats
+        run: |
+          bash --version | head -n 1
+          bats --version
 
       - name: Run unit tests
         run: |

@@ -1,3 +1,7 @@
+# Reusable workflow testing the action on edge cases: Python versions with a feature release or a
+# free-threaded build, a missing or incorrect Python version, and an empty package name.
+# Used by ci-action.yaml (local version) and nightly-test-released.yaml (released version).
+
 name: Test Action Edge Cases
 on:
   workflow_call:
