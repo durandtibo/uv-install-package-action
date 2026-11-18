@@ -1,5 +1,6 @@
 # Reusable workflow for testing the action with specific dependency versions.
-# Used by ci-action.yaml and nightly-test-released.yaml.
+# Called by ci-action.yaml, with use-released false (current checkout) or true (latest release).
+# Update the pinned release below when a new version is released.
 
 name: Test Action with Dependency Version
 on:
@@ -11,10 +12,11 @@ on:
       package-versions:
         type: string
         required: true
-      action-ref:
-        description: "Which version of the action to test: 'local' (this checkout) or 'stable' (latest released version)"
-        type: string
-        required: true
+      use-released:
+        description: "Test the latest released action instead of the current checkout"
+        type: boolean
+        required: false
+        default: false
       test-matrix:
         description: "JSON test matrix from lib-get-test-matrix.yaml, loaded once by the caller"
         required: true
@@ -51,7 +53,7 @@ jobs:
           uv pip install pytest
 
       - name: Install valid package version (local)
-        if: inputs.action-ref == 'local'
+        if: ${{ !inputs.use-released }}
         id: install-package-local
         uses: ./
         with:
@@ -59,9 +61,9 @@ jobs:
           package-version: ${{ matrix.package-version }}
           python-version: ${{ matrix.python-version }}
 
-      - name: Install valid package version (stable)
-        if: inputs.action-ref == 'stable'
-        id: install-package-stable
+      - name: Install valid package version (released)
+        if: ${{ inputs.use-released }}
+        id: install-package-released
         uses: durandtibo/uv-install-package-action@fe64eac38f69e851b5e79b74ee255ed95a159bc0 # ratchet:durandtibo/uv-install-package-action@v0.2.0
         with:
           package-name: ${{ inputs.package-name }}
@@ -73,8 +75,8 @@ jobs:
       - name: Check the outputs
         shell: bash
         env:
-          ACTION_REF: ${{ inputs.action-ref }}
-          VALID: ${{ steps.install-package-local.outputs.is-valid-version || steps.install-package-stable.outputs.is-valid-version }}
+          USE_RELEASED: ${{ inputs.use-released }}
+          VALID: ${{ steps.install-package-local.outputs.is-valid-version || steps.install-package-released.outputs.is-valid-version }}
           INSTALLED: ${{ steps.install-package-local.outputs.installed }}
           INSTALLED_VERSION: ${{ steps.install-package-local.outputs.installed-version }}
         run: |
@@ -85,7 +87,7 @@ jobs:
             exit 1
           fi
 
-          if [ "$ACTION_REF" = "local" ]; then
+          if [ "$USE_RELEASED" != "true" ]; then
             if [ "$INSTALLED" != "$VALID" ]; then
               echo "::error::installed ('$INSTALLED') must equal is-valid-version ('$VALID')"
               exit 1
@@ -101,6 +103,6 @@ jobs:
           fi
 
       - name: Run functional tests
-        if: steps.install-package-local.outputs.is-valid-version == 'true' || steps.install-package-stable.outputs.is-valid-version == 'true'
+        if: steps.install-package-local.outputs.is-valid-version == 'true' || steps.install-package-released.outputs.is-valid-version == 'true'
         run: |
           python -m pytest tests/functional

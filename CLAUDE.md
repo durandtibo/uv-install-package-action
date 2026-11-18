@@ -82,17 +82,18 @@ Files are prefixed by role:
   - `ci-shell.yaml`: bats tests on Linux and macOS.
   - `ci-shell-bash32.yaml`: bats tests with the system bash 3.2 of macOS.
   - `ci-export.yaml`: checks the exported set (`make check-export`, `dev/check_export.sh`).
-  - `ci-test.yaml`: Python tests.
-  - `ci-action.yaml`: runs the action from this checkout (`uses: ./`), i.e. the version not
-    released yet. It calls `ci-action-deps.yaml` (one job per optional dependency, on the full
-    matrix) and `ci-action-edge-cases.yaml` (a table of edge cases).
+  - `ci-python.yaml`: Python tests.
+  - `ci-action.yaml`: tests the action in a real workflow, with the input `use-released`
+    (default `false`): the action from this checkout (`uses: ./`), i.e. the version not released
+    yet, or the latest release when `true`. It calls `ci-action-deps.yaml` (one job per optional
+    dependency, on the full matrix) and `ci-action-edge-cases.yaml` (a table of edge cases) with
+    the same `use-released` input. `ci.yaml` passes `false`.
 - `ci-verify-workflows.yaml`: lints the workflow files themselves. It has its own triggers and is not
   called from `ci.yaml`, so it can be a required check.
-- `nightly.yaml`: scheduled entry point that loads the test matrix and calls
-  `nightly-test-released.yaml`, which tests the latest released action on real packages with the
-  same `ci-action-deps.yaml` and `ci-action-edge-cases.yaml` (`action-ref: stable`). It complements
-  `ci.yaml`, which tests the local version, and is not part of `ci.yaml`. Update the pinned release
-  in those two files when a new version is released.
+- `nightly.yaml`: scheduled entry point that loads the test matrix and calls `ci-action.yaml` with
+  `use-released: true`, which tests the latest released action on real packages with the same
+  cases as `ci.yaml`. It is not part of `ci.yaml`. Update the pinned release in
+  `ci-action-deps.yaml` and `ci-action-edge-cases.yaml` when a new version is released.
 - `lib-*.yaml`: reusable workflows that load shared data (test matrix, package versions, deps,
   extras); callers pass results down through inputs.
 - `bot-*.yaml`: scheduled automation that opens PRs or acts on runs (format files, pin actions,
@@ -128,7 +129,8 @@ it with three levels:
 2. **Local action**: the action from this checkout (`uses: ./`) in a real workflow
    (`ci-action.yaml`).
 3. **Released action**: the latest stable release (`uses: durandtibo/uv-install-package-action@<sha>`),
-   run nightly with the same cases as level 2 (`nightly-test-released.yaml`). Never run it on pull
+   run nightly with the same cases as level 2 (`nightly.yaml` calls `ci-action.yaml` with
+   `use-released: true`). Never run it on pull
    requests.
 
 Rules:
@@ -144,10 +146,13 @@ Rules:
 - Never write an OS or a Python version of the matrix in a workflow: read the lists from
   `durandtibo/workflow-config-action` through `lib-get-test-matrix.yaml`. Package versions come
   from `dev/config/package_versions.json` through `lib-get-package-versions.yaml`.
-- Each reusable test workflow takes `action-ref` (`local` or `stable`) and has two action steps,
-  `uses: ./` with `if: inputs.action-ref == 'local'` and the pinned release with
-  `if: inputs.action-ref == 'stable'`; the verify step reads `steps.<local id>.outputs.x ||
-steps.<stable id>.outputs.x`.
+- `ci-action.yaml` and the reusable test workflows it calls take the boolean input `use-released`
+  (default `false`) and have two action steps, `uses: ./` with `if: ${{ !inputs.use-released }}`
+  and the pinned release with `if: ${{ inputs.use-released }}`. A skipped step has no outputs
+  and its outcome is `skipped`, so the verify step reads `steps.<local id>.outputs.x ||
+steps.<released id>.outputs.x` and the outcome with `steps.local.outcome == 'skipped' &&
+steps.released.outcome || steps.local.outcome`. There is no `nightly-test-released.yaml`: one
+  file for both versions, so they cannot drift apart.
 - Edge cases are rows of the matrix in `ci-action-edge-cases.yaml` (a new case is a row, not a
   job). Mark a row `local-only: true` until the last release has the feature; the stable run skips
   it.

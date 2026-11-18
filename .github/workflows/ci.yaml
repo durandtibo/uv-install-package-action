@@ -55,7 +55,7 @@ jobs:
   # Run the functional tests on multiple Python versions and OS
   python:
     needs: get-matrix
-    uses: ./.github/workflows/ci-test.yaml
+    uses: ./.github/workflows/ci-python.yaml
     with:
       test-matrix: ${{ needs.get-matrix.outputs.test_matrix }}
     permissions:
@@ -79,12 +79,14 @@ jobs:
     permissions:
       contents: read
 
-  # Test the action from the current repository code (not released yet) on multiple
-  # Python versions and OS, with each optional dependency of the package and with edge cases
+  # Test the action from the current repository code (not released yet, use-released: false) on
+  # multiple Python versions and OS, with each optional dependency of the package and with edge
+  # cases. nightly.yaml calls the same workflow with use-released: true.
   action:
     needs: get-matrix
     uses: ./.github/workflows/ci-action.yaml
     with:
+      use-released: false
       test-matrix: ${{ needs.get-matrix.outputs.test_matrix }}
     permissions:
       contents: read

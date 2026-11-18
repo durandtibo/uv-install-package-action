@@ -2,7 +2,8 @@
 # below). Each case runs the action once and asserts the outcome (success or failure) and the
 # outputs: Python versions with a free-threaded build, no/incorrect/patch Python version, an
 # invalid version in `skip` and `fail` mode, wildcards, an invalid mode and an invalid package name.
-# Used by ci-action.yaml (local version) and nightly-test-released.yaml (released version).
+# Called by ci-action.yaml, with use-released false (current checkout, from ci.yaml) or true
+# (latest release, from nightly.yaml). Update the pinned release below when a new version is released.
 # Cases marked `local-only` need behaviour that is not released yet, so they are skipped for the
 # released version.
 #
@@ -12,6 +13,7 @@
 #   package-name      input of the action (default numpy; a blank name is an empty name)
 #   package-version   input of the action (default 2.4.1)
 #   python-version    input of the action (always set: an empty value is auto-detected)
+#   uv-args           input of the action (default empty)
 #   mode              invalid-version-mode input (default skip)
 #   expect            `success` (default) or `failure`: expected outcome of the action step
 #   valid, installed  expected outputs `is-valid-version` and `installed` (not asserted when empty)
@@ -22,10 +24,11 @@ name: Test Action Edge Cases
 on:
   workflow_call:
     inputs:
-      action-ref:
-        description: "Which version of the action to test: 'local' (this checkout) or 'stable' (latest released version)"
-        type: string
-        required: true
+      use-released:
+        description: "Test the latest released action instead of the current checkout"
+        type: boolean
+        required: false
+        default: false
 
 permissions: {}
 
@@ -109,6 +112,23 @@ jobs:
             python-version: "3.14"
             expect: failure
             local-only: true
+          - name: invalid package version
+            package-version: "-1.0"
+            python-version: "3.14"
+            expect: failure
+            local-only: true
+          - name: uv-args reach uv (positive control, default index)
+            python-version: "3.14"
+            uv-args: "--index-url https://pypi.org/simple"
+            valid: "true"
+            installed: "true"
+            version-prefix: "2.4.1"
+            local-only: true
+          - name: uv-args reach uv (unreachable index fails the install)
+            python-version: "3.14"
+            uv-args: "--index-url http://127.0.0.1:9/simple"
+            expect: failure
+            local-only: true
           - name: invalid mode
             python-version: "3.14"
             mode: ignore
@@ -120,14 +140,14 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # ratchet:actions/checkout@v7
 
       - name: Install uv and set the python version
-        if: inputs.action-ref == 'local' || !matrix.local-only
+        if: ${{ !inputs.use-released || !matrix.local-only }}
         uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # ratchet:astral-sh/setup-uv@v10.3.3
         with:
           python-version: ${{ matrix.setup-python || '3.14' }}
           activate-environment: true
 
       - name: Run the action (local)
-        if: inputs.action-ref == 'local'
+        if: ${{ !inputs.use-released }}
         id: local
         uses: ./
         with:
@@ -135,11 +155,12 @@ jobs:
           package-version: ${{ matrix.package-version || '2.4.1' }}
           python-version: ${{ matrix.python-version }}
           invalid-version-mode: ${{ matrix.mode || 'skip' }}
+          uv-args: ${{ matrix.uv-args || '' }}
         continue-on-error: true
 
-      - name: Run the action (stable)
-        if: inputs.action-ref == 'stable' && !matrix.local-only
-        id: stable
+      - name: Run the action (released)
+        if: ${{ inputs.use-released && !matrix.local-only }}
+        id: released
         uses: durandtibo/uv-install-package-action@fe64eac38f69e851b5e79b74ee255ed95a159bc0 # ratchet:durandtibo/uv-install-package-action@v0.2.0
         with:
           package-name: ${{ matrix.package-name || 'numpy' }}
@@ -149,16 +170,16 @@ jobs:
 
       # `installed` and `installed-version` do not exist in the released version
       - name: Assert the outcome and the outputs
-        if: inputs.action-ref == 'local' || !matrix.local-only
+        if: ${{ !inputs.use-released || !matrix.local-only }}
         shell: bash
         env:
-          ACTION_REF: ${{ inputs.action-ref }}
+          USE_RELEASED: ${{ inputs.use-released }}
           EXPECT: ${{ matrix.expect || 'success' }}
           EXPECT_VALID: ${{ matrix.valid }}
           EXPECT_INSTALLED: ${{ matrix.installed }}
           EXPECT_VERSION_PREFIX: ${{ matrix.version-prefix }}
-          OUTCOME: ${{ steps.local.outcome || steps.stable.outcome }}
-          VALID: ${{ steps.local.outputs.is-valid-version || steps.stable.outputs.is-valid-version }}
+          OUTCOME: ${{ steps.local.outcome == 'skipped' && steps.released.outcome || steps.local.outcome }}
+          VALID: ${{ steps.local.outputs.is-valid-version || steps.released.outputs.is-valid-version }}
           INSTALLED: ${{ steps.local.outputs.installed }}
           INSTALLED_VERSION: ${{ steps.local.outputs.installed-version }}
         run: |
@@ -176,7 +197,7 @@ jobs:
           if [ -n "$EXPECT_VALID" ]; then
             check "is-valid-version" "$VALID" "$EXPECT_VALID"
           fi
-          if [ "$ACTION_REF" = "local" ]; then
+          if [ "$USE_RELEASED" != "true" ]; then
             if [ -n "$EXPECT_INSTALLED" ]; then
               check "installed" "$INSTALLED" "$EXPECT_INSTALLED"
             fi
