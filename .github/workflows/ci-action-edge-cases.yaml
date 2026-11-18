@@ -19,6 +19,11 @@
 #   valid, installed  expected outputs `is-valid-version` and `installed` (not asserted when empty)
 #   version-prefix    expected prefix of the output `installed-version` (not asserted when empty)
 #   local-only        skip the case when testing the released version
+#
+# A case that expects a failure follows a positive run of the action on the same runner (the
+# default numpy install), so that it cannot fail for the wrong reason (no uv, no network). The case
+# `uv-args ... unreachable index` installs another package (six), because uv does not query the
+# index for a package that is already installed.
 
 name: Test Action Edge Cases
 on:
@@ -40,6 +45,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     strategy:
+      max-parallel: 8
       fail-fast: false
       matrix:
         include:
@@ -125,6 +131,8 @@ jobs:
             version-prefix: "2.4.1"
             local-only: true
           - name: uv-args reach uv (unreachable index fails the install)
+            package-name: six
+            package-version: "1.17.0"
             python-version: "3.14"
             uv-args: "--index-url http://127.0.0.1:9/simple"
             expect: failure
@@ -145,6 +153,23 @@ jobs:
         with:
           python-version: ${{ matrix.setup-python || '3.14' }}
           activate-environment: true
+
+      # A case that expects a failure follows a positive run on the same runner
+      - name: Positive run before a failure case (local)
+        if: ${{ !inputs.use-released && matrix.expect == 'failure' }}
+        uses: ./
+        with:
+          package-name: numpy
+          package-version: "2.4.1"
+          python-version: "3.14"
+
+      - name: Positive run before a failure case (released)
+        if: ${{ inputs.use-released && !matrix.local-only && matrix.expect == 'failure' }}
+        uses: durandtibo/uv-install-package-action@fe64eac38f69e851b5e79b74ee255ed95a159bc0 # ratchet:durandtibo/uv-install-package-action@v0.2.0
+        with:
+          package-name: numpy
+          package-version: "2.4.1"
+          python-version: "3.14"
 
       - name: Run the action (local)
         if: ${{ !inputs.use-released }}

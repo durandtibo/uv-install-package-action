@@ -103,8 +103,9 @@ Full end-to-end tests run in GitHub Actions workflows.
   expected outcome and outputs): free-threaded and auto-detected Python versions, an invalid
   version in `skip` and `fail` mode, wildcards, an incorrect or patch `python-version`, an invalid
   `invalid-version-mode`, an invalid `package-name` or `package-version`, and `uv-args` (a default
-  index as positive control, an unreachable index that must fail the install). Cases that need
-  unreleased behaviour are marked `local-only`
+  index as positive control, an unreachable index that must fail the install). A case that expects
+  a failure follows a positive run on the same runner, so it cannot fail for the wrong reason. Cases
+  that need unreleased behaviour are marked `local-only`
 - `ci-export.yaml` - Checks with `make check-export` that the release archive contains only
   `action.yaml`, `LICENSE` and `scripts/*.sh`
 - `nightly.yaml` - Calls `ci-action.yaml` with `use-released: true`: same edge cases and package
