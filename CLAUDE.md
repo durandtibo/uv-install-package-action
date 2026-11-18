@@ -21,8 +21,9 @@ judged against.
 - Run `make format` and `make lint` before committing. Fix what they report instead of disabling
   rules.
 - Run the shell tests with `bats tests/bats/` (install `bats-core` if missing) and the Python tests
-  with `pytest`. See `tests/TESTING.md`. Check the release archive with `make check-export`. Some
-  workflows cannot be run locally; say so in the PR instead of claiming they pass.
+  with `pytest`, or both with `make test`. See `tests/TESTING.md`. Check the release archive with
+  `make check-export`. Some workflows cannot be run locally; say so in the PR instead of claiming
+  they pass.
 
 ## Git workflow
 
@@ -154,6 +155,8 @@ Rules:
 steps.<released id>.outputs.x` and the outcome with `steps.local.outcome == 'skipped' &&
 steps.released.outcome || steps.local.outcome`. There is no `nightly-test-released.yaml`: one
   file for both versions, so they cannot drift apart.
+- Put the assertions shared by the local and released runs in one verify step per job (or row), not
+  in two workflows or two copies.
 - Edge cases are rows of the matrix in `ci-action-edge-cases.yaml` (a new case is a row, not a
   job). Mark a row `local-only: true` until the last release has the feature; the stable run skips
   it.
