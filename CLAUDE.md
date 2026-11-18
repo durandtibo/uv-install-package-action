@@ -7,10 +7,12 @@ Guidance for coding agents working in this repository.
 A GitHub composite action (`action.yaml`) that installs a Python package with
 [uv](https://github.com/astral-sh/uv), first checking (via `feu`) that the requested version is
 valid for the target Python version, and skipping installation when it is not. The logic lives in
-small bash scripts in `scripts/` (must work on GNU/Linux and BSD/macOS) tested with
+small bash scripts in `scripts/` (must work on GNU/Linux and BSD/macOS, including the bash 3.2 of
+macOS; Windows is not supported and not tested) tested with
 [bats](https://github.com/bats-core/bats-core) in `tests/bats/`. `tests/functional/` holds pytest
-tests, and `dev/` holds maintainer helpers (`generate_versions.py`, `config/`), not part of the
-action.
+tests, and `dev/` holds maintainer helpers (`check_export.sh`, `generate_versions.py`, `config/`),
+not part of the action. `review/target_state.md` records the properties (P1 to P11) the action is
+judged against.
 
 ## Environment
 
@@ -19,8 +21,8 @@ action.
 - Run `make format` and `make lint` before committing. Fix what they report instead of disabling
   rules.
 - Run the shell tests with `bats tests/bats/` (install `bats-core` if missing) and the Python tests
-  with `pytest`. See `tests/TESTING.md`. Some workflows cannot be run locally; say so in the PR
-  instead of claiming they pass.
+  with `pytest`. See `tests/TESTING.md`. Check the release archive with `make check-export`. Some
+  workflows cannot be run locally; say so in the PR instead of claiming they pass.
 
 ## Git workflow
 
@@ -58,10 +60,15 @@ action.
 ## Shell script rules (`scripts/*.sh`)
 
 - Must stay portable between GNU and BSD tools (`sed`, `xargs`, etc.).
+- Must run with the bash 3.2 of macOS: no associative arrays, `mapfile`, `${var,,}` or other
+  bash 4+ features (`ci-shell-bash32.yaml` checks it).
 - Keep logic in small single-purpose scripts so each can be unit tested. `action.yaml` calls them
   through `${{ github.action_path }}/scripts/`, so a new script goes in `scripts/` with its bats
   file.
-- Validate inputs early with clear `::error` messages.
+- Validate inputs early with clear `::error` messages. A real error (bad input, no uv, network
+  failure, failed install) exits non-zero with an `::error`; only an invalid version is skipped,
+  and only in `skip` mode.
+- Exit with an explicit status on every failure path (`exit 1`); never rely on `set -e` alone.
 - Quote all variables.
 - Code must pass `shellcheck` and `shfmt` via `make lint` / `make format`.
 
@@ -74,15 +81,18 @@ Files are prefixed by role:
   - `ci-format.yaml`, `ci-pre-commit.yaml`: format and lint checks.
   - `ci-shell.yaml`: bats tests on Linux and macOS.
   - `ci-shell-bash32.yaml`: bats tests with the system bash 3.2 of macOS.
+  - `ci-export.yaml`: checks the exported set (`make check-export`, `dev/check_export.sh`).
   - `ci-test.yaml`: Python tests.
-  - `ci-action.yaml`, `ci-action-edge-cases.yaml`: run the action from this checkout
-    (`uses: ./`), i.e. the version not released yet.
-  - `ci-action-deps.yaml`: reusable workflow that runs the action.
+  - `ci-action.yaml`: runs the action from this checkout (`uses: ./`), i.e. the version not
+    released yet. It calls `ci-action-deps.yaml` (one job per optional dependency, on the full
+    matrix) and `ci-action-edge-cases.yaml` (a table of edge cases).
 - `ci-verify-workflows.yaml`: lints the workflow files themselves. It has its own triggers and is not
   called from `ci.yaml`, so it can be a required check.
 - `nightly.yaml`: scheduled entry point that loads the test matrix and calls
-  `nightly-test-released.yaml`, which tests the latest released action on real packages (complements
-  `ci.yaml`, which tests the local version). It is not part of `ci.yaml`.
+  `nightly-test-released.yaml`, which tests the latest released action on real packages with the
+  same `ci-action-deps.yaml` and `ci-action-edge-cases.yaml` (`action-ref: stable`). It complements
+  `ci.yaml`, which tests the local version, and is not part of `ci.yaml`. Update the pinned release
+  in those two files when a new version is released.
 - `lib-*.yaml`: reusable workflows that load shared data (test matrix, package versions, deps,
   extras); callers pass results down through inputs.
 - `bot-*.yaml`: scheduled automation that opens PRs or acts on runs (format files, pin actions,
@@ -106,9 +116,59 @@ Conventions:
   invalid formats).
 - Every bug fix needs a regression test that fails without the fix.
 - If a check fails for a real reason, report it rather than weakening the test.
+- Keep `tests/TESTING.md` in step with the test files and workflows.
+
+## Testing strategy
+
+The strategy is the same for all the action repositories of `durandtibo`. This repository follows
+it with three levels:
+
+1. **Code**: each script, tested alone with mocks (bats for `scripts/`, pytest for
+   `tests/functional/`). It covers the logic and every edge case. No network.
+2. **Local action**: the action from this checkout (`uses: ./`) in a real workflow
+   (`ci-action.yaml`).
+3. **Released action**: the latest stable release (`uses: durandtibo/uv-install-package-action@<sha>`),
+   run nightly with the same cases as level 2 (`nightly-test-released.yaml`). Never run it on pull
+   requests.
+
+Rules:
+
+- Test a behaviour at the cheapest level that can show it. The action tests (levels 2 and 3) check
+  the contract and the wiring: inputs reach the script, outputs are set, the action fails on an
+  invalid input. Do not re-test a script's logic there; add it to level 1.
+- Split the action tests in two. **General behaviour** (each optional dependency of the package,
+  `ci-action-deps.yaml`) runs on the full matrix: `os_matrix` and `python_versions`. **Edge cases**
+  (one input, one invalid value, an unusual Python version) run once on one runner
+  (`ci-action-edge-cases.yaml`). The same matrix runs on pull requests, pushes and the schedule;
+  there is no reduced matrix.
+- Never write an OS or a Python version of the matrix in a workflow: read the lists from
+  `durandtibo/workflow-config-action` through `lib-get-test-matrix.yaml`. Package versions come
+  from `dev/config/package_versions.json` through `lib-get-package-versions.yaml`.
+- Each reusable test workflow takes `action-ref` (`local` or `stable`) and has two action steps,
+  `uses: ./` with `if: inputs.action-ref == 'local'` and the pinned release with
+  `if: inputs.action-ref == 'stable'`; the verify step reads `steps.<local id>.outputs.x ||
+steps.<stable id>.outputs.x`.
+- Edge cases are rows of the matrix in `ci-action-edge-cases.yaml` (a new case is a row, not a
+  job). Mark a row `local-only: true` until the last release has the feature; the stable run skips
+  it.
+- The action tests use the real uv, feu and PyPI, never a fake. The effect of an input is a level 1
+  test with mocks.
+- Every input has a case with an invalid value that asserts the action failed in the validation: it
+  can only fail if the input reached the script, so it proves the wiring. Assert the value or the
+  format of outputs (`is-valid-version`, `installed`, `installed-version`), never just print them.
+- Failure paths use `continue-on-error: true`, an `id`, and a step that asserts `steps.<id>.outcome`.
+  Assert an exact output, not a message. A negative test needs a positive run before it, so it
+  cannot pass for the wrong reason.
+- Tests have no side effects outside the runner. If something cannot be tested in CI, write down
+  which check covers it.
+- Check what is shipped: the exported set (`make check-export`) must contain every file the action
+  needs, because `uses: ./` runs the whole checkout and hides a missing file.
+- Set `timeout-minutes` and `fail-fast: false` on matrix jobs.
+- Keep the README inputs and outputs in step with `action.yaml`.
 
 ## Reporting
 
-- State which checks ran (`make lint`, `make format`, `bats tests/bats/`, `pytest`) and which did not.
+- State which checks ran (`make lint`, `make format`, `bats tests/bats/`, `pytest`,
+  `make check-export`) and which did not.
 - Note that CI was not awaited.
 - Report failures that already exist on `main` rather than hiding them.
