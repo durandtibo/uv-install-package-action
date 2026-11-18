@@ -31,12 +31,12 @@ setup() {
 
 @test "every input of action.yaml has a case that sets it" {
 	local input
-	for input in $(awk '/^inputs:/{f=1;next} /^[a-z]/{f=0} f && /^  [a-z-]+:/{sub(":","",$1); print $1}' "$ACTION"); do
+	while IFS= read -r input; do
 		jq -e --arg i "$input" 'any(.[]; .inputs | has($i))' "$CASES" >/dev/null || {
 			echo "no case sets $input" >&2
 			false
 		}
-	done
+	done < <(awk '/^inputs:/{f=1;next} /^[a-z]/{f=0} f && /^  [a-z-]+:/{sub(":","",$1); print $1}' "$ACTION")
 }
 
 @test "every validated input has a case with an invalid value that fails" {
