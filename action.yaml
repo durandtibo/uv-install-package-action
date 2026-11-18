@@ -144,17 +144,13 @@ runs:
       env:
         PACKAGE_NAME: ${{ inputs.package-name }}
         PACKAGE_VERSION: ${{ inputs.package-version }}
-        PYTHON_VERSION: ${{ steps.validate-python-version.outputs.python-version }}
         UV_ARGS: ${{ inputs.uv-args }}
       run: |
         set -euo pipefail
 
-        FEU_ARGS=(--installer-name=uv --installer-args="$UV_ARGS" --pkg-name="$PACKAGE_NAME" --pkg-version="$PACKAGE_VERSION")
-        if [ -n "$PYTHON_VERSION" ]; then
-          FEU_ARGS+=(--python-version="$PYTHON_VERSION")
-        fi
-
-        python -m feu install "${FEU_ARGS[@]}"
+        # feu install has no --python-version option: it installs in the interpreter
+        # that runs feu, which Step 2.2 already checked.
+        python -m feu install --installer-name=uv --installer-args="$UV_ARGS" --pkg-name="$PACKAGE_NAME" --pkg-version="$PACKAGE_VERSION"
         echo "Step 3.1: installed ${PACKAGE_NAME} (requested ${PACKAGE_VERSION})"
 
     # ============================================================================
