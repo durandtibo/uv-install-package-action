@@ -96,17 +96,17 @@ fails_with() {
 }
 
 @test "a failure case expects the failure" {
-	export CASE='{"id":"c","expect":"failure"}'
-	OUTCOME=failure VALID="" INSTALLED="" INSTALLED_VERSION="" run "$CHECK"
+	local case_json='{"id":"c","expect":"failure"}'
+	CASE="$case_json" OUTCOME=failure VALID="" INSTALLED="" INSTALLED_VERSION="" run "$CHECK"
 	[ "$status" -eq 0 ]
-	OUTCOME=success fails_with "outcome: expected 'failure', got 'success'"
+	CASE="$case_json" OUTCOME=success fails_with "outcome: expected 'failure', got 'success'"
 }
 
 @test "a failure case can assert the outputs of the validation" {
-	export CASE='{"id":"c","expect":"failure","valid":"false","installed":"false"}'
-	OUTCOME=failure VALID=false INSTALLED=false INSTALLED_VERSION="" run "$CHECK"
+	local case_json='{"id":"c","expect":"failure","valid":"false","installed":"false"}'
+	CASE="$case_json" OUTCOME=failure VALID=false INSTALLED=false INSTALLED_VERSION="" run "$CHECK"
 	[ "$status" -eq 0 ]
-	OUTCOME=failure VALID=true INSTALLED=false INSTALLED_VERSION="" fails_with "is-valid-version: expected 'false', got 'true'"
+	CASE="$case_json" OUTCOME=failure VALID=true INSTALLED=false INSTALLED_VERSION="" fails_with "is-valid-version: expected 'false', got 'true'"
 }
 
 @test "every problem is reported" {
