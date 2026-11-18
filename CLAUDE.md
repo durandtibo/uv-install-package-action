@@ -122,7 +122,8 @@ Conventions:
 ## Testing strategy
 
 The strategy is the same for all the action repositories of `durandtibo`. This repository follows
-it with three levels:
+it with three levels (`tests/TESTING.md` describes the test files, `review/target_state.md` the
+properties they protect):
 
 1. **Code**: each script, tested alone with mocks (bats for `scripts/`, pytest for
    `tests/functional/`). It covers the logic and every edge case. No network.
