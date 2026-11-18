@@ -94,20 +94,22 @@ Full end-to-end tests run in GitHub Actions workflows.
 **Key Workflows:**
 
 - `ci.yaml` - Entry point of the checks; calls the `ci-*.yaml` workflows below
-- `ci-test.yaml` - Functional tests across Python versions and OS platforms
-- `ci-action.yaml` - Tests local action changes (uses `./` action reference) with each optional
-  dependency of the package (`ci-action-deps.yaml`, which also asserts the `is-valid-version`,
+- `ci-python.yaml` - Functional tests across Python versions and OS platforms
+- `ci-action.yaml` - Tests the action in a real workflow. The input `use-released` (default
+  `false`) selects the action from this checkout (`uses: ./`) or the latest release. It tests each
+  optional dependency of the package (`ci-action-deps.yaml`, which also asserts the `is-valid-version`,
   `installed` and `installed-version` outputs) and with edge cases
   (`ci-action-edge-cases.yaml`). The edge cases are a table (one matrix entry per case, with the
   expected outcome and outputs): free-threaded and auto-detected Python versions, an invalid
   version in `skip` and `fail` mode, wildcards, an incorrect or patch `python-version`, an invalid
-  `invalid-version-mode`, and an invalid `package-name`. Cases that need unreleased behaviour are
-  marked `local-only`
+  `invalid-version-mode`, an invalid `package-name` or `package-version`, and `uv-args` (a default
+  index as positive control, an unreachable index that must fail the install). Cases that need
+  unreleased behaviour are marked `local-only`
 - `ci-export.yaml` - Checks with `make check-export` that the release archive contains only
   `action.yaml`, `LICENSE` and `scripts/*.sh`
-- `nightly.yaml` / `nightly-test-released.yaml` - Same edge cases and package matrix as
-  `ci-action.yaml`, but against the latest published release (run nightly, not on every PR) to
-  catch regressions between what's merged and what's tagged
+- `nightly.yaml` - Calls `ci-action.yaml` with `use-released: true`: same edge cases and package
+  matrix, but against the latest published release (run nightly, not on every PR) to catch
+  regressions between what's merged and what's tagged
 - `ci-shell.yaml` / `ci-shell-bash32.yaml` - Runs BATS shell tests in CI (the second one with the
   system bash 3.2 of macOS)
 
