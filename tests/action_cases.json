@@ -1,0 +1,140 @@
+[
+  {
+    "id": "valid-exact-version-with-python-version",
+    "inputs": { "python-version": "3.14" },
+    "expect": "success",
+    "valid": "true",
+    "installed": "true",
+    "version-prefix": "2.4.1",
+    "released": true
+  },
+  {
+    "id": "valid-exact-version-without-python-version",
+    "inputs": { "python-version": "" },
+    "expect": "success",
+    "valid": "true",
+    "installed": "true",
+    "version-prefix": "2.4.1",
+    "released": true
+  },
+  {
+    "id": "free-threaded-python-version",
+    "setup-python": "3.14t",
+    "inputs": { "python-version": "3.14t" },
+    "expect": "success",
+    "valid": "true",
+    "installed": "true",
+    "version-prefix": "2.4.1",
+    "released": true
+  },
+  {
+    "id": "free-threaded-python-version-auto-detected",
+    "setup-python": "3.14t",
+    "inputs": { "python-version": "" },
+    "expect": "success",
+    "valid": "true",
+    "installed": "true",
+    "version-prefix": "2.4.1",
+    "released": false
+  },
+  {
+    "id": "invalid-exact-version-is-skipped",
+    "inputs": { "python-version": "3.9" },
+    "expect": "success",
+    "valid": "false",
+    "installed": "false",
+    "released": true
+  },
+  {
+    "id": "invalid-exact-version-fails-in-fail-mode",
+    "inputs": { "python-version": "3.9", "invalid-version-mode": "fail" },
+    "expect": "failure",
+    "valid": "false",
+    "installed": "false",
+    "released": false
+  },
+  {
+    "id": "valid-wildcard",
+    "inputs": { "package-version": "2.4.*", "python-version": "3.14" },
+    "expect": "success",
+    "valid": "true",
+    "installed": "true",
+    "version-prefix": "2.4.",
+    "released": false
+  },
+  {
+    "id": "wildcard-matching-no-release-is-skipped",
+    "inputs": { "package-version": "9.9.*", "python-version": "3.14" },
+    "expect": "success",
+    "valid": "false",
+    "installed": "false",
+    "released": false
+  },
+  {
+    "id": "wildcard-not-valid-for-the-python-version-is-skipped",
+    "inputs": { "package-version": "2.4.*", "python-version": "3.9" },
+    "expect": "success",
+    "valid": "false",
+    "installed": "false",
+    "released": false
+  },
+  {
+    "id": "invalid-python-version-format",
+    "inputs": { "python-version": "v3.14" },
+    "expect": "failure",
+    "released": true
+  },
+  {
+    "id": "invalid-python-version-patch",
+    "inputs": { "python-version": "3.14.0" },
+    "expect": "failure",
+    "released": false
+  },
+  {
+    "id": "invalid-package-name-empty",
+    "inputs": { "package-name": " ", "python-version": "3.14" },
+    "expect": "failure",
+    "released": true
+  },
+  {
+    "id": "invalid-package-name-option",
+    "inputs": { "package-name": "--pre", "python-version": "3.14" },
+    "expect": "failure",
+    "released": false
+  },
+  {
+    "id": "invalid-package-version",
+    "inputs": { "package-version": "-1.0", "python-version": "3.14" },
+    "expect": "failure",
+    "released": false
+  },
+  {
+    "id": "uv-args-positive-control-default-index",
+    "inputs": {
+      "python-version": "3.14",
+      "uv-args": "--index-url https://pypi.org/simple"
+    },
+    "expect": "success",
+    "valid": "true",
+    "installed": "true",
+    "version-prefix": "2.4.1",
+    "released": false
+  },
+  {
+    "id": "uv-args-unreachable-index-fails-the-install",
+    "inputs": {
+      "package-name": "six",
+      "package-version": "1.17.0",
+      "python-version": "3.14",
+      "uv-args": "--index-url http://127.0.0.1:9/simple"
+    },
+    "expect": "failure",
+    "released": false
+  },
+  {
+    "id": "invalid-version-mode",
+    "inputs": { "python-version": "3.14", "invalid-version-mode": "ignore" },
+    "expect": "failure",
+    "released": false
+  }
+]
