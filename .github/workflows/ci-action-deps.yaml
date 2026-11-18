@@ -71,38 +71,22 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       # An output regression fails here instead of silently skipping the functional tests.
-      # `installed` does not exist in the released version.
+      # `installed` and `installed-version` do not exist in the released version. The install steps
+      # have no continue-on-error: reaching this step means that the action succeeded.
       - name: Check the outputs
         shell: bash
         env:
+          CASE: '{"id":"install-package","expect":"success"}'
+          OUTCOME: success
           USE_RELEASED: ${{ inputs.use-released }}
           VALID: ${{ steps.install-package-local.outputs.is-valid-version || steps.install-package-released.outputs.is-valid-version }}
           INSTALLED: ${{ steps.install-package-local.outputs.installed }}
           INSTALLED_VERSION: ${{ steps.install-package-local.outputs.installed-version }}
         run: |
           set -euo pipefail
-
-          if [ "$VALID" != "true" ] && [ "$VALID" != "false" ]; then
-            echo "::error::is-valid-version must be 'true' or 'false', got '$VALID'"
-            exit 1
-          fi
-
-          if [ "$USE_RELEASED" != "true" ]; then
-            if [ "$INSTALLED" != "$VALID" ]; then
-              echo "::error::installed ('$INSTALLED') must equal is-valid-version ('$VALID')"
-              exit 1
-            fi
-            if [ "$INSTALLED" = "true" ] && [ -z "$INSTALLED_VERSION" ]; then
-              echo "::error::installed-version is empty although the package was installed"
-              exit 1
-            fi
-            if [ "$INSTALLED" = "false" ] && [ -n "$INSTALLED_VERSION" ]; then
-              echo "::error::installed-version must be empty when the installation was skipped"
-              exit 1
-            fi
-          fi
+          ./dev/check_action_case.sh
 
       - name: Run functional tests
         if: steps.install-package-local.outputs.is-valid-version == 'true' || steps.install-package-released.outputs.is-valid-version == 'true'
         run: |
-          python -m pytest tests/functional
+          make test-functional

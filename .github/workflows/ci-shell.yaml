@@ -42,7 +42,9 @@ jobs:
           bats --version
 
       - name: Run unit tests
+        env:
+          OS: ${{ matrix.os }}
         run: |
-          echo "🧪 Running tests on ${{ matrix.os }}..."
-          bats --recursive tests/bats/
+          echo "🧪 Running tests on $OS..."
+          make test-bats
           echo "✅ All tests passed"

@@ -5,9 +5,16 @@ include .make/all.mk
 .PHONY: all
 all: format lint test ## Format, lint and test
 
+.PHONY: test-bats
+test-bats: ## Run the bats tests of the shell scripts
+	bats --recursive tests/bats/
+
+.PHONY: test-functional
+test-functional: ## Run the functional tests (pytest)
+	pytest tests/functional
+
 .PHONY: test
-test: ## Run the bats and pytest tests
-	bats tests/bats/
+test: test-bats ## Run the bats and pytest tests
 	pytest
 
 .PHONY: check-export

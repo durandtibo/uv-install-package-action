@@ -1,24 +1,20 @@
-# Reusable workflow testing the action on edge cases, driven by a table of cases (the matrix
-# below). Each case runs the action once and asserts the outcome (success or failure) and the
-# outputs: Python versions with a free-threaded build, no/incorrect/patch Python version, an
-# invalid version in `skip` and `fail` mode, wildcards, an invalid mode and an invalid package name.
+# Reusable workflow testing the action on edge cases, on one runner. The cases are data: one row
+# of tests/action_cases.json per matrix cell, so a new case is a new row, not a new job. Each case
+# runs the action once and asserts the outcome (success or failure) and the outputs with
+# dev/check_action_case.sh, shared by the local and the released run: Python versions with a
+# free-threaded build, no/incorrect/patch Python version, an invalid version in `skip` and `fail`
+# mode, wildcards, an invalid mode, an invalid package name or version, and `uv-args`.
 # Called by ci-action.yaml, with use-released false (current checkout, from ci.yaml) or true
 # (latest release, from nightly.yaml). Update the pinned release below when a new version is released.
-# Cases marked `local-only` need behaviour that is not released yet, so they are skipped for the
-# released version.
 #
-# Columns of the table (the defaults apply when a column is omitted):
-#   name              display name of the case
-#   setup-python      Python (and build) given to setup-uv (default 3.14)
-#   package-name      input of the action (default numpy; a blank name is an empty name)
-#   package-version   input of the action (default 2.4.1)
-#   python-version    input of the action (always set: an empty value is auto-detected)
-#   uv-args           input of the action (default empty)
-#   mode              invalid-version-mode input (default skip)
-#   expect            `success` (default) or `failure`: expected outcome of the action step
-#   valid, installed  expected outputs `is-valid-version` and `installed` (not asserted when empty)
-#   version-prefix    expected prefix of the output `installed-version` (not asserted when empty)
-#   local-only        skip the case when testing the released version
+# A row has "released": false until the last release has the feature: the released run skips it.
+# The columns of a row are described in dev/check_action_case.sh. The row inputs are the inputs of
+# the action; the other fields are:
+#   id               name of the case
+#   setup-python     Python (and build) given to setup-uv (default 3.14)
+#   expect           `success` or `failure`: expected outcome of the action step
+#   valid, installed expected outputs `is-valid-version` and `installed` (not asserted when absent)
+#   version-prefix   expected prefix of the output `installed-version` (not asserted when absent)
 #
 # A case that expects a failure follows a positive run of the action on the same runner (the
 # default numpy install), so that it cannot fail for the wrong reason (no uv, no network). The case
@@ -38,8 +34,37 @@ on:
 permissions: {}
 
 jobs:
+  # The cases of the edge case tests, as a matrix. The released run only gets the rows that the
+  # last release supports.
+  get-cases:
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      cases: ${{ steps.cases.outputs.cases }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # ratchet:actions/checkout@v7
+
+      - name: Read the cases
+        id: cases
+        shell: bash
+        env:
+          USE_RELEASED: ${{ inputs.use-released }}
+        run: |
+          set -euo pipefail
+          if [ "$USE_RELEASED" = "true" ]; then
+            cases=$(jq -c 'map(select(.released))' tests/action_cases.json)
+          else
+            cases=$(jq -c '.' tests/action_cases.json)
+          fi
+          echo "cases=$cases" >> "$GITHUB_OUTPUT"
+
+  # Edge cases on one runner: one row of tests/action_cases.json per cell
   edge-case:
-    name: ${{ matrix.name }}
+    name: ${{ matrix.case.id }}
+    needs: get-cases
     permissions:
       contents: read
     runs-on: ubuntu-latest
@@ -48,115 +73,21 @@ jobs:
       max-parallel: 8
       fail-fast: false
       matrix:
-        include:
-          - name: valid exact version with a Python version
-            python-version: "3.14"
-            valid: "true"
-            installed: "true"
-            version-prefix: "2.4.1"
-          - name: valid exact version without a Python version
-            python-version: ""
-            valid: "true"
-            installed: "true"
-            version-prefix: "2.4.1"
-          - name: free-threaded Python version
-            setup-python: "3.14t"
-            python-version: "3.14t"
-            valid: "true"
-            installed: "true"
-            version-prefix: "2.4.1"
-          - name: free-threaded Python version auto-detected
-            setup-python: "3.14t"
-            python-version: ""
-            valid: "true"
-            installed: "true"
-            version-prefix: "2.4.1"
-            local-only: true
-          - name: invalid exact version is skipped
-            python-version: "3.9"
-            valid: "false"
-            installed: "false"
-          - name: invalid exact version fails in fail mode
-            python-version: "3.9"
-            mode: fail
-            expect: failure
-            valid: "false"
-            installed: "false"
-            local-only: true
-          - name: valid wildcard
-            package-version: "2.4.*"
-            python-version: "3.14"
-            valid: "true"
-            installed: "true"
-            version-prefix: "2.4."
-            local-only: true
-          - name: wildcard matching no release is skipped
-            package-version: "9.9.*"
-            python-version: "3.14"
-            valid: "false"
-            installed: "false"
-            local-only: true
-          - name: wildcard not valid for the Python version is skipped
-            package-version: "2.4.*"
-            python-version: "3.9"
-            valid: "false"
-            installed: "false"
-            local-only: true
-          - name: incorrect Python version
-            python-version: v3.14
-            expect: failure
-          - name: patch Python version is rejected
-            python-version: "3.14.0"
-            expect: failure
-            local-only: true
-          - name: empty package name
-            package-name: " "
-            python-version: "3.14"
-            expect: failure
-          - name: package name that is an option
-            package-name: "--pre"
-            python-version: "3.14"
-            expect: failure
-            local-only: true
-          - name: invalid package version
-            package-version: "-1.0"
-            python-version: "3.14"
-            expect: failure
-            local-only: true
-          - name: uv-args reach uv (positive control, default index)
-            python-version: "3.14"
-            uv-args: "--index-url https://pypi.org/simple"
-            valid: "true"
-            installed: "true"
-            version-prefix: "2.4.1"
-            local-only: true
-          - name: uv-args reach uv (unreachable index fails the install)
-            package-name: six
-            package-version: "1.17.0"
-            python-version: "3.14"
-            uv-args: "--index-url http://127.0.0.1:9/simple"
-            expect: failure
-            local-only: true
-          - name: invalid mode
-            python-version: "3.14"
-            mode: ignore
-            expect: failure
-            local-only: true
+        case: ${{ fromJson(needs.get-cases.outputs.cases) }}
 
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # ratchet:actions/checkout@v7
 
       - name: Install uv and set the python version
-        if: ${{ !inputs.use-released || !matrix.local-only }}
         uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # ratchet:astral-sh/setup-uv@v10.3.3
         with:
-          python-version: ${{ matrix.setup-python || '3.14' }}
+          python-version: ${{ matrix.case.setup-python || '3.14' }}
           activate-environment: true
 
       # A case that expects a failure follows a positive run on the same runner
       - name: Positive run before a failure case (local)
-        if: ${{ !inputs.use-released && matrix.expect == 'failure' }}
+        if: ${{ !inputs.use-released && matrix.case.expect == 'failure' }}
         uses: ./
         with:
           package-name: numpy
@@ -164,7 +95,7 @@ jobs:
           python-version: "3.14"
 
       - name: Positive run before a failure case (released)
-        if: ${{ inputs.use-released && !matrix.local-only && matrix.expect == 'failure' }}
+        if: ${{ inputs.use-released && matrix.case.expect == 'failure' }}
         uses: durandtibo/uv-install-package-action@fe64eac38f69e851b5e79b74ee255ed95a159bc0 # ratchet:durandtibo/uv-install-package-action@v0.2.0
         with:
           package-name: numpy
@@ -174,60 +105,38 @@ jobs:
       - name: Run the action (local)
         if: ${{ !inputs.use-released }}
         id: local
+        continue-on-error: true
         uses: ./
         with:
-          package-name: ${{ matrix.package-name || 'numpy' }}
-          package-version: ${{ matrix.package-version || '2.4.1' }}
-          python-version: ${{ matrix.python-version }}
-          invalid-version-mode: ${{ matrix.mode || 'skip' }}
-          uv-args: ${{ matrix.uv-args || '' }}
-        continue-on-error: true
+          package-name: ${{ matrix.case.inputs['package-name'] || 'numpy' }}
+          package-version: ${{ matrix.case.inputs['package-version'] || '2.4.1' }}
+          python-version: ${{ matrix.case.inputs['python-version'] }}
+          invalid-version-mode: ${{ matrix.case.inputs['invalid-version-mode'] || 'skip' }}
+          uv-args: ${{ matrix.case.inputs['uv-args'] || '' }}
 
+      # The released version has no input invalid-version-mode and uv-args, and the rows that set
+      # them have "released": false
       - name: Run the action (released)
-        if: ${{ inputs.use-released && !matrix.local-only }}
+        if: ${{ inputs.use-released }}
         id: released
+        continue-on-error: true
         uses: durandtibo/uv-install-package-action@fe64eac38f69e851b5e79b74ee255ed95a159bc0 # ratchet:durandtibo/uv-install-package-action@v0.2.0
         with:
-          package-name: ${{ matrix.package-name || 'numpy' }}
-          package-version: ${{ matrix.package-version || '2.4.1' }}
-          python-version: ${{ matrix.python-version }}
-        continue-on-error: true
+          package-name: ${{ matrix.case.inputs['package-name'] || 'numpy' }}
+          package-version: ${{ matrix.case.inputs['package-version'] || '2.4.1' }}
+          python-version: ${{ matrix.case.inputs['python-version'] }}
 
-      # `installed` and `installed-version` do not exist in the released version
-      - name: Assert the outcome and the outputs
-        if: ${{ !inputs.use-released || !matrix.local-only }}
+      # A skipped step has no outputs and the outcome `skipped`. `installed` and
+      # `installed-version` do not exist in the released version.
+      - name: Check the case
         shell: bash
         env:
+          CASE: ${{ toJson(matrix.case) }}
           USE_RELEASED: ${{ inputs.use-released }}
-          EXPECT: ${{ matrix.expect || 'success' }}
-          EXPECT_VALID: ${{ matrix.valid }}
-          EXPECT_INSTALLED: ${{ matrix.installed }}
-          EXPECT_VERSION_PREFIX: ${{ matrix.version-prefix }}
           OUTCOME: ${{ steps.local.outcome == 'skipped' && steps.released.outcome || steps.local.outcome }}
           VALID: ${{ steps.local.outputs.is-valid-version || steps.released.outputs.is-valid-version }}
           INSTALLED: ${{ steps.local.outputs.installed }}
           INSTALLED_VERSION: ${{ steps.local.outputs.installed-version }}
         run: |
           set -euo pipefail
-
-          fail=0
-          check() { # check <what> <actual> <expected>
-            if [ "$2" != "$3" ]; then
-              echo "::error::$1: expected '$3', got '$2'"
-              fail=1
-            fi
-          }
-
-          check "outcome" "$OUTCOME" "$EXPECT"
-          if [ -n "$EXPECT_VALID" ]; then
-            check "is-valid-version" "$VALID" "$EXPECT_VALID"
-          fi
-          if [ "$USE_RELEASED" != "true" ]; then
-            if [ -n "$EXPECT_INSTALLED" ]; then
-              check "installed" "$INSTALLED" "$EXPECT_INSTALLED"
-            fi
-            if [ -n "$EXPECT_VERSION_PREFIX" ]; then
-              check "installed-version prefix" "${INSTALLED_VERSION:0:${#EXPECT_VERSION_PREFIX}}" "$EXPECT_VERSION_PREFIX"
-            fi
-          fi
-          exit "$fail"
+          ./dev/check_action_case.sh

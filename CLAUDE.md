@@ -10,8 +10,9 @@ valid for the target Python version, and skipping installation when it is not. T
 small bash scripts in `scripts/` (must work on GNU/Linux and BSD/macOS, including the bash 3.2 of
 macOS; Windows is not supported and not tested) tested with
 [bats](https://github.com/bats-core/bats-core) in `tests/bats/`. `tests/functional/` holds pytest
-tests, and `dev/` holds maintainer helpers (`check_export.sh`, `generate_versions.py`, `config/`),
-not part of the action. `review/target_state.md` records the properties (P1 to P11) the action is
+tests, `tests/action_cases.json` the edge cases of the action tests, and `dev/` holds maintainer
+helpers (`check_export.sh`, `check_action_case.sh`, `generate_versions.py`, `config/`), not part of
+the action. `review/target_state.md` records the properties (P1 to P11) the action is
 judged against.
 
 ## Environment
@@ -107,7 +108,8 @@ Conventions:
   has `permissions: {}` at the workflow level (it grants nothing), never a grant.
 - Each `ci-*` check is a `workflow_call` workflow that also has `workflow_dispatch`, so it can be run
   alone. Add a new check as a new `ci-<name>.yaml` plus a job in `ci.yaml`.
-- Put `make` targets in the steps rather than duplicating commands, so local runs and CI match.
+- Put `make` targets in the steps rather than duplicating commands, so local runs and CI match
+  (`make test-bats`, `make test-functional`, `make check-export`, ...).
 - Start each file with a comment saying what it does, and update it when the behaviour changes.
 
 ## Tests
@@ -156,10 +158,12 @@ steps.<released id>.outputs.x` and the outcome with `steps.local.outcome == 'ski
 steps.released.outcome || steps.local.outcome`. There is no `nightly-test-released.yaml`: one
   file for both versions, so they cannot drift apart.
 - Put the assertions shared by the local and released runs in one verify step per job (or row), not
-  in two workflows or two copies.
-- Edge cases are rows of the matrix in `ci-action-edge-cases.yaml` (a new case is a row, not a
-  job). Mark a row `local-only: true` until the last release has the feature; the stable run skips
-  it.
+  in two workflows or two copies. The verify step calls `dev/check_action_case.sh` (tested in
+  `tests/bats/test_check_action_case.bats`), which takes the case as JSON and the outputs through
+  `env:`.
+- Edge cases are data: rows of `tests/action_cases.json`, read by `ci-action-edge-cases.yaml` (a new
+  case is a row, not a job; `tests/bats/test_action_cases.bats` checks the table). Set
+  `"released": false` on a row until the last release has the feature; the stable run skips it.
 - The action tests use the real uv, feu and PyPI, never a fake. The effect of an input is a level 1
   test with mocks.
 - Every input has a case with an invalid value that asserts the action failed in the validation: it

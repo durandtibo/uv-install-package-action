@@ -21,6 +21,11 @@ Testing System).
   input validation script
 - `test_get_installed_version.bats` - Tests for the script that reads the installed version with
   `uv pip show` (mocked `uv`)
+- `test_check_action_case.bats` - Tests for `dev/check_action_case.sh`, the verify step shared by
+  the local and the released action tests (outcome, format and invariants of the outputs)
+- `test_action_cases.bats` - Checks the table of edge cases `tests/action_cases.json`: unique ids,
+  required fields, every input of `action.yaml` is set by a case, every validated input has a
+  failing case
 
 **Coverage:**
 
@@ -58,7 +63,7 @@ sudo apt-get install bats
 
 ```bash
 # Run all BATS tests
-bats --recursive tests/bats/
+make test-bats
 
 # Run with timing information
 bats --recursive --timing tests/bats/
@@ -82,7 +87,7 @@ Tests that verify installed packages can be imported and used correctly.
 
 ```bash
 # Run functional tests
-pytest tests/functional/
+make test-functional
 ```
 
 ### 3. Integration Tests (GitHub Actions)
@@ -97,15 +102,17 @@ Full end-to-end tests run in GitHub Actions workflows.
 - `ci-python.yaml` - Functional tests across Python versions and OS platforms
 - `ci-action.yaml` - Tests the action in a real workflow. The input `use-released` (default
   `false`) selects the action from this checkout (`uses: ./`) or the latest release. It tests each
-  optional dependency of the package (`ci-action-deps.yaml`, which also asserts the `is-valid-version`,
-  `installed` and `installed-version` outputs) and with edge cases
-  (`ci-action-edge-cases.yaml`). The edge cases are a table (one matrix entry per case, with the
-  expected outcome and outputs): free-threaded and auto-detected Python versions, an invalid
-  version in `skip` and `fail` mode, wildcards, an incorrect or patch `python-version`, an invalid
-  `invalid-version-mode`, an invalid `package-name` or `package-version`, and `uv-args` (a default
-  index as positive control, an unreachable index that must fail the install). A case that expects
-  a failure follows a positive run on the same runner, so it cannot fail for the wrong reason. Cases
-  that need unreleased behaviour are marked `local-only`
+  optional dependency of the package (`ci-action-deps.yaml`) and with edge cases
+  (`ci-action-edge-cases.yaml`). Both assert the outcome and the `is-valid-version`, `installed`
+  and `installed-version` outputs with `dev/check_action_case.sh`, for the local and the released
+  action. The edge cases are data, a table in `tests/action_cases.json` (one matrix cell per row,
+  with the expected outcome and outputs, and a `released` flag): free-threaded and auto-detected
+  Python versions, an invalid version in `skip` and `fail` mode, wildcards, an incorrect or patch
+  `python-version`, an invalid `invalid-version-mode`, an invalid `package-name` or
+  `package-version`, and `uv-args` (a default index as positive control, an unreachable index that
+  must fail the install). A case that expects a failure follows a positive run on the same runner,
+  so it cannot fail for the wrong reason. Cases that need unreleased behaviour have
+  `"released": false` and are skipped for the released action
 - `ci-export.yaml` - Checks with `make check-export` that the release archive contains only
   `action.yaml`, `LICENSE` and `scripts/*.sh`
 - `nightly.yaml` - Calls `ci-action.yaml` with `use-released: true`: same edge cases and package
@@ -116,9 +123,28 @@ Full end-to-end tests run in GitHub Actions workflows.
 
 **Coverage:**
 
-- Multiple Python versions (3.10-3.14, plus free-threaded `3.13t`/`3.14t` variants)
-- Multiple OS platforms (Ubuntu, macOS, including ARM variants)
-- Real package installations with various versions
+- Multiple Python versions and OS platforms: both lists come from `durandtibo/workflow-config-action`
+  through `lib-get-test-matrix.yaml` (`python_versions`: the standard versions plus the free-threaded
+  ones; `os_matrix`: the Ubuntu and macOS runners, including ARM variants). Windows is not supported
+  and not tested
+- Real package installations with various versions (`dev/config/package_versions.json`)
+
+**Cost of a run (cells per run).** The same matrix runs on pull requests, pushes and the schedule
+(there is no reduced matrix). With the lists loaded on 2026-11-18 (13 runners, 8 Python versions,
+so 104 OS x Python cells):
+
+| Job                                 | Cells                                                  |
+| ----------------------------------- | ------------------------------------------------------ |
+| `ci-shell.yaml`                     | 13 (`os_matrix`)                                       |
+| `ci-shell-bash32.yaml`              | 5 (`os_macos`)                                         |
+| `ci-python.yaml`                    | 208 (2 jobs x 104)                                     |
+| `ci-action-deps.yaml` (general)     | 15288 (147 package versions in 14 extras x 104)        |
+| `ci-action-edge-cases.yaml` (edges) | 17 rows on `ubuntu-latest` (6 for the released action) |
+| `ci-export.yaml`                    | 1                                                      |
+
+The general behaviour is the only job that crosses the whole matrix; the edge cases never do. The
+count changes with the lists of `workflow-config-action` and with `dev/config/package_versions.json`
+(`bot-generate-package-versions.yaml`).
 
 **Running:**
 
