@@ -85,7 +85,8 @@ Files are prefixed by role:
 
 - `ci.yaml`: entry point for pull requests, pushes to `main`, a nightly schedule and manual runs. It
   holds no steps, only jobs that call the reusable `ci-*.yaml` workflows below.
-  - `ci-format.yaml`, `ci-pre-commit.yaml`: format and lint checks, and the bats-assertion check
+  - `ci-format.yaml`, `ci-pre-commit.yaml`: format and lint checks (`make format`, `make lint`,
+    `make check-python`, `make pre-commit`), and the bats-assertion check
     (`make check-bats-assertions`, `dev/check_bats_assertions.sh`).
   - `ci-shell.yaml`: bats tests on Linux and macOS.
   - `ci-shell-bash32.yaml`: bats tests with the system bash 3.2 of macOS.
@@ -115,7 +116,8 @@ Conventions:
 - Each `ci-*` check is a `workflow_call` workflow that also has `workflow_dispatch`, so it can be run
   alone. Add a new check as a new `ci-<name>.yaml` plus a job in `ci.yaml`.
 - Put `make` targets in the steps rather than duplicating commands, so local runs and CI match
-  (`make test-bats`, `make test-functional`, `make check-export`, ...).
+  (`make test-bats`, `make test-functional`, `make check-python`, `make check-export`, ...). A
+  command that CI runs and that has no target gets one in the `Makefile` (never in `.make/`).
 - Start each file with a comment saying what it does, and update it when the behaviour changes.
 
 ## Tests
@@ -193,8 +195,9 @@ steps.released.outcome || steps.local.outcome`. There is no `nightly-test-releas
   which check covers it.
 - Check what is shipped: the exported set (`make check-export`) must contain every file the action
   needs, because `uses: ./` runs the whole checkout and hides a missing file.
-- Set `timeout-minutes`, `fail-fast: false` and `max-parallel` on matrix jobs. Keep the count of
-  cells per run in `tests/TESTING.md` up to date when a matrix changes.
+- Set `timeout-minutes`, `fail-fast: false` and `max-parallel` on matrix jobs (a job that calls a
+  reusable workflow cannot set `timeout-minutes`, but still sets `fail-fast` and `max-parallel`).
+  Keep the count of cells per run in `tests/TESTING.md` up to date when a matrix changes.
 - Keep the README inputs and outputs in step with `action.yaml`
   (`tests/bats/test_action_readme_sync.bats`).
 
@@ -204,3 +207,9 @@ steps.released.outcome || steps.local.outcome`. There is no `nightly-test-releas
   `make check-export`, `make check-bats-assertions`) and which did not.
 - Note that CI was not awaited.
 - Report failures that already exist on `main` rather than hiding them.
+
+## Decisions on the testing strategy
+
+- No mutation check (`cancel-queued-runs-action` has one): `review/testing.md` makes it optional
+  and worth it for a script of several hundred lines. The scripts here are 20 to 60 lines, each with
+  its own bats file, and the bats-assertion check covers the vacuous-pass risk on bash 3.2.

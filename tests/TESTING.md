@@ -120,6 +120,8 @@ Full end-to-end tests run in GitHub Actions workflows.
   must fail the install). A case that expects a failure follows a positive run on the same runner,
   so it cannot fail for the wrong reason. Cases that need unreleased behaviour have
   `"released": false` and are skipped for the released action
+- `ci-format.yaml` / `ci-pre-commit.yaml` - Format and lint checks, through the make targets
+  `make format`, `make lint`, `make check-bats-assertions`, `make check-python` and `make pre-commit`
 - `ci-export.yaml` - Checks with `make check-export` that the release archive contains only
   `action.yaml`, `LICENSE` and `scripts/*.sh`
 - `nightly.yaml` - Calls `ci-action.yaml` with `use-released: true`: same edge cases and package
