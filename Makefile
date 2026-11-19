@@ -26,10 +26,6 @@ check-python: ## Check the formatting and the lint of the Python files (needs in
 	inv format.check-python
 	inv lint.check-python
 
-.PHONY: check-types
-check-types: ## Check the type annotations of the Python files with ty and pyright (needs invoke)
-	inv types.check --complete
-
 .PHONY: pre-commit
 pre-commit: ## Run the pre-commit hooks on all files
 	pre-commit run --show-diff-on-failure --color=always --all-files

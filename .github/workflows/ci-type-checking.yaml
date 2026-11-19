@@ -1,6 +1,6 @@
 # Type checking workflow.
 # Validates the type annotations of the Python files (dev/ and tests/) with ty and pyright
-# (make check-types), to catch type-related bugs before runtime.
+# (inv types.check --complete), to catch type-related bugs before runtime.
 
 name: Type Checking
 on:
@@ -28,4 +28,4 @@ jobs:
       # Type-check the Python files with ty and pyright
       - name: Check types
         run: |
-          make check-types
+          inv types.check --complete
