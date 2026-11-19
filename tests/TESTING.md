@@ -26,6 +26,9 @@ Testing System).
 - `test_action_cases.bats` - Checks the table of edge cases `tests/action_cases.json`: unique ids,
   required fields, every input of `action.yaml` is set by a case, every validated input has a
   failing case
+- `test_check_bats_assertions.bats` - Tests for `dev/check_bats_assertions.sh`, which rejects the
+  `[[ ]]` and `! cmd` assertions without `|| false` (they pass vacuously on bash 3.2 when they are
+  not the last command of a test). Run on the repository by `make check-bats-assertions`
 - `test_action_readme_sync.bats` - Checks that `action.yaml` and `README.md` list the same inputs
   and outputs with the same required flags and defaults, and that every input reaches the scripts
   through `env:` (never interpolated in a `run:` block). Its last tests run the helpers on modified

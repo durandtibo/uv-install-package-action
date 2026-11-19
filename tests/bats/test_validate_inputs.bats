@@ -51,7 +51,7 @@ setup() {
 @test "mode defaults to skip when omitted" {
 	run "$SCRIPT" "numpy" "1.2.3"
 	[ "$status" -eq 0 ]
-	[[ "$output" =~ "mode 'skip'" ]]
+	[[ "$output" =~ "mode 'skip'" ]] || false
 }
 
 # package-name
@@ -59,43 +59,43 @@ setup() {
 @test "empty package-name fails" {
 	run "$SCRIPT" "" "1.2.3"
 	[ "$status" -eq 1 ]
-	[[ "$output" =~ "package-name cannot be empty" ]]
+	[[ "$output" =~ "package-name cannot be empty" ]] || false
 }
 
 @test "package-name with whitespace fails" {
 	run "$SCRIPT" "num py" "1.2.3"
 	[ "$status" -eq 1 ]
-	[[ "$output" =~ "not a valid package name" ]]
+	[[ "$output" =~ "not a valid package name" ]] || false
 }
 
 @test "package-name with leading space fails" {
 	run "$SCRIPT" " numpy" "1.2.3"
 	[ "$status" -eq 1 ]
-	[[ "$output" =~ "not a valid package name" ]]
+	[[ "$output" =~ "not a valid package name" ]] || false
 }
 
 @test "package-name with tab character fails" {
 	run "$SCRIPT" "$(printf 'num\tpy')" "1.2.3"
 	[ "$status" -eq 1 ]
-	[[ "$output" =~ "not a valid package name" ]]
+	[[ "$output" =~ "not a valid package name" ]] || false
 }
 
 @test "package-name '-e' fails" {
 	run "$SCRIPT" "-e" "1.2.3"
 	[ "$status" -eq 1 ]
-	[[ "$output" =~ "not a valid package name" ]]
+	[[ "$output" =~ "not a valid package name" ]] || false
 }
 
 @test "package-name '--pre' fails" {
 	run "$SCRIPT" "--pre" "1.2.3"
 	[ "$status" -eq 1 ]
-	[[ "$output" =~ "not a valid package name" ]]
+	[[ "$output" =~ "not a valid package name" ]] || false
 }
 
 @test "package-name that is a VCS url fails" {
 	run "$SCRIPT" "git+https://github.com/org/repo" "1.2.3"
 	[ "$status" -eq 1 ]
-	[[ "$output" =~ "not a valid package name" ]]
+	[[ "$output" =~ "not a valid package name" ]] || false
 }
 
 @test "package-name ending with a hyphen fails" {
@@ -113,25 +113,25 @@ setup() {
 @test "empty package-version fails" {
 	run "$SCRIPT" "numpy" ""
 	[ "$status" -eq 1 ]
-	[[ "$output" =~ "package-version cannot be empty" ]]
+	[[ "$output" =~ "package-version cannot be empty" ]] || false
 }
 
 @test "whitespace-only package-version fails" {
 	run "$SCRIPT" "numpy" " "
 	[ "$status" -eq 1 ]
-	[[ "$output" =~ "package-version cannot contain whitespace" ]]
+	[[ "$output" =~ "package-version cannot contain whitespace" ]] || false
 }
 
 @test "package-version with inner whitespace fails" {
 	run "$SCRIPT" "numpy" "1.2 3"
 	[ "$status" -eq 1 ]
-	[[ "$output" =~ "package-version cannot contain whitespace" ]]
+	[[ "$output" =~ "package-version cannot contain whitespace" ]] || false
 }
 
 @test "package-version with leading '-' fails" {
 	run "$SCRIPT" "numpy" "--pre"
 	[ "$status" -eq 1 ]
-	[[ "$output" =~ "cannot start with '-'" ]]
+	[[ "$output" =~ "cannot start with '-'" ]] || false
 }
 
 # invalid-version-mode
@@ -139,7 +139,7 @@ setup() {
 @test "mode 'ignore' fails" {
 	run "$SCRIPT" "numpy" "1.2.3" "ignore"
 	[ "$status" -eq 1 ]
-	[[ "$output" =~ "invalid-version-mode must be 'skip' or 'fail'" ]]
+	[[ "$output" =~ "invalid-version-mode must be 'skip' or 'fail'" ]] || false
 }
 
 @test "mode 'Skip' (wrong case) fails" {
@@ -157,11 +157,11 @@ setup() {
 @test "missing arguments fails with usage message" {
 	run "$SCRIPT" "numpy"
 	[ "$status" -eq 1 ]
-	[[ "$output" =~ "Usage:" ]]
+	[[ "$output" =~ "Usage:" ]] || false
 }
 
 @test "too many arguments fails with usage message" {
 	run "$SCRIPT" "numpy" "1.2.3" "skip" "extra"
 	[ "$status" -eq 1 ]
-	[[ "$output" =~ "Usage:" ]]
+	[[ "$output" =~ "Usage:" ]] || false
 }

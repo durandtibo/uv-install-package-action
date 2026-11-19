@@ -55,7 +55,7 @@ setup() {
 @test "patch version 3.10.1 fails" {
 	run "$SCRIPT" "3.10.1"
 	[ "$status" -eq 1 ]
-	[[ "$output" == *"Patch versions are not accepted"* ]]
+	[[ "$output" == *"Patch versions are not accepted"* ]] || false
 }
 
 @test "free-threaded patch version 3.13.0t fails" {
@@ -73,7 +73,7 @@ setup() {
 @test "major only '3' fails" {
 	run "$SCRIPT" "3"
 	[ "$status" -eq 1 ]
-	[[ "$output" == *"Expected 'X.Y'"* ]]
+	[[ "$output" == *"Expected 'X.Y'"* ]] || false
 }
 
 @test "major only free-threaded '3t' fails" {
@@ -136,5 +136,5 @@ setup() {
 @test "missing argument fails with usage message" {
 	run "$SCRIPT"
 	[ "$status" -eq 1 ]
-	[[ "$output" == *"Usage:"* ]]
+	[[ "$output" == *"Usage:"* ]] || false
 }
