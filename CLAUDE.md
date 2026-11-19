@@ -88,6 +88,7 @@ Files are prefixed by role:
   - `ci-format.yaml`, `ci-pre-commit.yaml`: format and lint checks (`make format`, `make lint`,
     `make check-python`, `make pre-commit`), and the bats-assertion check
     (`make check-bats-assertions`, `dev/check_bats_assertions.sh`).
+  - `ci-type-checking.yaml`: type annotations with ty and pyright (`inv types.check --complete`).
   - `ci-shell.yaml`: bats tests on Linux and macOS.
   - `ci-shell-bash32.yaml`: bats tests with the system bash 3.2 of macOS.
   - `ci-export.yaml`: checks the exported set (`make check-export`, `dev/check_export.sh`).
