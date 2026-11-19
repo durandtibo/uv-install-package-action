@@ -196,7 +196,7 @@ use_copies() {
 
 @test "sync: no input is used outside an env: block" {
 	# every use of inputs.* is the value of an env variable
-	bad=$(grep -F '${{ inputs.' "$ACTION_FILE" | grep -vE '^        [A-Z_]+: \$\{\{ inputs\.[a-z-]+ \}\}$' | grep -vE '^    (value|description):' || true)
+	bad=$(grep -F "\${{ inputs." "$ACTION_FILE" | grep -vE '^        [A-Z_]+: \$\{\{ inputs\.[a-z-]+ \}\}$' | grep -vE '^    (value|description):' || true)
 
 	[ -z "$bad" ] || {
 		echo "input used outside env: $bad" >&2
@@ -220,7 +220,7 @@ use_copies() {
 
 @test "sync helpers: an input removed from the README is reported" {
 	use_copies
-	grep -v '^| `uv-args`' "$README_FILE" >"$README_FILE.new" && mv "$README_FILE.new" "$README_FILE"
+	grep -v "^| \`uv-args\`" "$README_FILE" >"$README_FILE.new" && mv "$README_FILE.new" "$README_FILE"
 
 	[ "$(only_in_first "$(action_inputs)" "$(readme_names Inputs)")" = "uv-args" ]
 }
@@ -252,7 +252,7 @@ use_copies() {
 
 @test "sync helpers: an output removed from the README is reported" {
 	use_copies
-	grep -v '^| `installed-version`' "$README_FILE" >"$README_FILE.new" && mv "$README_FILE.new" "$README_FILE"
+	grep -v "^| \`installed-version\`" "$README_FILE" >"$README_FILE.new" && mv "$README_FILE.new" "$README_FILE"
 
 	[ "$(only_in_first "$(action_outputs)" "$(readme_names Outputs)")" = "installed-version" ]
 }

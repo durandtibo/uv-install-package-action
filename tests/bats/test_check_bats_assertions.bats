@@ -22,7 +22,7 @@ write_test() {
 }
 
 @test "check_bats_assertions rejects a [[ ]] assertion without || false" {
-	write_test '  [[ "$output" =~ "x" ]]' '  true'
+	write_test "  [[ \"\$output\" =~ \"x\" ]]" '  true'
 
 	run "$CHECK" "$DIR"
 
@@ -31,7 +31,7 @@ write_test() {
 }
 
 @test "check_bats_assertions rejects a negated [[ ]] assertion without || false" {
-	write_test '  [[ ! "$output" =~ "x" ]]'
+	write_test "  [[ ! \"\$output\" =~ \"x\" ]]"
 
 	run "$CHECK" "$DIR"
 
@@ -47,7 +47,7 @@ write_test() {
 }
 
 @test "check_bats_assertions rejects an indented assertion" {
-	write_test '      [[ "$a" == "$b" ]]'
+	write_test "      [[ \"\$a\" == \"\$b\" ]]"
 
 	run "$CHECK" "$DIR"
 
@@ -55,7 +55,7 @@ write_test() {
 }
 
 @test "check_bats_assertions accepts a [[ ]] assertion with || false" {
-	write_test '  [[ "$output" =~ "x" ]] || false'
+	write_test "  [[ \"\$output\" =~ \"x\" ]] || false"
 
 	run "$CHECK" "$DIR"
 
@@ -71,7 +71,7 @@ write_test() {
 }
 
 @test "check_bats_assertions accepts single bracket assertions" {
-	write_test '  [ "$status" -eq 0 ]' '  [ -z "$output" ]'
+	write_test "  [ \"\$status\" -eq 0 ]" "  [ -z \"\$output\" ]"
 
 	run "$CHECK" "$DIR"
 
@@ -79,7 +79,7 @@ write_test() {
 }
 
 @test "check_bats_assertions accepts a [[ ]] used as a condition" {
-	write_test '  if [[ "$output" == x ]]; then' '    true' '  fi'
+	write_test "  if [[ \"\$output\" == x ]]; then" '    true' '  fi'
 
 	run "$CHECK" "$DIR"
 
