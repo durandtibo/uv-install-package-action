@@ -11,7 +11,8 @@ small bash scripts in `scripts/` (must work on GNU/Linux and BSD/macOS, includin
 macOS; Windows is not supported and not tested) tested with
 [bats](https://github.com/bats-core/bats-core) in `tests/bats/`. `tests/functional/` holds pytest
 tests, `tests/action_cases.json` the edge cases of the action tests, and `dev/` holds maintainer
-helpers (`check_export.sh`, `check_action_case.sh`, `generate_versions.py`, `config/`), not part of
+helpers (`check_export.sh`, `check_action_case.sh`, `check_bats_assertions.sh`,
+`generate_versions.py`, `config/`), not part of
 the action. `review/target_state.md` records the properties (P1 to P11) the action is
 judged against, and `review/testing.md` the testing strategy shared by the action repositories
 (properties T1 to T16).
@@ -24,7 +25,8 @@ judged against, and `review/testing.md` the testing strategy shared by the actio
   rules.
 - Run the shell tests with `bats tests/bats/` (install `bats-core` if missing) and the Python tests
   with `pytest`, or both with `make test`. See `tests/TESTING.md`. Check the release archive with
-  `make check-export`. Some workflows cannot be run locally; say so in the PR instead of claiming
+  `make check-export`, and the bats assertions with `make check-bats-assertions`. Some workflows
+  cannot be run locally; say so in the PR instead of claiming
   they pass.
 
 ## Git workflow
@@ -83,7 +85,8 @@ Files are prefixed by role:
 
 - `ci.yaml`: entry point for pull requests, pushes to `main`, a nightly schedule and manual runs. It
   holds no steps, only jobs that call the reusable `ci-*.yaml` workflows below.
-  - `ci-format.yaml`, `ci-pre-commit.yaml`: format and lint checks.
+  - `ci-format.yaml`, `ci-pre-commit.yaml`: format and lint checks, and the bats-assertion check
+    (`make check-bats-assertions`, `dev/check_bats_assertions.sh`).
   - `ci-shell.yaml`: bats tests on Linux and macOS.
   - `ci-shell-bash32.yaml`: bats tests with the system bash 3.2 of macOS.
   - `ci-export.yaml`: checks the exported set (`make check-export`, `dev/check_export.sh`).
@@ -118,6 +121,9 @@ Conventions:
 ## Tests
 
 - Each script in `scripts/` has its own `tests/bats/test_<script_name>.bats` file.
+- Write every `[[ ... ]]` or `! cmd` assertion that is not the last command of a test with
+  `|| false`: on bash 3.2 (macOS) it does not fail the test otherwise
+  (`make check-bats-assertions` rejects the others).
 - One behaviour per test; mock external commands (`uv`, `feu`, ...) rather than calling the network.
 - Cover success, failure, and edge cases (empty input, wildcard versions, free-threaded `3.13t`,
   invalid formats).
@@ -195,6 +201,6 @@ steps.released.outcome || steps.local.outcome`. There is no `nightly-test-releas
 ## Reporting
 
 - State which checks ran (`make lint`, `make format`, `bats tests/bats/`, `pytest`,
-  `make check-export`) and which did not.
+  `make check-export`, `make check-bats-assertions`) and which did not.
 - Note that CI was not awaited.
 - Report failures that already exist on `main` rather than hiding them.

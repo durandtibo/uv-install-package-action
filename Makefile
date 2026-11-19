@@ -17,6 +17,10 @@ test-functional: ## Run the functional tests (pytest)
 test: test-bats ## Run the bats and pytest tests
 	pytest
 
+.PHONY: check-bats-assertions
+check-bats-assertions: ## Check that the bats assertions do not pass vacuously on bash 3.2
+	./dev/check_bats_assertions.sh
+
 .PHONY: check-export
 check-export: ## Check that the release archive contains only what the action needs
 	./dev/check_export.sh

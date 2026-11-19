@@ -23,7 +23,7 @@ fails_with() {
 @test "an installed package with well formed outputs passes" {
 	run "$CHECK"
 	[ "$status" -eq 0 ]
-	[[ "$output" == *"Case c"* ]]
+	[[ "$output" == *"Case c"* ]] || false
 }
 
 @test "a skipped installation with well formed outputs passes" {
@@ -112,7 +112,7 @@ fails_with() {
 @test "every problem is reported" {
 	CASE='{"id":"c","valid":"false","installed":"false"}' run "$CHECK"
 	[ "$status" -eq 1 ]
-	[[ "$output" == *"is-valid-version: expected"* && "$output" == *"installed: expected"* ]]
+	[[ "$output" == *"is-valid-version: expected"* && "$output" == *"installed: expected"* ]] || false
 }
 
 @test "CASE is required" {

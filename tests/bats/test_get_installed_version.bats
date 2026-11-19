@@ -66,24 +66,24 @@ Version: 2.0" 0
 	mock_uv "warning: Package(s) not found for: numpy" 1
 	run "$SCRIPT" numpy
 	[ "$status" -eq 1 ]
-	[[ "$output" =~ "::error::Cannot find the installed version of 'numpy'" ]]
+	[[ "$output" =~ "::error::Cannot find the installed version of 'numpy'" ]] || false
 }
 
 @test "output without a Version field fails" {
 	mock_uv "Name: numpy" 0
 	run "$SCRIPT" numpy
 	[ "$status" -eq 1 ]
-	[[ "$output" =~ "did not report a version" ]]
+	[[ "$output" =~ "did not report a version" ]] || false
 }
 
 @test "empty package name fails" {
 	run "$SCRIPT" ""
 	[ "$status" -eq 1 ]
-	[[ "$output" =~ "package-name cannot be empty" ]]
+	[[ "$output" =~ "package-name cannot be empty" ]] || false
 }
 
 @test "missing argument fails with usage message" {
 	run "$SCRIPT"
 	[ "$status" -eq 1 ]
-	[[ "$output" =~ "Usage:" ]]
+	[[ "$output" =~ "Usage:" ]] || false
 }

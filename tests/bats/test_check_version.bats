@@ -39,8 +39,8 @@ MOCK
 	run "$SCRIPT" numpy 2.3.0 3.9
 	[ "$status" -eq 0 ]
 	[ "$(cat "$GITHUB_OUTPUT")" = "is-valid-version=false" ]
-	[[ "$output" != *"::warning::"* ]]
-	[[ "$output" != *"::error::"* ]]
+	[[ "$output" != *"::warning::"* ]] || false
+	[[ "$output" != *"::error::"* ]] || false
 }
 
 @test "True with a nonzero exit status is still valid" {
@@ -54,8 +54,8 @@ MOCK
 	mock_python "maybe" "" 0
 	run "$SCRIPT" numpy 2.3.0 3.11
 	[ "$status" -eq 1 ]
-	[[ "$output" == *"::error::"* ]]
-	[[ "$output" == *"got 'maybe'"* ]]
+	[[ "$output" == *"::error::"* ]] || false
+	[[ "$output" == *"got 'maybe'"* ]] || false
 	[ ! -s "$GITHUB_OUTPUT" ]
 }
 
@@ -70,14 +70,14 @@ MOCK
 	mock_python "" "InvalidVersion: bad" 1
 	run "$SCRIPT" numpy 2.3.0 3.11
 	[ "$status" -eq 1 ]
-	[[ "$output" == *"InvalidVersion: bad"* ]]
+	[[ "$output" == *"InvalidVersion: bad"* ]] || false
 	[ ! -s "$GITHUB_OUTPUT" ]
 }
 
 @test "crash is never reported as an invalid version" {
 	mock_python "" "boom" 1
 	run "$SCRIPT" numpy 2.3.0 3.11
-	[[ ! "$output" == *"is not valid"* ]]
+	[[ ! "$output" == *"is not valid"* ]] || false
 	run grep -q "is-valid-version=false" "$GITHUB_OUTPUT"
 	[ "$status" -ne 0 ]
 }
@@ -85,14 +85,14 @@ MOCK
 @test "error message does not mention PyPI" {
 	mock_python "" "boom" 1
 	run "$SCRIPT" numpy 2.3.0 3.11
-	[[ ! "$output" == *"PyPI"* ]]
+	[[ ! "$output" == *"PyPI"* ]] || false
 }
 
 @test "wildcard version is passed to feu as is" {
 	mock_python "True" "" 0
 	run "$SCRIPT" numpy "2.3.*" 3.11
 	[ "$status" -eq 0 ]
-	[[ "$(cat "$ARGS_FILE")" == *"--pkg-version=2.3.*"* ]]
+	[[ "$(cat "$ARGS_FILE")" == *"--pkg-version=2.3.*"* ]] || false
 }
 
 @test "wildcard matching nothing is reported as invalid" {
@@ -112,24 +112,24 @@ MOCK
 	mock_python "True" "" 0
 	run "$SCRIPT" numpy 2.3.0 ""
 	[ "$status" -eq 0 ]
-	[[ ! "$(cat "$ARGS_FILE")" == *"--python-version"* ]]
+	[[ ! "$(cat "$ARGS_FILE")" == *"--python-version"* ]] || false
 }
 
 @test "python-version is not passed to feu when omitted" {
 	mock_python "True" "" 0
 	run "$SCRIPT" numpy 2.3.0
 	[ "$status" -eq 0 ]
-	[[ ! "$(cat "$ARGS_FILE")" == *"--python-version"* ]]
+	[[ ! "$(cat "$ARGS_FILE")" == *"--python-version"* ]] || false
 }
 
 @test "free-threaded 3.13t is passed to feu unchanged (regression for A4)" {
 	mock_python "True" "" 0
 	run "$SCRIPT" numpy 2.3.0 3.13t
-	[[ "$(cat "$ARGS_FILE")" == *"--python-version=3.13t"* ]]
+	[[ "$(cat "$ARGS_FILE")" == *"--python-version=3.13t"* ]] || false
 }
 
 @test "too few arguments fails with usage message" {
 	run "$SCRIPT" numpy
 	[ "$status" -eq 1 ]
-	[[ "$output" == *"Usage:"* ]]
+	[[ "$output" == *"Usage:"* ]] || false
 }

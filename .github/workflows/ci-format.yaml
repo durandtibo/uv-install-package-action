@@ -1,6 +1,7 @@
 # Formatting and linting workflow.
 # Checks the Markdown, shell, TOML, Makefile and YAML files of the repository with the
-# make targets, and the Python files with ruff.
+# make targets, the assertions of the bats tests (make check-bats-assertions), and the Python files
+# with ruff.
 
 name: Format
 on:
@@ -38,6 +39,9 @@ jobs:
       - name: Lint
         run: |
           make lint
+      - name: Check the bats assertions
+        run: |
+          make check-bats-assertions
 
   python:
     permissions:
