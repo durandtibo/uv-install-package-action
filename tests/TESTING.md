@@ -26,6 +26,10 @@ Testing System).
 - `test_action_cases.bats` - Checks the table of edge cases `tests/action_cases.json`: unique ids,
   required fields, every input of `action.yaml` is set by a case, every validated input has a
   failing case
+- `test_action_readme_sync.bats` - Checks that `action.yaml` and `README.md` list the same inputs
+  and outputs with the same required flags and defaults, and that every input reaches the scripts
+  through `env:` (never interpolated in a `run:` block). Its last tests run the helpers on modified
+  copies to prove that a drift is detected
 
 **Coverage:**
 
@@ -99,7 +103,7 @@ Full end-to-end tests run in GitHub Actions workflows.
 **Key Workflows:**
 
 - `ci.yaml` - Entry point of the checks; calls the `ci-*.yaml` workflows below
-- `ci-python.yaml` - Functional tests across Python versions and OS platforms
+- `ci-python.yaml` - Functional tests (`make test-functional`) across Python versions and OS platforms
 - `ci-action.yaml` - Tests the action in a real workflow. The input `use-released` (default
   `false`) selects the action from this checkout (`uses: ./`) or the latest release. It tests each
   optional dependency of the package (`ci-action-deps.yaml`) and with edge cases
