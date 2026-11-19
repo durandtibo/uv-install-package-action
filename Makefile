@@ -21,6 +21,15 @@ test: test-bats ## Run the bats and pytest tests
 check-bats-assertions: ## Check that the bats assertions do not pass vacuously on bash 3.2
 	./dev/check_bats_assertions.sh
 
+.PHONY: check-python
+check-python: ## Check the formatting and the lint of the Python files (needs invoke)
+	inv format.check-python
+	inv lint.check-python
+
+.PHONY: pre-commit
+pre-commit: ## Run the pre-commit hooks on all files
+	pre-commit run --show-diff-on-failure --color=always --all-files
+
 .PHONY: check-export
 check-export: ## Check that the release archive contains only what the action needs
 	./dev/check_export.sh

@@ -55,6 +55,7 @@ jobs:
     needs: [get-deps, get-matrix]
     if: ${{ !cancelled() && needs.get-deps.result == 'success' && (needs.get-matrix.result == 'success' || needs.get-matrix.result == 'skipped') }}
     strategy:
+      max-parallel: 7
       fail-fast: false
       matrix:
         package-name: ${{ fromJson(needs.get-deps.outputs.extras) }}
