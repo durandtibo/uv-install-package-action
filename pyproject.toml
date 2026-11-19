@@ -49,6 +49,7 @@ dev = [
   "invoke>=3.0,<4.0",
   "pre-commit>=4.6,<5.0",
   "pygments>=2.20,<3.0",
+  "pyright>=1.1.414,<2.0",
   "pytest-cov>=7.1,<8.0",
   "pytest-timeout>=2.4,<3.0",
   "pytest>=9.1,<10.0",
@@ -66,7 +67,7 @@ torch-backend = "auto"
 skip = "*.lock,./.git,./htmlcov,./docs/site,coverage.xml"
 
 [tool.coverage.paths]
-source = ["src", "*/site-packages"]
+source = ["dev", "*/site-packages"]
 
 [tool.coverage.run]
 branch = true
@@ -206,6 +207,12 @@ pandas = "pd"
 polars = "pl"
 pyarrow = "pa"
 xarray = "xr"
+
+[tool.pyright]
+include = ["dev"]
+pythonVersion = "3.11"
+venvPath = "."
+venv = ".venv"
 
 [tool.ty.src]
 include = ["dev", "tests"]
