@@ -40,6 +40,12 @@ jobs:
     permissions:
       contents: read
 
+  # Check the type annotations of the Python files with ty and pyright
+  type-checking:
+    uses: ./.github/workflows/ci-type-checking.yaml
+    permissions:
+      contents: read
+
   # Run pre-commit hooks for code quality
   pre-commit:
     uses: ./.github/workflows/ci-pre-commit.yaml
