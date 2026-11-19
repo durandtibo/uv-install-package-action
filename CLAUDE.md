@@ -13,7 +13,8 @@ macOS; Windows is not supported and not tested) tested with
 tests, `tests/action_cases.json` the edge cases of the action tests, and `dev/` holds maintainer
 helpers (`check_export.sh`, `check_action_case.sh`, `generate_versions.py`, `config/`), not part of
 the action. `review/target_state.md` records the properties (P1 to P11) the action is
-judged against.
+judged against, and `review/testing.md` the testing strategy shared by the action repositories
+(properties T1 to T16).
 
 ## Environment
 
@@ -37,6 +38,8 @@ judged against.
   `docs:` or `feat:` (the type prefix is only for branch names). The squash-merge appends the PR
   number, so do not add one.
 - PR descriptions cover what changed, what was deliberately left alone, and any behaviour change.
+- Do not escape special characters such as the backtick (`` ` ``) in PR titles and descriptions
+  (no `\``): the escape characters are not rendered well. Write them as plain Markdown.
 - On conflicts with `main`, merge `origin/main` into the branch; do not rebase and force-push.
 - Update `README.md` when inputs, outputs, behaviour, or workflows change.
 - Releases are immutable exact version tags (`v0.2.0`, ...). Do not create or move floating tags
@@ -120,13 +123,17 @@ Conventions:
   invalid formats).
 - Every bug fix needs a regression test that fails without the fix.
 - If a check fails for a real reason, report it rather than weakening the test.
+- `tests/bats/test_action_readme_sync.bats` compares `action.yaml` and `README.md` (inputs,
+  outputs, required flags, defaults) and checks that inputs go through `env:`. Update the README
+  with `action.yaml` or it fails.
 - Keep `tests/TESTING.md` in step with the test files and workflows.
 
 ## Testing strategy
 
-The strategy is the same for all the action repositories of `durandtibo`. This repository follows
-it with three levels (`tests/TESTING.md` describes the test files, `review/target_state.md` the
-properties they protect):
+The strategy is the same for all the action repositories of `durandtibo`. The full reasoning and
+the properties (T1 to T16) are in `review/testing.md`. This repository follows it with three
+levels (`tests/TESTING.md` describes the test files, `review/target_state.md` the properties of the
+action they protect):
 
 1. **Code**: each script, tested alone with mocks (bats for `scripts/`, pytest for
    `tests/functional/`). It covers the logic and every edge case. No network.
@@ -147,6 +154,10 @@ Rules:
   (one input, one invalid value, an unusual Python version) run once on one runner
   (`ci-action-edge-cases.yaml`). The same matrix runs on pull requests, pushes and the schedule;
   there is no reduced matrix.
+- Supported equals tested: Linux and macOS and the Python versions of the matrix are tested and
+  claimed in the README; Windows is not supported and not tested. Do not claim a platform or a
+  Python version that is not in the matrix, and do not leave one in the matrix that the README does
+  not claim.
 - Never write an OS or a Python version of the matrix in a workflow: read the lists from
   `durandtibo/workflow-config-action` through `lib-get-test-matrix.yaml`. Package versions come
   from `dev/config/package_versions.json` through `lib-get-package-versions.yaml`.
@@ -176,8 +187,10 @@ steps.released.outcome || steps.local.outcome`. There is no `nightly-test-releas
   which check covers it.
 - Check what is shipped: the exported set (`make check-export`) must contain every file the action
   needs, because `uses: ./` runs the whole checkout and hides a missing file.
-- Set `timeout-minutes` and `fail-fast: false` on matrix jobs.
-- Keep the README inputs and outputs in step with `action.yaml`.
+- Set `timeout-minutes`, `fail-fast: false` and `max-parallel` on matrix jobs. Keep the count of
+  cells per run in `tests/TESTING.md` up to date when a matrix changes.
+- Keep the README inputs and outputs in step with `action.yaml`
+  (`tests/bats/test_action_readme_sync.bats`).
 
 ## Reporting
 

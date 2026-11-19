@@ -53,7 +53,7 @@ jobs:
       # Run tests to ensure updates don't break functionality
       - name: Run functional tests
         run: |
-          inv test.functional
+          make test-functional
 
       # Create a pull request with the dependency updates
       - name: Create pull request
