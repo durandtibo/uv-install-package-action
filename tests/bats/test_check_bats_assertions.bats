@@ -5,8 +5,11 @@
 
 setup() {
 	CHECK="$BATS_TEST_DIRNAME/../../dev/check_bats_assertions.sh"
-	DIR="$BATS_TEST_TMPDIR/check_dir"
-	mkdir -p "$DIR"
+	DIR="$(mktemp -d)"
+}
+
+teardown() {
+	rm -rf "$DIR"
 }
 
 # Writes a .bats file with the given body lines in a test
