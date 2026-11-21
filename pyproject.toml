@@ -25,12 +25,11 @@ requires-python = ">=3.11"
 dependencies = []
 
 [project.optional-dependencies]
-numpy = ["numpy >=1.22"]
-polars = ["polars >=1.0"]
+numpy = ["numpy >=2.0"]
 pydantic = ["pydantic >=2.0"]
 scikit-learn = ["scikit-learn >=1.0"]
 torch = [
-  "torch>=2.0,<3.0; (sys_platform == 'linux' or (sys_platform == 'darwin' and platform_machine == 'arm64'))",
+  "torch>=2.4,<3.0; (sys_platform == 'linux' or (sys_platform == 'darwin' and platform_machine == 'arm64'))",
 ]
 
 [project.urls]
@@ -204,7 +203,6 @@ known-first-party = ["dev"]
 [tool.ruff.lint.flake8-import-conventions.aliases]
 numpy = "np"
 pandas = "pd"
-polars = "pl"
 pyarrow = "pa"
 xarray = "xr"
 
