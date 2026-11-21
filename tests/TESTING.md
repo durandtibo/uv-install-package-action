@@ -87,7 +87,7 @@ Tests that verify installed packages can be imported and used correctly.
 
 **Coverage:**
 
-- Package import verification for common packages (numpy, polars, torch, etc.)
+- Package import verification for common packages (numpy, torch, etc.)
 - Uses conditional decorators to skip if package not available
 
 **Running the Tests:**

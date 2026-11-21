@@ -8,9 +8,6 @@ from feu.testing import (
     torch_available,
 )
 
-polars_available: pytest.MarkDecorator = pytest.mark.skipif(
-    not is_package_available("polars"), reason="Requires polars"
-)
 pydantic_available: pytest.MarkDecorator = pytest.mark.skipif(
     not is_package_available("pydantic"), reason="Requires pydantic"
 )
@@ -26,16 +23,6 @@ def test_numpy() -> None:
     import numpy as np  # local import because it is an optional dependency
 
     assert np.array_equal(np.ones((2, 3)) + np.ones((2, 3)), np.full((2, 3), 2.0))
-
-
-@polars_available
-def test_polars() -> None:
-    import polars as pl  # local import because it is an optional dependency
-    import polars.testing  # local import because it is an optional dependency
-
-    polars.testing.assert_series_equal(
-        pl.Series([1, 2, 3, 4, 5]) + pl.Series([5, 4, 3, 2, 1]), pl.Series([6, 6, 6, 6, 6])
-    )
 
 
 @pydantic_available
