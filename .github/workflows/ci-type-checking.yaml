@@ -23,7 +23,7 @@ jobs:
       # The optional dependencies are installed too, so the type checkers resolve the imports of
       # the functional tests.
       - name: Set up python environment
-        uses: durandtibo/setup-venv-uv-action@a592cf6a2b2788f2e5846e4e29151f8895e1c643 # ratchet:durandtibo/setup-venv-uv-action@v0.3.0
+        uses: durandtibo/setup-venv-uv-action@6142e28631bebf642f8ff7087c8c8702f5d99c63 # ratchet:durandtibo/setup-venv-uv-action@v0.3.2
 
       # Type-check the Python files with ty and pyright
       - name: Check types
