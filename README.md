@@ -21,8 +21,8 @@ can stay a plain cross product, and the invalid cells skip cleanly (or fail, on 
 
 It checks the requested version with [feu](https://github.com/durandtibo/feu), which holds curated
 version ranges per package and Python version, then installs it with `uv`. `feu` is installed by the
-action. An exact version is never replaced by another one, and a wildcard such as `2.12.*` installs
-the newest valid release matching it.
+action, which logs its version. An exact version is never replaced by another one, and a wildcard
+such as `2.12.*` installs the newest valid release matching it.
 
 ## Prerequisites
 
