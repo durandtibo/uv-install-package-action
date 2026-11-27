@@ -88,14 +88,16 @@ runs:
     # ============================================================================
     # feu holds the compatibility knowledge (valid versions per package and
     # Python version) and installs the package. It is installed in the same
-    # environment as the package so both agree on the interpreter. The
-    # specifier names a pre-release, so uv allows it. No retry loop: uv retries
-    # network errors itself (UV_HTTP_RETRIES).
+    # environment as the package so both agree on the interpreter. No retry
+    # loop: uv retries network errors itself (UV_HTTP_RETRIES). The installed
+    # version of feu is logged, since the specifier allows several.
     - name: "Step 2.1: Install feu"
       shell: bash
       run: |
         set -euo pipefail
         uv pip install "feu[cli,requests]>=0.9.0,<1"
+        VERSION=$("${{ github.action_path }}/scripts/get_installed_version.sh" feu)
+        echo "Step 2.1: installed feu ${VERSION}"
 
     # ============================================================================
     # Step 2.2: Check the requested version
