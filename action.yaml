@@ -95,7 +95,7 @@ runs:
       shell: bash
       run: |
         set -euo pipefail
-        uv pip install "feu[cli,requests]>=0.9.0a0,<1"
+        uv pip install "feu[cli,requests]>=0.9.0,<1"
 
     # ============================================================================
     # Step 2.2: Check the requested version
