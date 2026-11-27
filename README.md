@@ -151,7 +151,7 @@ A wildcard that matches no valid release counts as an invalid version.
   if `uv-args` sets another index.
 - A package that is not in the table of `feu` is always considered valid. A typo in `package-name`
   is caught by the install step, with the error of `uv`.
-- The action requires `feu>=0.9.0a0` (a pre-release, installed by the action).
+- The action requires `feu>=0.9.0,<1` (installed by the action).
 - Windows is not supported.
 
 ## What's new

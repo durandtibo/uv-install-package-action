@@ -14,7 +14,7 @@ accepted. The future state matters more than backward compatibility.
 - **Dependencies the action may install**: `feu`, because it holds the compatibility knowledge
   (curated version ranges per package and target, plus companion pins such as `numpy<2` for old
   `jax`). It cannot be replaced by a bare `uv pip install` without losing that knowledge.
-- **Assumed `feu` version**: `feu>=0.9.0a0` (pre-release, verified below in section 2.3). It adds
+- **Assumed `feu` version**: `feu>=0.9.0,<1` (verified with the pre-release, section 2.3). It adds
   wildcard support, automatic detection of the target Python, and `shlex` handling of installer
   arguments.
 
@@ -136,7 +136,7 @@ New behaviours the action must handle:
   1.3  Validate the Python version       scripts/validate_python_version.sh
 
 2.x  Check
-  2.1  Install feu                       uv pip install "feu[cli,requests]>=0.9.0a0,<1"
+  2.1  Install feu                       uv pip install "feu[cli,requests]>=0.9.0,<1"
   2.2  Check the version                 scripts/check_version.sh             -> is-valid-version
   2.3  Handle an invalid version         scripts/handle_invalid_version.sh
 
@@ -150,7 +150,7 @@ New behaviours the action must handle:
   (non-empty, no whitespace, no leading `-`) and `invalid-version-mode` (`skip` or `fail`).
 - **1.3** Accepts empty, `X.Y` and `X.Yt`; rejects everything else (including `3.10.1`) with the
   expected format in the message. Empty is passed through: `feu` detects the target itself (A4).
-- **2.1** One `uv pip install` of `feu[cli,requests]>=0.9.0a0,<1`. No retry loop and no sleep: uv
+- **2.1** One `uv pip install` of `feu[cli,requests]>=0.9.0,<1`. No retry loop and no sleep: uv
   has its own network retries (`UV_HTTP_RETRIES`). `feu` goes into the same environment the package
   is installed into, so `feu install` and the check agree on the interpreter (P4).
 - **2.2** Runs `python -m feu check-valid-version`, passing `--python-version` only when it was
@@ -253,20 +253,20 @@ Keep the role-based layout and conventions from `CLAUDE.md`. Changes:
 | Wildcards get a real check                                        | A wildcard matching nothing is now skipped (`skip`), not a job failure. |
 | No more import verification step and its warnings                 | Add `python -c "import ..."` if wanted.                                 |
 | Auto-detected Python includes `t` for free-threaded builds        | None for most users; a `3.13t` runner is now checked as `3.13t`.        |
-| `feu>=0.9.0a0` is required (pre-release)                          | None (the action installs it).                                          |
+| `feu>=0.9.0` is required                                          | None (the action installs it).                                          |
 | New input `invalid-version-mode` (additive, default keeps `skip`) | Set `fail` to replace the manual follow-up step.                        |
 
 ## 5. Decisions
 
-1. **Wildcards**: keep, checked by `feu>=0.9.0a0` (verified, section 2.3). Replaces the earlier
+1. **Wildcards**: keep, checked by `feu>=0.9.0` (verified, section 2.3). Replaces the earlier
    "drop" answer, which was based on the dry-run alternative.
 2. **Private indexes**: (a) document that the check ignores `uv-args`. Add a skip-the-check option
    (b) only if users ask.
 3. **`installed` output**: keep.
 4. **`invoke` vs `make`**: nothing depends on `tasks.py`; remove it.
 
-5. **Pre-release `feu`**: `v0.3.0` is released only once `feu 0.9.0` is stable. Until then the
-   action is developed against `feu>=0.9.0a0` and is not tagged.
+5. **Stable `feu`**: `v0.3.0` is released only once `feu 0.9.0` is stable. It now is, and the
+   action requires `feu>=0.9.0,<1`.
 6. **`installed-version` output**: add it. Produced by step 3.2 with `uv pip show`, so it reports
    what is really in the environment, which matters for wildcards.
 
@@ -285,7 +285,7 @@ Keep the role-based layout and conventions from `CLAUDE.md`. Changes:
    troubleshooting; update `tests/TESTING.md`. Fixes A8.
 6. `ci/table-driven-edge-cases`: matrix-driven edge cases, output assertions, export-set check.
 7. `chore/repo-hygiene`: `.gitattributes`, empty `tests/unit`, invoke removal. Fixes A11.
-8. Release `v0.3.0` once `feu 0.9.0` is stable (raise the pin to `feu>=0.9.0,<1` first).
+8. Release `v0.3.0` (`feu 0.9.0` is stable and the pin is `feu>=0.9.0,<1`).
 
 Expected result: five small scripts instead of four, seven steps that each do one thing, no retry
 loop, no import guess, and `feu` as the only extra package in the environment.
