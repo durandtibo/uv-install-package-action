@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import pytest
-from feu.imports import is_package_available
+from feu.imports import clear_availability_caches, is_package_available
 from feu.testing import (
     numpy_available,
     sklearn_available,
@@ -15,7 +15,7 @@ pydantic_available: pytest.MarkDecorator = pytest.mark.skipif(
 
 @pytest.fixture(autouse=True)
 def _reset_cache() -> None:
-    is_package_available.cache_clear()
+    clear_availability_caches()
 
 
 @numpy_available
