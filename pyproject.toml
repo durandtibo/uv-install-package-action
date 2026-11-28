@@ -59,6 +59,19 @@ dev = [
 
 docs = []
 
+[tool.uv]
+# The newest releases of these packages cannot be installed on the free-threaded
+# Python 3.13t (no cp313t wheel, and pydantic-core does not build from source).
+# No environment marker selects free-threaded builds, so 3.13 is held back too.
+constraint-dependencies = [
+  "cuda-bindings<13.1; python_full_version >= '3.13' and python_full_version < '3.14'",
+  "numpy<2.5; python_full_version >= '3.13' and python_full_version < '3.14'",
+  "pydantic<2.12.4; python_full_version >= '3.13' and python_full_version < '3.14'",
+  "scikit-learn<1.9; python_full_version >= '3.13' and python_full_version < '3.14'",
+  "scipy<1.18; python_full_version >= '3.13' and python_full_version < '3.14'",
+  "torch<2.12.1; python_full_version >= '3.13' and python_full_version < '3.14'",
+]
+
 [tool.uv.pip]
 torch-backend = "auto"
 
